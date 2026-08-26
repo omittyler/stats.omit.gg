@@ -38,6 +38,7 @@ Updated 2026-08-26 to match the resolved points-formula and Elite stage/region d
 | `stage` | Elite only — `1`, `2`, `3`, etc. Leave blank for Cup/Major/Champs |
 | `region` | region code (e.g. `NA`, `EU`, `AP`, `LA`) for region-specific events (Elite, likely Cups). Leave blank for global events (Major, Champs) |
 | `placement` | the team's final rank, e.g. `1`, `2`, `5`. For tied placements (e.g. "5th-6th" on the official scale) either the exact number or a range like `5-6` works — the points lookup matches by range either way |
+| `player1`, `player2`, `player3`, `player4` | **added 2026-08-26.** The 4 players on this team's roster for THIS specific event/placement — gives us the per-event roster directly, so player-level prize splits (25% each, see PROJECT.md §3/§7) work immediately without waiting on full player statistics. Use the same alias/name that will appear in `players.csv` once that's compiled, so they match up later — exact matching gets reconciled at import time either way. |
 
 **Elite specifically:** each row is one team's single, final placement for that stage (1-12) — not separate Qualifier and Playoff rows. Top-8 teams get their Playoff finish; teams that didn't advance (9th-12th) get their Qualifier finish. See PROJECT.md §4.4 for why this is already resolved into one number per team per stage.
 
