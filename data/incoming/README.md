@@ -27,15 +27,38 @@ Org/region/coach/social links weren't part of this pull — add a separate file 
 | `photo_filename` | filename you saved the photo as in `/public/players/` (see below) |
 
 ## `placings.csv`
+Updated 2026-08-26 to match the resolved points-formula and Elite stage/region decisions in PROJECT.md §3-§5 — **do not include a points or prize column**. Points and prize are always computed from `(event_type, placement)` via the lookup table in `data/reference/cdc_points_and_prizing.md`, never entered directly.
+
 | column | notes |
 |---|---|
-| `team_name` | must match a `team_name` in teams.csv |
-| `event_name` | e.g. "2026 Season Elite Qualifier" |
-| `event_type` | Cup / Elite Qualifier / Elite Playoff / Major / Champs |
-| `season` | e.g. 2026 |
-| `region` | if the event is region-specific |
-| `placement` | final rank/place, e.g. 1, 2, 3 |
-| `points` | only if the wiki shows a points value — leave blank if not, per PROJECT.md the points formula isn't finalized |
+| `team_name` | must match a `Team Name` in `teams.csv` |
+| `event_name` | human-readable, e.g. "2026 NA Elite Stage 1", "2026 Global Major 1", "2026 Champs" |
+| `event_type` | one of: `Cup`, `Elite`, `Major`, `Champs` (no separate Qualifier/Playoff types — see below) |
+| `season` | e.g. `2026` |
+| `stage` | Elite only — `1`, `2`, `3`, etc. Leave blank for Cup/Major/Champs |
+| `region` | region code (e.g. `NA`, `EU`, `AP`, `LA`) for region-specific events (Elite, likely Cups). Leave blank for global events (Major, Champs) |
+| `placement` | the team's final rank, e.g. `1`, `2`, `5`. For tied placements (e.g. "5th-6th" on the official scale) either the exact number or a range like `5-6` works — the points lookup matches by range either way |
+
+**Elite specifically:** each row is one team's single, final placement for that stage (1-12) — not separate Qualifier and Playoff rows. Top-8 teams get their Playoff finish; teams that didn't advance (9th-12th) get their Qualifier finish. See PROJECT.md §4.4 for why this is already resolved into one number per team per stage.
+
+## `player_map_stats.csv` / `player_weapon_stats.csv` (future — full player statistics)
+Not part of the wiki pull — this is the historical 2026-season player statistics the user will drop in separately. Recommended shape below is a **long/tidy layout** (one row per player per map, not one wide row per match with every player's columns side by side) — much easier to import reliably than a pivoted spreadsheet. If the actual source data isn't naturally in this shape, export what you've got as-is rather than forcing it; the import gets adapted to match reality, same as every other file here.
+
+**`player_map_stats.csv`** — one row per player per map:
+| column | notes |
+|---|---|
+| `event_name`, `event_type`, `season`, `stage`, `region` | same event-identifying columns as `placings.csv` |
+| `match_name` / `match_id` | identifies the series (e.g. "Team A vs Team B") so maps group into a match |
+| `map_number` | 1, 2, 3... |
+| `map_name` | e.g. "Highrise" |
+| `mode` | Hardpoint / S&D / Control |
+| `team_name` | the team this player was on for THIS map — this doubles as the per-event roster, see PROJECT.md §7 |
+| `player_name` | |
+| `kills`, `deaths`, `damage`, `+/-` | plus objective stats (hill time, plants/defuses, ticks) once known |
+
+**`player_weapon_stats.csv`** — same event/match/map/team/player context columns, plus `weapon_name`, `kills`, `accuracy`, `headshots`.
+
+Because `team_name` is recorded per map/match here, this data resolves the "rosters change between events" problem for player-level prize-money attribution (§7) without needing a separate manual roster file.
 
 ## Naming isn't precious
 If the wiki's columns don't map exactly to the above, just export what you've got — exact header names and structure can be adjusted once real files are here. This template exists so the first pass lines up cleanly, not as a hard requirement.
