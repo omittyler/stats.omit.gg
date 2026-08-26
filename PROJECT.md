@@ -122,7 +122,8 @@ Track these here; resolve and move to §3/§8 (decisions/changelog) once answere
 - [ ] omit.gg's existing Webflow branding (colors, fonts, logo usage) — not yet reviewed. Needed before frontend styling begins.
 - [ ] Hosting/DNS setup for `stats.omit.gg` subdomain on Vercel — not yet configured.
 - [ ] Git remote — repo is git-initialized locally (see §10 Version Control) but has no remote yet. Decide on a private GitHub repo (or other) when ready to back up / deploy from it.
-- [ ] `players.csv` and `placings.csv` (and player photos) from the wiki — process defined (§6), not yet dropped in.
+- [ ] `placings.csv` from the wiki — process defined (§6), not yet dropped in.
+- [ ] `players.csv` (and player photos) — **deprioritized 2026-08-26 by user**: highest-effort file to compile and not urgent right now. Sequencing is `teams.csv` (done) → `placings.csv` → `players.csv` last. Standings can be built and populated without it; Team page rosters and Player pages wait on it.
 - [ ] Did any team change its roster mid-2026-season? The 25%-per-player prize split (§5) is only trivial if we know the exact 4 players on the roster at the time of each specific event — if rosters were static all season this is a non-issue, otherwise we need per-event roster snapshots, not just the current roster from `players.csv`.
 
 Resolved — see Changelog §8 and inline notes in §3/§4.4/§5: standings scope (aggregated + per-event), admin auth approach (simple password), historical data (2026 season exists and is the initial import), data intake approach for rosters/logos/placings (manual pull, not API — see §3/§6), CDC points formula (computed via `points_scale`, see §3/§5), Finals/Champs awards zero points (confirmed), prize money is in scope and tracked at team level, player prize split (even 25% across the 4 roster players per event), Elite stage/region mechanics (multiple independent stages per season, one pre-resolved final placement per team per stage, region-based standings for Elite seeding + one global standings for Major/Open seeding — see §4.4/§5).
@@ -140,14 +141,15 @@ Append a dated entry each session with what changed — decisions made, scope ad
 - **2026-08-26** — Confirmed player-level prize split: even 25% across the 4 roster players per event (depends on knowing the roster at time of event, flagged in §7 if any team's roster changed mid-2026-season). Confirmed Elite runs as multiple independent stages per season (Stage 1, Stage 2, etc.), each with its own Qualifier+Playoff, all using the same CDC points/prize scale — `events` schema needs a stage dimension (§5).
 - **2026-08-26** — Fully resolved Elite mechanics: placement data will arrive as one final, pre-resolved placement per team per stage (no reconciliation needed between Qualifier/Playoff results ourselves) — `event_placements` attaches at the stage level. Confirmed Elite has region-based standings (feeds future Elite seeding per region) plus one separate global ranking across all regions (feeds Major/Open seeding) — standings page needs both a per-region and a global aggregate view, not just one combined table. `events` schema updated: `type` simplified to Cup/Elite/Major/Champs with separate `stage` and `region` fields rather than baking Qualifier/Playoff into the type enum. See §4.4, §5.
 - **2026-08-26** — Confirmed `public/players/DefaultPlayer.png` is the player-level equivalent of the team `Default.png` fallback — used for any player without a photo on file. See §3, §5.
+- **2026-08-26** — User set intake sequencing: `teams.csv` (done) → `placings.csv` next → `players.csv` last, since players.csv is the highest-effort file to compile and isn't urgent right now. Standings can be fully built/populated without it; Team roster display and Player pages wait on it. See §7, §9.
 
 ## 9. Immediate Next Steps
 
-1. User pulls remaining roster/placings/photo data from the wiki per the process in §6 and drops files into `data/incoming/` and `public/players/`.
-2. Once those files land, write a one-off seed script to load teams/players/event_placements into Supabase, including the `points_scale` reference table from `data/reference/cdc_points_and_prizing.md`.
+1. User pulls `placings.csv` from the wiki per the process in §6 and drops it into `data/incoming/`. (`players.csv` and player photos come later — deprioritized, see §7.)
+2. Once `teams.csv` + `placings.csv` are both in, write a one-off seed script to load teams/event_placements into Supabase, including the `points_scale` reference table from `data/reference/cdc_points_and_prizing.md`. This is enough to build and populate the Standings page fully.
 3. Resolve remaining open questions in §7 (branding, hosting, git remote).
 4. Pull omit.gg's existing Webflow branding before frontend styling work begins.
-5. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages for the four page types + directory pages — teams/players/standings pages can go live with real data before match/stat data arrives.
+5. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages — Standings page can go fully live with real data first; Teams/Players pages follow once `players.csv` lands; Match page and stat tables wait on the stats provider.
 6. When the stats provider data arrives: admin CSV/XLSX import tool with simple password auth and preview-before-commit, plus the match page and stat tables.
 
 ## 10. Version Control
