@@ -18,6 +18,8 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 
 **Blocking the next real build step:** the real data sample (Google Sheet/CSV/Excel) from the Challengers stats provider has not arrived. Schema below is a draft hypothesis, not final — do not treat it as locked until a real sample has been mapped against it.
 
+**Timeline context:** The initial data load will be the full 2026 Challengers season (historical/backfilled — confirmed 2026-08-26, this data exists and will be the first import). No new data is expected until the 2027 season starts in January 2027. The point of building now is to have a working system live and ready *before* the 2027 season starts, using the 2026 season as the dataset to build and test against.
+
 ## 3. Architecture Decisions (already made — do not re-litigate without reason)
 
 | Decision | Choice | Why |
@@ -29,6 +31,8 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 | Data ingestion | Provider supplies data via Google Sheet/CSV/Excel, imported through a password-protected admin page | Not manual entry. Admin tool parses CSV/XLSX, matches rows against existing players/maps/events (update, not duplicate), shows a pre-commit preview (e.g. "14 new stat lines, 3 updates, 2 flagged rows") before writing to the DB |
 | Future nice-to-have | Direct Google Sheets API sync to skip manual export | Not in v1 scope |
 | Data granularity | Per-map AND per-weapon, per-round level — not just per-match aggregates | Confirmed by user as a hard requirement |
+| Admin auth | Simple shared-password gate on the admin import page (v1) | Fastest to build; only the user and their stats provider need access. Revisit if admin access needs to scale to more people later |
+| Standings scope | Both per-event standings AND an aggregated overall-season standings view (points summed across events) — not per-event only | The 2026 season (the initial dataset) has no cross-event running system yet; the whole point of this project is to have that aggregated view ready before the 2027 season starts |
 
 ## 4. Confirmed Page Types (v1 scope)
 
@@ -58,7 +62,7 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 - Columns: Rank, Team, Points, MW (Match Wins), ML (Match Losses), MW%, GW (Game/Map Wins), GL (Game/Map Losses), GW%.
 - MW/ML/GW/GL/win% are derived/computed from match and map results already in the database.
 - **Points are NOT computed.** Challengers uses a different (and not yet provided) points formula than CDL, possibly varying by event type. Treat `points` as a value supplied directly by the stats provider per team per event, until a formula is given.
-- **Open question:** should there also be an aggregated overall-season standings view (points summed across all events) in addition to per-event standings? Not yet decided — ask user before building.
+- **Decided (2026-08-26):** v1 includes BOTH per-event standings tabs AND an aggregated overall-season standings view (points summed across all events for a season). This is a core requirement, not a nice-to-have — see timeline context in §2. The `standings_points` schema/queries need to support summing across events within a season, not just per-event lookups.
 
 ### 4.5 Supporting pages (implied, not detailed yet)
 - Matches list page.
@@ -81,23 +85,31 @@ Do not treat as final. Adjust field names/structure/granularity once the real da
 
 Track these here; resolve and move to §3/§7 (decisions/changelog) once answered.
 
-- [ ] Real data sample from the Challengers stats provider — **not yet received**. Blocks finalizing schema.
-- [ ] Aggregated overall-season standings view vs. per-event-only — needs user decision.
-- [ ] Challengers points formula — not yet provided; if given later, `standings_points` could become computed instead of manually supplied.
-- [ ] Admin import tool auth approach — simple password vs. more robust auth — not yet specified.
-- [ ] Historical/backfilled Challengers data — does it exist, or does this start fresh going forward?
+- [ ] Real data sample from the Challengers stats provider — **not yet received**. Will be the full 2026 season (historical). Blocks finalizing schema.
+- [ ] Challengers points formula — not yet provided; `standings_points` stays manually-supplied per team per event until/unless a formula is given later.
 - [ ] omit.gg's existing Webflow branding (colors, fonts, logo usage) — not yet reviewed. Needed before frontend styling begins.
 - [ ] Hosting/DNS setup for `stats.omit.gg` subdomain on Vercel — not yet configured.
+- [ ] Git remote — repo is git-initialized locally (see §9 Version Control) but has no remote yet. Decide on a private GitHub repo (or other) when ready to back up / deploy from it.
+
+Resolved — see Changelog §7 and inline notes in §3/§4.4: standings scope (aggregated + per-event), admin auth approach (simple password), historical data (2026 season exists and is the initial import).
 
 ## 7. Changelog
 
 Append a dated entry each session with what changed — decisions made, scope added/cut, code milestones. Keep entries short; this is a log, not a diary.
 
 - **2026-08-26** — Project kicked off. Architecture, page specs, and draft schema captured from initial planning conversation (see §3–§6). Project directory created but empty; no code written yet. Decided to maintain this file as the portable, in-repo source of truth (separate from any Claude Code account-specific memory), so the project can be resumed from any account/session.
+- **2026-08-26** — Repo initialized (git, local only, no remote yet — see §9). Initial commit `822b21e` with PROJECT.md/CLAUDE.md/.gitignore.
+- **2026-08-26** — Resolved four open questions: standings will include an aggregated overall-season view in addition to per-event (see §3, §4.4) — driven by the 2027-season-readiness timeline goal; points formula still not provided, `standings_points` stays manually-supplied (no change); admin import tool will use a simple shared-password gate (see §3); historical 2026 season data exists and will be the initial import (see §2 timeline context).
 
 ## 8. Immediate Next Steps
 
-1. Get the real data sample from the stats provider; map real columns to the draft schema in §5, flag inconsistent naming/formatting, produce a clean "source of truth" template for future updates.
-2. Resolve open questions in §6 (aggregated standings view, points formula, admin auth, historical data, branding, hosting).
+1. Get the real data sample (2026 season) from the stats provider; map real columns to the draft schema in §5, flag inconsistent naming/formatting, produce a clean "source of truth" template for future updates.
+2. Resolve remaining open questions in §6 (branding, hosting, git remote).
 3. Pull omit.gg's existing Webflow branding before frontend styling work begins.
-4. Build: Supabase schema, Next.js pages for the four page types + directory pages, admin CSV/XLSX import tool with preview-before-commit.
+4. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages for the four page types + directory pages, admin CSV/XLSX import tool with simple password auth and preview-before-commit.
+
+## 9. Version Control
+
+- Local git repo initialized 2026-08-26 at the project root. Commit identity is repo-local (not global): `Tyler Porteous <tyler@omit.gg>`.
+- No remote configured yet (see §6 open questions) — history currently exists only on this machine.
+- Commits are made on request, not automatically after every change — ask to have work committed at a good checkpoint.
