@@ -4,15 +4,17 @@ Drop spreadsheet exports here from the [Call of Duty Esports Wiki](https://cod-e
 
 This covers what's available now (rosters, logos, placings) per [PROJECT.md](../PROJECT.md) §2 — player statistics (kills/deaths/damage/weapon data) are a separate, later drop from the official stats provider and don't belong here.
 
-## `teams.csv`
+## `teams.csv` — DONE (dropped in 2026-08-26)
+Actual format used, simpler than originally templated — this file is a **team-name-to-logo lookup table**, not full team metadata:
+
 | column | notes |
 |---|---|
-| `team_name` | as shown on the wiki |
-| `org` | organization/affiliation, if different from team_name |
-| `region` | e.g. North America, Europe |
-| `coach` | coach name, if listed |
-| `logo_filename` | filename you saved the logo as in `/public/teams/` (see below) |
-| `social_links` | any socials listed (Twitter/X, etc.) — comma-separated is fine |
+| `Team Name` | as shown on the wiki |
+| `File Name` | filename of the logo saved in `/public/teams/` |
+
+**Special row: `Default` / `Default.png`.** This is a fallback sentinel, not a real team. When importing player statistics or bracket/match data later, if a team name in that import doesn't match any `Team Name` in this file, use `Default.png` as the logo but keep the real team name text from the import — do not drop or rename the team. See PROJECT.md §6 for how this should be implemented.
+
+Org/region/coach/social links weren't part of this pull — add a separate file later if/when that data is gathered, rather than assuming it's missing from teams.csv by mistake.
 
 ## `players.csv`
 | column | notes |
