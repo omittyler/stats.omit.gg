@@ -42,6 +42,8 @@ Updated 2026-08-26 to match the resolved points-formula and Elite stage/region d
 
 **Elite specifically:** each row is one team's single, final placement for that stage (1-12) — not separate Qualifier and Playoff rows. Top-8 teams get their Playoff finish; teams that didn't advance (9th-12th) get their Qualifier finish. See PROJECT.md §4.4 for why this is already resolved into one number per team per stage.
 
+**Elite: only paste placements 1st-12th.** The Qualifier bracket is often much bigger (e.g. 32 teams), but everyone below 12th earns zero CDC points, so there's no need to transcribe them — skip straight past whatever the wiki shows for 13th place onward. (Cup and Major/Open are different: paste their FULL placement range, since those scales pay points much further down.)
+
 ## `player_map_stats.csv` / `player_weapon_stats.csv` (future — full player statistics)
 Not part of the wiki pull — this is the historical 2026-season player statistics the user will drop in separately. Recommended shape below is a **long/tidy layout** (one row per player per map, not one wide row per match with every player's columns side by side) — much easier to import reliably than a pivoted spreadsheet. If the actual source data isn't naturally in this shape, export what you've got as-is rather than forcing it; the import gets adapted to match reality, same as every other file here.
 
