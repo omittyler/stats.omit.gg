@@ -42,7 +42,11 @@ Updated 2026-08-26 to match the resolved points-formula and Elite stage/region d
 
 **Elite specifically:** each row is one team's single, final placement for that stage (1-12) — not separate Qualifier and Playoff rows. Top-8 teams get their Playoff finish; teams that didn't advance (9th-12th) get their Qualifier finish. See PROJECT.md §4.4 for why this is already resolved into one number per team per stage.
 
-**Elite: only paste placements 1st-12th.** The Qualifier bracket is often much bigger (e.g. 32 teams), but everyone below 12th earns zero CDC points, so there's no need to transcribe them — skip straight past whatever the wiki shows for 13th place onward. (Cup and Major/Open are different: paste their FULL placement range, since those scales pay points much further down.)
+**Elite: only paste placements 1st-12th.** The Qualifier bracket is often much bigger (e.g. 32 teams), but everyone below 12th earns zero CDC points, so there's no need to transcribe them — skip straight past whatever the wiki shows for 13th place onward.
+
+**Cup: only paste placements 1st-32nd (confirmed 2026-08-26).** The official Cup points scale goes further (down to 33rd-64th), but user decided to cap data entry at top 32 regardless — skip 33rd place onward even if the source shows it.
+
+**Major/Open: paste the FULL placement range.** Unlike Cup and Elite, Major/Open brackets are recorded in full down to whatever the source shows (seen as far as 83rd place) — no cap.
 
 **Ignore per-team "CDC '26 Elite 1: [region]" rank tags in the roster listing.** On Elite pages, each team's roster block often shows a tag like "1st", "4th", or "5th - 6th" right under a "Qualified / CDC '26 Elite 1: NA" (or ": EM" for EU) label. This has consistently NOT matched the real placement table above it (seen twice: EU Stage 2 and NA Stage 2) — it appears to be leftover qualification-path/seed metadata from a prior round, not the current event's actual result. Always use the real placement table as authoritative, and match each roster to its placement by team name, not by this tag.
 
