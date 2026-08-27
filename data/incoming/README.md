@@ -44,6 +44,8 @@ Updated 2026-08-26 to match the resolved points-formula and Elite stage/region d
 
 **Elite: only paste placements 1st-12th.** The Qualifier bracket is often much bigger (e.g. 32 teams), but everyone below 12th earns zero CDC points, so there's no need to transcribe them — skip straight past whatever the wiki shows for 13th place onward. (Cup and Major/Open are different: paste their FULL placement range, since those scales pay points much further down.)
 
+**Ignore per-team "CDC '26 Elite 1: [region]" rank tags in the roster listing.** On Elite pages, each team's roster block often shows a tag like "1st", "4th", or "5th - 6th" right under a "Qualified / CDC '26 Elite 1: NA" (or ": EM" for EU) label. This has consistently NOT matched the real placement table above it (seen twice: EU Stage 2 and NA Stage 2) — it appears to be leftover qualification-path/seed metadata from a prior round, not the current event's actual result. Always use the real placement table as authoritative, and match each roster to its placement by team name, not by this tag.
+
 ## `player_map_stats.csv` / `player_weapon_stats.csv` (future — full player statistics)
 Not part of the wiki pull — this is the historical 2026-season player statistics the user will drop in separately. Recommended shape below is a **long/tidy layout** (one row per player per map, not one wide row per match with every player's columns side by side) — much easier to import reliably than a pivoted spreadsheet. If the actual source data isn't naturally in this shape, export what you've got as-is rather than forcing it; the import gets adapted to match reality, same as every other file here.
 
