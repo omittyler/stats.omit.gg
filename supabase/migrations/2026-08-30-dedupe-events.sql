@@ -8,14 +8,18 @@
 -- Run ONCE in the Supabase SQL editor. Safe to run again if needed - each
 -- step is a no-op once there's nothing left to merge/delete.
 --
--- Order matters here: rows must be de-duplicated (step 1) BEFORE being
--- repointed onto the canonical event (step 2), otherwise two placement rows
--- for the same team can both try to become the same (team_id, event_id) pair
--- and violate event_placements' own unique constraint mid-update.
+-- Order matters throughout: rows referencing a duplicate event must be
+-- de-duplicated BEFORE being repointed onto the canonical event, otherwise
+-- two rows for the same team/player can collide on the same (x, event_id)
+-- pair mid-update and violate that table's own unique constraint. Both
+-- event_placements AND player_event_stats reference events(id), so both
+-- need this same two-step treatment before the duplicate event rows can be
+-- deleted (confirmed by two separate errors hitting this migration -
+-- event_placements' own unique constraint, then a foreign key from
+-- player_event_stats that was missed in an earlier version of this file).
 
--- 1. For each team, keep only ONE event_placements row per canonical event
---    group (i.e. across all of that event's duplicate rows combined) -
---    whichever has the lowest id. Delete the rest.
+-- 1a. event_placements: keep only ONE row per team per canonical event
+--     group (lowest id), delete the rest.
 with canonical as (
   select min(id) as keep_id, name, coalesce(region, '') as region_key
   from events
@@ -35,8 +39,7 @@ ranked as (
 delete from event_placements
 where id in (select id from ranked where rn > 1);
 
--- 2. Repoint each surviving row onto its canonical event id (safe now - at
---    most one row per team remains per group, so no collision is possible).
+-- 1b. event_placements: repoint each surviving row onto its canonical event id.
 with canonical as (
   select min(id) as keep_id, name, coalesce(region, '') as region_key
   from events
@@ -52,6 +55,43 @@ set event_id = etc.keep_id
 from event_to_canonical etc
 where ep.event_id = etc.event_id
   and ep.event_id <> etc.keep_id;
+
+-- 2a. player_event_stats: same treatment, keyed by player_name instead of team_id.
+with canonical as (
+  select min(id) as keep_id, name, coalesce(region, '') as region_key
+  from events
+  group by name, coalesce(region, '')
+),
+event_to_canonical as (
+  select e.id as event_id, c.keep_id
+  from events e
+  join canonical c on e.name = c.name and coalesce(e.region, '') = c.region_key
+),
+ranked as (
+  select pes.id, pes.player_name, etc.keep_id,
+         row_number() over (partition by pes.player_name, etc.keep_id order by pes.id) as rn
+  from player_event_stats pes
+  join event_to_canonical etc on pes.event_id = etc.event_id
+)
+delete from player_event_stats
+where id in (select id from ranked where rn > 1);
+
+-- 2b. player_event_stats: repoint each surviving row onto its canonical event id.
+with canonical as (
+  select min(id) as keep_id, name, coalesce(region, '') as region_key
+  from events
+  group by name, coalesce(region, '')
+),
+event_to_canonical as (
+  select e.id as event_id, c.keep_id
+  from events e
+  join canonical c on e.name = c.name and coalesce(e.region, '') = c.region_key
+)
+update player_event_stats pes
+set event_id = etc.keep_id
+from event_to_canonical etc
+where pes.event_id = etc.event_id
+  and pes.event_id <> etc.keep_id;
 
 -- 3. Delete the now-orphaned duplicate event rows.
 with canonical as (
