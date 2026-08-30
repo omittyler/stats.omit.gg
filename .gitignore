@@ -12,6 +12,9 @@ out/
 # vercel
 .vercel
 
+# seed script output (regenerated each run, not source)
+scripts/seed/unresolved-*.json
+
 # misc
 .DS_Store
 *.log

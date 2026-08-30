@@ -208,15 +208,25 @@ Append a dated entry each session with what changed — decisions made, scope ad
 - **2026-08-30** — Confirmed the 11 `bo7_stats/` files are the only BO7 stats the user has access to — no Paris Open, Elite Stage 4, Cups, or Champs stats exist to add later. See §7.
 - **2026-08-30** — Mapped all `data/incoming/bo7_stats/*.csv` columns to the new `player_event_stats` table — full mapping written to `data/reference/player_event_stats_columns.md` (104 columns: 7 identity/summary + 16 Overall + 26 Hardpoint + 28 Search & Destroy + 25 Overload, plus `event_id`/`game`). Verified the same 105-column header structure holds across all 11 files (checked Dallas Open, Elite 1 NA, Full Season NA). Chose one wide row per player per event (prefixed columns per mode block) over a normalized per-mode table, since every planned UI use wants the whole row at once. Named columns literally after their source abbreviation initially — 11 abbreviations had unconfirmed exact meanings.
 - **2026-08-30** — User provided `data/incoming/Stat_Abbreviations.csv`, the authoritative legend for every stat abbreviation in `bo7_stats/`. Resolved all 11 previously-unconfirmed columns (e.g. `N/T`=Non-Traded Kills, `SR`=Slayer Rating, `DR`=Damage Rating, `HT`=Hill Time, `GLS`=Goals, `OCK`=Objective Kills) and renamed every `player_event_stats` column from a bare abbreviation to a real name (e.g. `overall_slayer_rating`, `hp_hill_time`, `ovl_goals`) — updated throughout `data/reference/player_event_stats_columns.md`.
+- **2026-08-30** — Wrote the first code in the repo: `supabase/schema.sql` (DDL for all 5 tables) and `scripts/seed/` (Node loader from `data/incoming/` CSVs into Supabase). Not run yet — no Supabase project exists. See §8b for implementation decisions (points_scale's two-prize-column design, auto-creating unknown teams with Default.png, and resolving `player_event_stats`' team codes by looking up each player's name directly in `placings.csv` rather than guessing — unresolved rows are logged, not guessed). Deliberately did not seed the 2 "Full Season" bo7_stats files (not tied to one event).
+
+## 8b. Code (added 2026-08-30)
+
+First code in the repo. `supabase/schema.sql` (DDL for `teams`, `events`, `points_scale`, `event_placements`, `player_event_stats`) and `scripts/seed/` (one-off Node loader from `data/incoming/` CSVs — see `scripts/seed/README.md` for setup/run instructions) exist but have **not been run against a real Supabase project** — none exists yet (user hasn't created one). Not part of the Next.js app itself yet; that scaffolding is a separate, later step (§9).
+
+Notable implementation decisions:
+- `points_scale` uses `prize_usd` (NA/EU or the only prize) plus a nullable `prize_usd_ap_la` (Cup only, since AP/LA Cup prize differs from NA/EU even though CDC points don't) — resolves the "model as region column or two prize columns" open item from §5.
+- `event_placements`/`player_event_stats` team resolution: any `placings.csv` team not already in `teams.csv` gets auto-created with the `Default.png` fallback logo at seed time (implements the §3 fallback rule in code for the first time, not just as a stated rule).
+- `player_event_stats`' team-code problem (bo7_stats files use codes like `TBG`/`P7N`/`HUN`, not full names) is resolved by looking up each stat row's player name directly in `placings.csv` for that event, not by guessing from the code or matching roster overlap. Unresolved/ambiguous rows are skipped and logged to a gitignored report, not guessed.
+- The two "BO7 Full Season" files are **not seeded** — they're rollups, not tied to one event, so the per-player lookup above can't run against them. Revisit later if needed.
 
 ## 9. Immediate Next Steps
 
-1. `placings.csv` is done for the full 2026 season (see §7, §8). Next: write a one-off seed script to load teams/event_placements into Supabase, including the `points_scale` reference table from `data/reference/cdc_points_and_prizing.md`. This is enough to build and populate the Standings page fully. (`players.csv` and player photos come later — deprioritized, see §7.)
-2. `player_event_stats` column mapping is done (§5, `data/reference/player_event_stats_columns.md`). Next: extend the seed script to load `data/incoming/bo7_stats/*.csv` into it — unblocks Player page headline stats + Event Stats, and Team page's Team Stats section.
-3. Resolve remaining open questions in §7 (branding, hosting, git remote).
-4. Pull omit.gg's existing Webflow branding before frontend styling work begins.
-5. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages — Standings page can go fully live with real data first; Teams/Players pages follow once `players.csv` lands; Player page stats sections follow once `player_event_stats` is seeded. Match page is cut from v1 (§4.1) — no data source supports it.
-6. Modern Warfare 4 season: `data/incoming/mw4_stats/` exists but is empty — revisit once that season starts and data is dropped in.
+1. Schema (`supabase/schema.sql`) and seed script (`scripts/seed/`) are written (§8b) but haven't run against a real database. Next: user creates a Supabase project, runs `schema.sql`, fills in `.env.local`, and runs `npm install && npm run seed` (see `scripts/seed/README.md`). Then check `scripts/seed/unresolved-player-event-stats.json` if it exists, and review any skipped rows.
+2. Resolve remaining open questions in §7 (branding, hosting, git remote).
+3. Pull omit.gg's existing Webflow branding before frontend styling work begins.
+4. Scaffold the actual Next.js app (separate from the seed script) and build pages — Standings page can go fully live with real data first; Teams/Players pages follow once `players.csv` lands; Player page stats sections follow once `player_event_stats` is seeded. Match page is cut from v1 (§4.1) — no data source supports it.
+5. Modern Warfare 4 season: `data/incoming/mw4_stats/` exists but is empty — revisit once that season starts and data is dropped in.
 
 ## 10. Version Control
 

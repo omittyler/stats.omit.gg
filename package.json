@@ -1,0 +1,13 @@
+{
+  "name": "stats-omit-gg-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node scripts/seed/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5"
+  }
+}
