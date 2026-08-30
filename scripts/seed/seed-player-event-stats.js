@@ -62,13 +62,14 @@ export async function seedPlayerEventStats() {
 
     const parsed = parseStatsFile(path.join(STATS_DIR, file));
     for (const { player_name, team_code, stats } of parsed) {
-      const teamName = resolvePlayerTeam(playerTeamIndex, key, player_name);
-      if (!teamName) {
+      const resolved = resolvePlayerTeam(playerTeamIndex, key, player_name);
+      if (!resolved) {
         unresolved.push({ file, player_name, team_code });
         continue;
       }
-      const dupeKey = `${player_name}|${eventId}`;
-      const row = { player_name, team_name: teamName, event_id: eventId, game: GAME, ...stats, _file: file };
+      const { teamName, canonicalName } = resolved;
+      const dupeKey = `${canonicalName}|${eventId}`;
+      const row = { player_name: canonicalName, team_name: teamName, event_id: eventId, game: GAME, ...stats, _file: file };
       if (!resolvedByKey.has(dupeKey)) resolvedByKey.set(dupeKey, []);
       resolvedByKey.get(dupeKey).push(row);
     }

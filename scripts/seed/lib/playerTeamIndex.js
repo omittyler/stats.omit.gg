@@ -7,8 +7,12 @@
  * Player names are matched case-insensitively — bo7_stats and placings.csv use
  * inconsistent capitalization for the same handle (e.g. "2Real" vs "2ReaL",
  * "QK4B" vs "qk4b"), confirmed 2026-08-30 by cross-checking a real seed run.
+ * placings.csv's spelling is treated as canonical (it's the curated, manually
+ * reconciled source) and returned alongside the team, so player_event_stats
+ * doesn't end up storing bo7_stats' inconsistent casing.
  *
- * Returns Map(`${event_name}|${region||''}` -> Map(lowercased player_name -> string[] of team names))
+ * Returns Map(`${event_name}|${region||''}` -> Map(lowercased player_name ->
+ *   { canonicalName, teams: string[] }))
  * A player mapping to more than one team name for the same event is a genuine
  * ambiguity (same pattern as the same-event roster conflicts seen throughout
  * placings.csv) - callers must treat that as unresolved, not pick one.
@@ -22,17 +26,17 @@ export function buildPlayerTeamIndex(placingsRows) {
     for (const player of [row.player1, row.player2, row.player3, row.player4]) {
       if (!player) continue;
       const lowerName = player.toLowerCase();
-      if (!playerMap.has(lowerName)) playerMap.set(lowerName, []);
-      const teams = playerMap.get(lowerName);
-      if (!teams.includes(row.team_name)) teams.push(row.team_name);
+      if (!playerMap.has(lowerName)) playerMap.set(lowerName, { canonicalName: player, teams: [] });
+      const entry = playerMap.get(lowerName);
+      if (!entry.teams.includes(row.team_name)) entry.teams.push(row.team_name);
     }
   }
   return index;
 }
 
-/** Returns the resolved team name for a player in an event, or null if unresolved (missing/ambiguous). */
+/** Returns { teamName, canonicalName } for a player in an event, or null if unresolved (missing/ambiguous). */
 export function resolvePlayerTeam(playerTeamIndex, eventKey, playerName) {
-  const teams = playerTeamIndex.get(eventKey)?.get(playerName.toLowerCase());
-  if (!teams || teams.length !== 1) return null;
-  return teams[0];
+  const entry = playerTeamIndex.get(eventKey)?.get(playerName.toLowerCase());
+  if (!entry || entry.teams.length !== 1) return null;
+  return { teamName: entry.teams[0], canonicalName: entry.canonicalName };
 }
