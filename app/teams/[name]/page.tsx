@@ -9,7 +9,8 @@ function formatPlacement(min: number, max: number) {
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ name: string }> }) {
-  const { name: teamName } = await params;
+  const { name: rawName } = await params;
+  const teamName = decodeURIComponent(rawName);
 
   const { data: teamRow } = await supabase
     .from('teams')

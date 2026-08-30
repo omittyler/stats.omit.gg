@@ -8,7 +8,8 @@ function formatPlacement(min: number, max: number) {
 }
 
 export default async function PlayerPage({ params }: { params: Promise<{ name: string }> }) {
-  const { name: playerName } = await params;
+  const { name: rawName } = await params;
+  const playerName = decodeURIComponent(rawName);
 
   const placements = await getEnrichedPlacements();
   const { playerStandings } = await computeStandings(placements);
