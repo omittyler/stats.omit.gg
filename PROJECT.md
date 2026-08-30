@@ -14,7 +14,7 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 
 ## 2. Status
 
-**Phase:** Pre-build / planning. No code written yet as of 2026-08-26.
+**Phase (updated 2026-08-30):** Data is fully seeded in a real Supabase project (§8b), and the Next.js app has been scaffolded with one working page (Standings) proving the whole pipeline — Supabase to Next.js to browser. Not yet run by the user (needs `npm install` + env vars + RLS policies, see §8c). Other pages (Teams, Players) and real styling are next.
 
 **Player statistics update (2026-08-30):** Historical Black Ops 7 (BO7) season stats have arrived — `data/incoming/bo7_stats/`, one CSV per event (Majors, Elite stages) plus two "Full Season" region rollups. **But this is per-player, per-event AGGREGATE data** (Overall combined-modes line + separate Hardpoint/Search & Destroy/Overload mode breakdowns) — there is no match ID, opponent, individual map result, or per-weapon data anywhere in it. **Confirmed by user: this is the actual extent of stats granularity available, not a partial/interim drop** — no per-map/per-round/per-weapon data exists or is coming. This supersedes the "per-map/per-weapon/per-round" hard requirement recorded below in §3, and cuts the Match page's map-by-map breakdown and the `matches`/`maps`/`player_map_stats`/`player_weapon_stats` tables from scope entirely (see §4.1, §5). Team rosters, team logos, player photos, and event placings remain available via the separate wiki-pull process (§6) and are unaffected. A parallel `data/incoming/mw4_stats/` folder exists for the upcoming Modern Warfare 4 season but is currently empty.
 
@@ -223,12 +223,21 @@ Notable implementation decisions:
 - Rows still unresolved after all of the above are logged (not guessed) to gitignored reports: `unresolved-player-event-stats.json` (no match, ambiguous, or missing team code), `duplicate-player-event-stats.json` (same player appears twice for one event in the source — a genuine data anomaly, e.g. "Team Gx"'s Birmingham roster is listed twice in that file), `candidate-player-event-stats.json` (corroborated fuzzy matches awaiting confirmation into `confirmed-aliases.json`).
 - The two "BO7 Full Season" files are **not seeded** — they're rollups, not tied to one event, so the per-player lookup above can't run against them. Revisit later if needed.
 
+## 8c. Next.js App Scaffold (added 2026-08-30)
+
+The actual website codebase, separate from the one-off seed script — App Router, TypeScript, no CSS framework yet (plain inline styles / `app/globals.css` for now, real design later). Lives at the repo root alongside `data/`, `scripts/`, `supabase/` (one repo, not a monorepo split — not worth the complexity at this size).
+
+- **`lib/supabase.ts`** — the app's Supabase client, using the **anon key**, not the service_role key. This is a different credential than the seed script uses, and it's safe to expose to the browser (`NEXT_PUBLIC_` prefix) only because Row Level Security gates it.
+- **`supabase/rls_policies.sql`** (new) — the RLS SELECT policies the anon key needs to actually read anything. Not optional: "Enable automatic RLS" (chosen when the Supabase project was created, §9 old entry) means every table defaults to fail-closed with zero policies. Must be run once in the SQL editor, same as `schema.sql`.
+- **First real page: `/standings`** — one working end-to-end page (Supabase → Next.js → browser) to prove the pipeline before building the rest. Computes aggregated CDC points per team across all 2026 events by joining `event_placements` → `events` (for type) → `points_scale` (exact placement-tier lookup), summed client-side in the page component. Known gap carried over from §7: Major 3 (Atlanta Open)'s non-standard bracket tiers won't find an exact `points_scale` match and will show 0 points for those specific placements until that mapping question is resolved.
+- Not yet run against a real dev server — needs `npm install` (adds `next`/`react`/`react-dom`/TypeScript) and the two new env vars below.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
 2. Resolve remaining open questions in §7 (branding, hosting, git remote).
 3. Pull omit.gg's existing Webflow branding before frontend styling work begins.
-4. Scaffold the actual Next.js app (separate from the seed script) and build pages — Standings page can go fully live with real data now; Teams/Players pages follow once `players.csv` lands; Player page stats sections (headline stats + Event Stats) and Team page's Team Stats section can go live now too, using `player_event_stats`. Match page is cut from v1 (§4.1) — no data source supports it.
+4. Next.js app is scaffolded with a working Standings page (§8c), but not yet run. Next: run `supabase/rls_policies.sql` in the SQL editor, get the anon key (Project Settings → API Keys) and add it plus `NEXT_PUBLIC_SUPABASE_URL` to `.env.local`, `npm install`, then `npm run dev` and view at `localhost:3000/standings`. After that: real styling (pull omit.gg's Webflow branding first), then Teams/Players pages (Teams/Players directory, Team page, Player page stats sections) once `players.csv` lands. Match page is cut from v1 (§4.1) — no data source supports it.
 5. Modern Warfare 4 season: `data/incoming/mw4_stats/` exists but is empty — revisit once that season starts and data is dropped in.
 
 ## 10. Version Control
