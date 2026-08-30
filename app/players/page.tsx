@@ -32,8 +32,14 @@ export default async function PlayersPage() {
           {playerStandings.map((player, i) => (
             <tr key={player.name}>
               <td>{i + 1}</td>
-              <td>{player.name}</td>
-              <td>{player.currentTeam}</td>
+              <td>
+                <Link href={`/players/${encodeURIComponent(player.name)}`}>{player.name}</Link>
+              </td>
+              <td>
+                <Link href={`/teams/${encodeURIComponent(player.currentTeam)}`}>
+                  {player.currentTeam}
+                </Link>
+              </td>
               <td>{player.points.toLocaleString()}</td>
             </tr>
           ))}

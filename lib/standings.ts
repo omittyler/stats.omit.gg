@@ -16,33 +16,36 @@ type PlacementRow = {
   player4: string | null;
   team_id: number;
   teams: { name: string } | null;
-  events: { type: string; event_date: string | null } | null;
+  events: { name: string; type: string; event_date: string | null } | null;
+};
+
+export type EnrichedPlacement = {
+  eventName: string;
+  eventType: string;
+  eventDate: string | null;
+  placementMin: number;
+  placementMax: number;
+  teamName: string;
+  points: number;
+  players: string[];
 };
 
 export type PlayerStanding = { name: string; points: number; currentTeam: string };
 export type TeamStanding = { name: string; points: number; players: string[] };
 
 /**
- * CDC points are earned by, and travel with, the PLAYER - not the team
- * (confirmed 2026-08-30). A team's standing is the sum of its CURRENT
- * roster's individual point totals, so this computes player totals first
- * (every event a name appears in, full placement points each - not split),
- * tracks each player's most recent event by real date to find their current
- * team, then rolls that up into team totals.
- *
- * Known limitation: player identity here is just the name string. A few
- * handles are already confirmed (PROJECT.md §7) to belong to two different
- * real people who were never given distinct spellings ("Apollo", "Law") -
- * those specific names' totals incorrectly merge two people until that's
- * fixed at the source.
+ * Fetches every placement, joined with its team/event, and the CDC points it's
+ * worth (exact placement-tier lookup against points_scale). This is the one
+ * shared query behind /standings, /players, and the team/player detail pages -
+ * each just filters/rolls this up differently.
  */
-export async function computeStandings() {
+export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
   const [{ data: placements, error: placementsError }, { data: scale, error: scaleError }] =
     await Promise.all([
       supabase
         .from('event_placements')
         .select(
-          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(type, event_date)'
+          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date)'
         ),
       supabase.from('points_scale').select('event_type, placement_min, placement_max, cdc_points'),
     ]);
@@ -60,25 +63,53 @@ export async function computeStandings() {
     return exact ? exact.cdc_points : 0;
   }
 
+  return rows
+    .filter((row) => row.events && row.teams)
+    .map((row) => ({
+      eventName: row.events!.name,
+      eventType: row.events!.type,
+      eventDate: row.events!.event_date,
+      placementMin: row.placement_min,
+      placementMax: row.placement_max,
+      teamName: row.teams!.name,
+      points: lookupPoints(row.events!.type, row.placement_min, row.placement_max),
+      players: [row.player1, row.player2, row.player3, row.player4].filter(
+        (p): p is string => p !== null
+      ),
+    }));
+}
+
+/**
+ * CDC points are earned by, and travel with, the PLAYER - not the team
+ * (confirmed 2026-08-30). A team's standing is the sum of its CURRENT
+ * roster's individual point totals, so this computes player totals first
+ * (every event a name appears in, full placement points each - not split),
+ * tracks each player's most recent event by real date to find their current
+ * team, then rolls that up into team totals.
+ *
+ * Known limitation: player identity here is just the name string. A few
+ * handles are already confirmed (PROJECT.md §7) to belong to two different
+ * real people who were never given distinct spellings ("Apollo", "Law") -
+ * those specific names' totals incorrectly merge two people until that's
+ * fixed at the source.
+ */
+export async function computeStandings(placements?: EnrichedPlacement[]) {
+  const rows = placements ?? (await getEnrichedPlacements());
+
   const players = new Map<string, { total: number; lastDate: string; lastTeam: string }>();
 
   for (const row of rows) {
-    if (!row.events || !row.teams) continue;
-    const points = lookupPoints(row.events.type, row.placement_min, row.placement_max);
-    const date = row.events.event_date ?? '';
-    const teamName = row.teams.name;
-
-    for (const name of [row.player1, row.player2, row.player3, row.player4]) {
-      if (!name) continue;
+    const date = row.eventDate ?? '';
+    for (const name of row.players) {
       const existing = players.get(name);
       if (existing) {
-        existing.total += points;
+        existing.total += row.points;
         if (date > existing.lastDate) {
           existing.lastDate = date;
-          existing.lastTeam = teamName;
+          existing.lastTeam = row.teamName;
         }
       } else {
-        players.set(name, { total: points, lastDate: date, lastTeam: teamName });
+        players.set(name, { total: row.points, lastDate: date, lastTeam: row.teamName });
       }
     }
   }
