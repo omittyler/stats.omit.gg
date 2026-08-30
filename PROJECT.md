@@ -2,7 +2,7 @@
 
 Living source of truth for this project. Update this file as decisions are made, scope changes, or work progresses — it should always be enough on its own for a new session (or a different Claude Code account) to pick up the work with no other context.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-30
 
 ---
 
@@ -16,7 +16,7 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 
 **Phase:** Pre-build / planning. No code written yet as of 2026-08-26.
 
-**Blocking full build-out:** player statistics (kills/deaths/damage/weapon data) from the official stats provider have not arrived — this blocks `matches`/`maps`/`player_map_stats`/`player_weapon_stats`. However, team rosters, team logos, player photos, and event placings ARE available now, sourced by the user from the Call of Duty Esports Wiki — see §6 for the intake process. So teams/players/standings can be built with real data now; match pages and stat tables wait on the provider data.
+**Player statistics update (2026-08-30):** Historical Black Ops 7 (BO7) season stats have arrived — `data/incoming/bo7_stats/`, one CSV per event (Majors, Elite stages) plus two "Full Season" region rollups. **But this is per-player, per-event AGGREGATE data** (Overall combined-modes line + separate Hardpoint/Search & Destroy/Overload mode breakdowns) — there is no match ID, opponent, individual map result, or per-weapon data anywhere in it. **Confirmed by user: this is the actual extent of stats granularity available, not a partial/interim drop** — no per-map/per-round/per-weapon data exists or is coming. This supersedes the "per-map/per-weapon/per-round" hard requirement recorded below in §3, and cuts the Match page's map-by-map breakdown and the `matches`/`maps`/`player_map_stats`/`player_weapon_stats` tables from scope entirely (see §4.1, §5). Team rosters, team logos, player photos, and event placings remain available via the separate wiki-pull process (§6) and are unaffected. A parallel `data/incoming/mw4_stats/` folder exists for the upcoming Modern Warfare 4 season but is currently empty.
 
 **Timeline context:** The initial stats data load will be the full 2026 Challengers season (historical/backfilled — confirmed 2026-08-26, this data exists and will be the first import). No new stats data is expected until the 2027 season starts in January 2027. The point of building now is to have a working system live and ready *before* the 2027 season starts, using the 2026 season as the dataset to build and test against.
 
@@ -31,7 +31,9 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 | Data ingestion (stats) | Provider supplies stats data via Google Sheet/CSV/Excel, imported through a password-protected admin page | Not manual entry. Admin tool parses CSV/XLSX, matches rows against existing players/maps/events (update, not duplicate), shows a pre-commit preview (e.g. "14 new stat lines, 3 updates, 2 flagged rows") before writing to the DB |
 | Data ingestion (rosters/logos/placings) | Manual one-time pull from the Call of Duty Esports Wiki into CSV + image files, dropped into the repo — see §6 | Wiki domains are blocked to Claude's browser tooling in this environment and returned errors on direct fetch (fandom.com: policy block + HTTP 402; liquipedia.net: HTTP 403, consistent with their anti-scraping stance). No live API integration was attempted or should be attempted against either site without going through their official, ToS-compliant APIs |
 | Future nice-to-have | Direct Google Sheets API sync to skip manual export | Not in v1 scope |
-| Data granularity | Per-map AND per-weapon, per-round level — not just per-match aggregates | Confirmed by user as a hard requirement |
+| Data granularity | **Superseded 2026-08-30.** Only per-player, per-event aggregate stats exist (an Overall combined-modes line, plus separate Hardpoint/Search & Destroy/Overload breakdowns) — no per-map, per-round, or per-weapon data | Confirmed 2026-08-30: this is the real extent of what the stats provider supplies for BO7, not an interim/partial drop. Overturns the earlier "must be per-map/per-round" requirement — that granularity isn't available and isn't coming |
+| Game modes (Challengers) | Black Ops 7 plays 3 modes: Hardpoint, Search & Destroy, Overload — no Control | Confirmed 2026-08-30. "Overall" in the stats exports is a combined/all-modes rollup, not a 4th mode |
+| Game title tracking | `events` (and stats tables derived from it) need a `game` field (e.g. `Black Ops 7`, `Modern Warfare 4`) alongside `season` | Confirmed 2026-08-30: the 2026 season (all `placings.csv` data so far) is Black Ops 7; the next season will be Modern Warfare 4 (`data/incoming/mw4_stats/` created in advance, currently empty) — a season can't be assumed to map 1:1 to one game title going forward |
 | Admin auth | Simple shared-password gate on the admin import page (v1) | Fastest to build; only the user and their stats provider need access. Revisit if admin access needs to scale to more people later |
 | Standings scope | Both per-event standings AND an aggregated overall-season standings view (points summed across events) — not per-event only | The 2026 season (the initial dataset) has no cross-event running system yet; the whole point of this project is to have that aggregated view ready before the 2027 season starts |
 | Points formula | **Superseded 2026-08-26.** CDC Points are NOT manually supplied — they're computed from a placement (rank) looked up against an official points scale that varies by event type (Cup / Elite / Major-Open / Finals-Champs). Full scale in `data/reference/cdc_points_and_prizing.md`. Finals/Champs awards **zero CDC points** (confirmed), prize money only | User provided the official CDC Points & Prizing tables; this is a real formula now, not an unknown |
@@ -45,30 +47,31 @@ A Call of Duty Challengers (amateur/semi-pro tier) player and team statistics hu
 ## 4. Confirmed Page Types (v1 scope)
 
 ### 4.1 Match Page — `/match/[id]`
-- Header: event name/logo, date, both teams (logo + name), overall series score (e.g. 3-2).
-- Map-by-map summary strip: map name, mode, score, both team logos — sourced from a per-map results table.
-- Tabbed stat table: **Overview** tab (series aggregate) + one tab per map actually played. Series length varies (Bo3/Bo5/Bo7) — tabs must be generated dynamically from maps that exist for that match, never hardcoded to a fixed count.
-- Columns per player: Kills, Deaths, K/D, +/-, Damage. **No proprietary rating column.**
-- Kill % and damage % per team shown via a computed graph/bar (each team's share of total kills/damage for that map or match).
-- **Blocked** on player statistics data (§2) — schema/UI can be built, but not populated with real data yet.
+**Cut from v1 scope, 2026-08-30.** Confirmed (§2, §3) the available stats data is per-event aggregate only — no match ID, opponent, or per-map result exists anywhere in it, so this page cannot be built at all, not just populated later. Spec kept below for reference only, in case a future stats source ever provides match-level data.
+
+- ~~Header: event name/logo, date, both teams (logo + name), overall series score (e.g. 3-2).~~
+- ~~Map-by-map summary strip: map name, mode, score, both team logos — sourced from a per-map results table.~~
+- ~~Tabbed stat table: **Overview** tab (series aggregate) + one tab per map actually played. Series length varies (Bo3/Bo5/Bo7) — tabs must be generated dynamically from maps that exist for that match, never hardcoded to a fixed count.~~
+- ~~Columns per player: Kills, Deaths, K/D, +/-, Damage. **No proprietary rating column.**~~
+- ~~Kill % and damage % per team shown via a computed graph/bar (each team's share of total kills/damage for that map or match).~~
 
 ### 4.2 Team Page — `/teams/[id]`
 - Header: logo, team name, org/affiliation, social links.
 - Roster: player photos + names, linking to individual player pages.
 - Standings position + current points.
 - Coach name.
-- Last 5 matches (W/L strip).
-- Sections: Team Stats, Matches, Events. (No Cards/News BP-ecosystem tabs.)
+- ~~Last 5 matches (W/L strip).~~ **Cut 2026-08-30** — no match-level list exists in the available stats data (§2), so there's no sequence of recent matches to show.
+- Sections: Team Stats, ~~Matches~~, Events. (No Cards/News BP-ecosystem tabs.) **Matches section cut 2026-08-30**, same reason. **Team Stats is buildable** — rolled up from `player_event_stats` (§5) across that team's roster for an event: win/loss record and per-mode (Hardpoint/Search & Destroy/Overload) K/D at the team level.
 - **Added 2026-08-26:** season prize earnings (aggregated from event placements, see §3 "Prize money") — display location within the page TBD when building (likely header callout or a Team Stats sub-section).
-- **Buildable now** with real data (logo, roster, socials, coach, standings position, prize earnings once placings.csv lands) except "Last 5 matches" and "Team Stats" (win/loss-based), which depend on match/stats data.
+- **Buildable now** with real data (logo, roster, socials, coach, standings position, prize earnings once placings.csv lands, **and Team Stats once `player_event_stats` is seeded — see §5, §6**).
 
 ### 4.3 Player Page — `/players/[id]`
 - Header: photo, name, social links.
 - Bio block: real name, alias/nickname, birthday/age, country, role/position.
-- Season headline stats: a few callout stats (Overall K/D, per-mode K/D e.g. Hardpoint/S&D/Control), each shown with the player's current rank and a comparison value for context.
-- Sections: Overview, Last 5 Matches, Matches, Event Stats, Events. (No Cards.)
+- Season headline stats: a few callout stats (Overall K/D, per-mode K/D — Hardpoint/Search & Destroy/Overload, not Control, see §3), each shown with the player's current rank and a comparison value for context. **Buildable now (2026-08-30)** directly from `player_event_stats` (§5, §6) — this is exactly the shape of data this section needs.
+- Sections: Overview, ~~Last 5 Matches, Matches~~, Event Stats, Events. (No Cards.) **Last 5 Matches / Matches cut 2026-08-30** — no match-level list exists in the available data (§2). **Event Stats is buildable** — it maps directly onto one player's row of a per-event stats CSV.
 - **Added 2026-08-26:** season prize earnings, attributed at the player level (see §3 "Prize money", and §7 for the open question on exactly how team-level prize money splits to individual players).
-- **Buildable now**: header + bio block. **Blocked**: season headline stats, match-dependent sections, and player-level earnings (depends on the attribution logic in §7 being resolved).
+- **Buildable now (updated 2026-08-30)**: header + bio block, season headline stats, and Event Stats section (once `player_event_stats` is seeded — see §5, §6). **Still blocked/cut**: match-list sections (no data exists), and player-level earnings (depends on the attribution logic in §7 being resolved).
 
 ### 4.4 Standings Page — `/standings`
 - Tabs must be **dynamically generated** from an `events` table (`type`: Cup / Elite / Major / Champs, plus `season`/`stage`/`region`/`order` for sequencing — see §5). Do NOT hardcode tabs like CDL's "Major 1–4/Champs" — Challengers has more event types and new ones shouldn't require code changes.
@@ -99,10 +102,8 @@ Do not treat as final. Adjust field names/structure/granularity once the real st
 - **`players`** — bio fields, team reference, socials, photo. Photo resolution falls back to `public/players/DefaultPlayer.png` when a player has no photo on file — see §3 "Player photo fallback"
 - **`teams`** — name, logo, org, coach, socials. Logo resolution must fall back to a `Default.png`-style logo (keeping the real team name) when a team encountered during stats/bracket import has no known logo — see §3 "Team logo fallback" and §6
 - **`events`** — name, type (Cup/Elite/Major/Champs), season, `stage` (for Elite: Stage 1, Stage 2, ...), `region` (nullable — set for region-specific events like Elite/Cups, null for global events like Majors/Champs), order/date. Elite's placement/points attach at the stage level (one final placement per team per stage — see §4.4), even though Qualifier+Playoff are separate brackets internally for match display purposes once stats data exists
-- **`matches`** — event reference, two teams, overall series score, date *(blocked on stats data)*
-- **`maps`** — one row per map played in a match (match_id, map_name, mode, map_number, per-team score) *(blocked on stats data)*
-- **`player_map_stats`** — one row per player per map (kills, deaths, damage, +/-, obj-based stats as needed) *(blocked on stats data)*
-- **`player_weapon_stats`** — one row per player per map per weapon (kills, accuracy, headshots) *(blocked on stats data)*
+- ~~`matches`, `maps`, `player_map_stats`, `player_weapon_stats`~~ — **Cut 2026-08-30**: confirmed the available stats data has no match/map/weapon-level granularity (§2, §3) and none is expected. These tables are removed from the schema, not just deferred.
+- **`player_event_stats`** (new, 2026-08-30) — one row per player per event, matching the shape of `data/incoming/bo7_stats/*.csv`: player, team (as fielded for that event — same per-event-roster philosophy as `event_placements`, §3), event reference, `matches_total/w/l`, `maps_total/w/l`, then one column group per stat block — **Overall** (combined across all modes played that event) plus **Hardpoint**, **Search & Destroy**, **Overload** (the 3 real BO7 modes — no Control, see §3), each with kills/deaths/K-D/assists/+-/damage/etc. for that mode. Exact column list TBD when building the seed script — see `data/incoming/bo7_stats/` for the real shape (header row's "DMG" label is missing/corrupted in the source files — confirmed 2026-08-30 it belongs right after the "HS" column in each block). Powers Player page headline stats + Event Stats section (§4.3), and — via rollup across a team's roster for an event — Team page's Team Stats section (§4.2).
 - **`event_placements`** (renamed from `standings_points`, 2026-08-26) — team, event, placement (rank or tied-rank value, e.g. 5 for a "5th-6th" tie), **plus the 4 roster players for that specific placement** (added 2026-08-26 via `player1`-`player4` in `placings.csv` — see §7). **`points` and `prize_usd` are NOT stored directly** — computed at query time (or via a materialized/derived column) by looking up `(event.type, placement)` against `points_scale`. Populated from wiki placings data now (§6). The per-placement roster is what makes the 25%-per-player prize split (§3) computable immediately, without waiting on full player statistics.
 - **`points_scale`** (new, 2026-08-26) — reference table encoding `data/reference/cdc_points_and_prizing.md`: `event_type`, `placement_min`, `placement_max`, `cdc_points`, `prize_usd` (and a regional variant for Cup — NA/EU vs AP/LA prize amounts differ even though CDC points don't; model as either a `region` column or two prize columns, decide when building). This table is the actual "points formula" — see §3.
 - **Prize money aggregation** (new, 2026-08-26): team-level season earnings = sum of `prize_usd` across that team's `event_placements` for the season. Player-level earnings = team's prize for that event split evenly 4 ways (25% each) across the 4 players on the roster **at the time of that event** — confirmed 2026-08-26. This means player earnings depend on knowing the active roster per event, not just the team's current roster — if the 2026 season roster was static all year this is trivial, but flag it if any team changed lineups mid-season (see §7).
@@ -123,7 +124,10 @@ Source: [Call of Duty Esports Wiki](https://cod-esports.fandom.com/wiki/Call_of_
 
 Track these here; resolve and move to §3/§8 (decisions/changelog) once answered.
 
-- [ ] Player statistics (kills/deaths/damage/weapon data) from the stats provider — **not yet received**. Hard blocker on `matches`/`maps`/`player_map_stats`/`player_weapon_stats` (see §2, §5).
+- [x] ~~Player statistics (kills/deaths/damage/weapon data) from the stats provider — not yet received.~~ **Resolved 2026-08-30 (superseded, not simply answered):** BO7 stats arrived in `data/incoming/bo7_stats/`, but as per-player/per-event aggregates only — no match/map/weapon granularity exists at all. `matches`/`maps`/`player_map_stats`/`player_weapon_stats` are cut from scope; replaced by `player_event_stats` (see §2, §3, §5).
+- [ ] Exact column list/naming for `player_event_stats` — needs a real mapping pass against `data/incoming/bo7_stats/*.csv`'s columns when the seed script is built (§5, §9). Not blocking anything else right now.
+- [ ] Relationship between the two "BO7 Full Season" files (NA/EU) and the individual per-event files — are they a redundant computed rollup (sum of that region's events), or do they carry information not otherwise derivable (e.g. a mid-season roster snapshot)? Worth checking once all events are seeded, not blocking.
+- [ ] `bo7_stats/` currently has 11 files: Majors (Dallas/Birmingham/Atlanta Opens — **missing Paris Open**), Elite Stages 1-3 NA+EU (**missing Elite Stage 4 NA+EU**), and 2 Full Season rollups (NA/EU) — **no Cup-level files, no Champs file**. Unclear whether more files are still coming or whether Cups/Stage 4/Paris/Champs stats simply weren't tracked/exported. Not blocking schema work, but affects how complete the eventual Player/Team stats pages can be.
 - [ ] omit.gg's existing Webflow branding (colors, fonts, logo usage) — not yet reviewed. Needed before frontend styling begins.
 - [ ] Hosting/DNS setup for `stats.omit.gg` subdomain on Vercel — not yet configured.
 - [ ] Git remote — repo is git-initialized locally (see §10 Version Control) but has no remote yet. Decide on a private GitHub repo (or other) when ready to back up / deploy from it.
@@ -199,14 +203,16 @@ Append a dated entry each session with what changed — decisions made, scope ad
 - **2026-08-26** — Added all 4 regional brackets for "2026 Cup 12" (NA 8, EU 32, AP 21, LATAM 10 — 71 rows total) to `placings.csv`. NA was a shorter combined-block paste (only 8 total teams, no truncation indicated). Flagged a genuine cross-region name collision: LATAM's 1st-place "Avengers" (Guatemalan/Colombian/Venezuelan roster) shares nothing with the established AP org of the same name (Australian roster, seen since Cup 6) — user confirmed these are different teams; disambiguated as "Avengers (LATAM)".
 - **2026-08-26** — Added "2026 Cup 13" NA and EU (32 rows each, 64 total) to `placings.csv` — **the final Cup, and the last event of the 2026 season transcription effort.** User does not have access to AP/LATAM placements for Cup 13, so this event is recorded NA/EU-only (all other Cups have all 4 regions); this is accepted as final, not a pending gap. EU: 6 teams had rosters with more than 4 names listed (Project 7, Exceptional Gaming, ASK Esport, OMiT, ROC Esports, Team Gx) — resolved against a user-provided coach/analyst list, trimming each to its real 4-player roster. Also flagged and resolved: "Clox" appearing on both ROC Esports and ROC x Falcons confirmed as two different people (same pattern as prior Mythix cases); "xxxx" and "AAAA" (9th-16th tier) confirmed as genuine registered team names, not placeholders — kept as-is, no disambiguation. NA: user sent two separate pastes of the same event — a smaller top-16 version and a fuller top-32 version with a coach/analyst list. Used the fuller version as authoritative and replaced the initial 16 rows. Cross-checking the two surfaced three real conflicts, all resolved by user: OMNiA Gaming placed 4th (not OMNiA Invicta, which placed 7th-8th); "FC Stallions" and "Pickup Cup" confirmed as the canonical names (not "Stallions" / "Team Cimbels," same rosters); InControl Gaming's 4th roster slot confirmed as "DTG" (not "Derek"). Also found "Team Gx" independently in both the EU and NA Cup 13 brackets with completely different rosters — same cross-region collision pattern as Avengers (LATAM/AP) — disambiguated as "Team Gx (EU)" / "Team Gx (NA)".
 - **2026-08-26** — **`placings.csv` transcription complete for the 2026 season** (Cups 1-13, Elite Stages 1-4 NA/EU, Majors 1-4, Champs). Only `players.csv` remains (deprioritized, see §7) before Supabase seeding can begin — see §9.
+- **2026-08-30** — User dropped historical Black Ops 7 (BO7) player statistics into `data/incoming/bo7_stats/` (11 CSVs: 3 of 4 Majors, Elite Stages 1-3 NA+EU, 2 Full-Season NA/EU rollups — see §7 for the gaps) and created an empty `data/incoming/mw4_stats/` for the upcoming Modern Warfare 4 season. Read 3 sample files and found the actual shape is **per-player, per-event aggregate stats** (Overall + Hardpoint/Search & Destroy/Overload mode breakdowns) — not the per-map/per-round/per-weapon granularity previously confirmed as a hard requirement. **User confirmed this is genuinely the extent of available stats data, not a partial drop.** This is a major scope revision: cut the Match page and `matches`/`maps`/`player_map_stats`/`player_weapon_stats` from the schema entirely; added `player_event_stats` in their place. This *unblocks* Player page headline stats + Event Stats section, and Team page's Team Stats section (all buildable from the new table once seeded). Also confirmed: BO7 has 3 modes (Hardpoint, Search & Destroy, Overload — no Control, "Overall" is a combined-modes rollup not a 4th mode), and each source file's header row is missing/corrupted the "DMG" column label right after "HS" in each stat block (data itself is fine, just the label). See §2-§5, §7.
 
 ## 9. Immediate Next Steps
 
 1. `placings.csv` is done for the full 2026 season (see §7, §8). Next: write a one-off seed script to load teams/event_placements into Supabase, including the `points_scale` reference table from `data/reference/cdc_points_and_prizing.md`. This is enough to build and populate the Standings page fully. (`players.csv` and player photos come later — deprioritized, see §7.)
-2. Resolve remaining open questions in §7 (branding, hosting, git remote).
-3. Pull omit.gg's existing Webflow branding before frontend styling work begins.
-4. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages — Standings page can go fully live with real data first; Teams/Players pages follow once `players.csv` lands; Match page and stat tables wait on the stats provider.
-5. When the stats provider data arrives: admin CSV/XLSX import tool with simple password auth and preview-before-commit, plus the match page and stat tables.
+2. Map `data/incoming/bo7_stats/*.csv` columns to the new `player_event_stats` table (§5, §7) and extend the seed script to load it — unblocks Player page headline stats + Event Stats, and Team page's Team Stats section.
+3. Resolve remaining open questions in §7 (branding, hosting, git remote).
+4. Pull omit.gg's existing Webflow branding before frontend styling work begins.
+5. Build: Supabase schema (incl. season-aggregated standings query support), Next.js pages — Standings page can go fully live with real data first; Teams/Players pages follow once `players.csv` lands; Player page stats sections follow once `player_event_stats` is seeded. Match page is cut from v1 (§4.1) — no data source supports it.
+6. Modern Warfare 4 season: `data/incoming/mw4_stats/` exists but is empty — revisit once that season starts and data is dropped in.
 
 ## 10. Version Control
 
