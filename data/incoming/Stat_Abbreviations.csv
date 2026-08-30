@@ -1,0 +1,101 @@
+Matches,Total,Total Matches Played
+,Ws,Match Wins
+,Ls,Match Losses
+Maps,Total,Total Maps Played
+,Ws,Map Wins
+,Ls,Map Losses
+Overall,K,Overall Kills
+,D,Overall Deaths
+,K/D,Overall Kill Death Ratio
+,A,Overall Assists
+,KA/D,Overall Assist to Death Ratio
+, +/- ,Overall Kills minus Deaths
+,N/T,Overall Non-Traded Kills
+,NT%,Overall Non-Traded Kills % of Total Kills
+,HS,Overall Headshots
+,DMG,Overall Damage
+,DMG/K,Overall Damager per Kill
+,DMG/10,Overall Damage per 10 mins
+,R K/D,Overall Round Kill Death Ratio
+,K/10,Overall Kills per 10 mins
+,SR,Overall Slayer Rating
+,DR,Overall Damage Rating
+Hardpoint,Maps,Total Hardpoint Maps Played
+,Ws,Total Hardpoint Map Wins
+,Ls,Total Hardpoint Map Losses
+,PF,Total Hardpoint Points For
+,PA,Total Hardpoint Points Allowed
+,K,Total Hardpoint Kills
+,D,Total Hardpoint Deaths
+,K/D,Total Hardpoint Kill Death Ratio
+,A,Total Hardpoint Assists
+,KA/D,Total Hardpoint Assist to Death Ratio
+, +/- ,Total Hardpoint Kills minus Deaths
+,N/T,Total Hardpoint Non-Traded Kills
+,NT%,Total Hardpoint Non-Traded Kills % of Total Hardpoint Kills
+,HS,Total Hardpoint Headshots
+,DMG,Total Hardpoint Damage
+,DMG/K,Total Hardpoint Damage per Kill
+,HT,Total Hardpoint Hill Time
+,HT/10,Total Hardpoint Hill Time per 10 mins
+,ObjK,Total Hardpoint Objective Kills
+,CON,Total Hardpoint Contest Time
+,K/10,Total Hardpoint Kills per 10 mins
+,D/10,Total Hardpoint Deaths per 10 mins
+,A/10,Total Hardpoint Assists per 10 mins
+,DMG/10,Total Hardpoint Damage per 10 mins
+,E/10,Total Hardpoint Engagements per 10 mins
+,TIME,Total Hardpoint Time Played
+Search and Destroy,Maps,Total Search and Destroy Maps Played
+,Ws,Total Search and Destroy Map Wins
+,Ls,Total Search and Destroy Map Losses
+,RF,Total Search and Destroy Rounds For
+,RA,Total Search and Destroy Rounds Against
+,K,Total Search and Destroy Kills
+,D,Total Search and Destroy Deaths
+,K/D,Total Search and Destroy Kill Death Ratio
+,A,Total Search and Destroy Assists
+,KA/D,Total Search and Destroy Assist to Death Ratio
+, +/- ,Total Search and Destroy Kills plus or minus Deaths
+,N/T,Total Search and Destroy Non-Traded Kills
+,NT%,Total Search and Destroy Non-Traded Kills % of Total Search and Destroy Kills
+,HS,Total Search and Destroy Headshots
+,DMG,Total Search and Destroy Damage
+,DMG/K,Total Search and Destroy Damage per Kill
+,Pl,Total Search and Destroy Bomb Plants
+,Def,Total Search and Destroy Bomb Defuses
+,FBs,Total Search and Destroy First Bloods
+,FDs,Total Search and Destroy First Deaths
+,FB%,Total Search and Destroy First Blood % of Total Search and Destroy Rounds Played
+,WR%,Total Search and Destroy Opening Duel Win Rate %
+,K/R,Total Search and Destroy Kills per Round Ratio
+,D/R,Total Search and Destroy Deaths per Round Ratio
+,A/R,Total Search and Destroy Assists per Round Ratio
+,DMG/R,Total Search and Destroy Damage per Round Ratio
+,E/R,Total Search and Destroy Engagements per Round Ratio
+,Rds,Total Search and Destroy Rounds Played
+Overload,Maps,Total Overoad Maps Played
+,Ws,Total Overoad Map Wins
+,Ls,Total Overoad Map Losses
+,RF,Total Overoad Rounds For
+,RA,Total Overoad Rounds Allowed
+,K,Total Overoad Kills
+,D,Total Overoad Deaths
+,K/D,Total Overoad Kill Death Ratio
+,A,Total Overoad Assists
+,KA/D,Total Overoad Assist to Death Ratio
+, +/- ,Total Overload Kills plus or minus Deaths
+,N/T,Total Overload Non-Traded Kills
+,NT%,Total Overload Non-Traded Kills % of Total Overload Kills
+,HS,Total Overload Headshots
+,DMG,Total Overload Damage
+,DMG/K,Total Overload Damage per Kill
+,GLS,Total Overload Goals
+,GLS/10,Total Overload Goals per 10 mins
+,OCK,Total Overload Objective Kills
+,K/10,Total Overoad Kills per 10 mins
+,D/10,Total Overoad Deaths per 10 mins
+,A/10,Total Overoad Assists per 10 mins
+,DMG/10,Total Overoad Damage per 10 mins
+,E/10,Total Overoad Engagements per 10 mins
+,TIME,Total Overoad Time Played
