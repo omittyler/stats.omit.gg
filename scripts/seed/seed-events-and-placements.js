@@ -1,5 +1,6 @@
 import { readCsvObjects, parsePlacementRange } from './lib/csv.js';
 import { getOrCreateTeamId, loadTeamCache, chunk } from './lib/teams.js';
+import { getEventDate } from './lib/eventDates.js';
 import { supabase } from './lib/supabaseClient.js';
 
 // All of placings.csv so far is the 2026 Black Ops 7 season — revisit once Modern
@@ -24,6 +25,7 @@ export async function seedEventsAndPlacements() {
         season: Number(row.season),
         stage: row.stage ? Number(row.stage) : null,
         region: row.region || null,
+        event_date: getEventDate({ event_type: row.event_type, event_name: row.event_name, stage: row.stage }),
       });
     }
   }

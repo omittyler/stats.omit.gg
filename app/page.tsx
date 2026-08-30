@@ -6,7 +6,10 @@ export default function HomePage() {
       <h1>stats.omit.gg</h1>
       <p>Call of Duty Challengers stats hub — early scaffold.</p>
       <p>
-        <Link href="/standings">View 2026 Season Standings &rarr;</Link>
+        <Link href="/standings">View 2026 Season Team Standings &rarr;</Link>
+      </p>
+      <p>
+        <Link href="/players">View 2026 Season Player Points &rarr;</Link>
       </p>
     </main>
   );

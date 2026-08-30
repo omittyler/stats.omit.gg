@@ -16,6 +16,7 @@ create table if not exists events (
   season int not null,
   stage int,
   region text,
+  event_date date, -- confirmed 2026-08-30; same date applies across all regions for Cup/Elite. See PROJECT.md §8d.
   unique (name, region)
 );
 
