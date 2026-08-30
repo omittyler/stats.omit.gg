@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { computeStandings } from '@/lib/standings';
 
+// Standings change whenever placings.csv/the DB changes (re-seeds, corrections).
+// Without this, Next.js caches the underlying Supabase fetch and can keep
+// showing stale numbers after a fix, even on a hard refresh.
+export const dynamic = 'force-dynamic';
+
 export default async function StandingsPage() {
   const { teamStandings } = await computeStandings();
 

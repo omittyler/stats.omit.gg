@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { computeStandings } from '@/lib/standings';
 
+// See app/standings/page.tsx - same reason: avoid Next.js caching this fetch
+// and showing stale numbers after the underlying data changes.
+export const dynamic = 'force-dynamic';
+
 export default async function PlayersPage() {
   const { playerStandings } = await computeStandings();
 
