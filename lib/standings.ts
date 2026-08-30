@@ -5,6 +5,8 @@ type PointsScaleRow = {
   placement_min: number;
   placement_max: number;
   cdc_points: number;
+  prize_usd: number | null;
+  prize_usd_ap_la: number | null;
 };
 
 type PlacementRow = {
@@ -16,17 +18,19 @@ type PlacementRow = {
   player4: string | null;
   team_id: number;
   teams: { name: string } | null;
-  events: { name: string; type: string; event_date: string | null } | null;
+  events: { name: string; type: string; event_date: string | null; region: string } | null;
 };
 
 export type EnrichedPlacement = {
   eventName: string;
   eventType: string;
   eventDate: string | null;
+  region: string;
   placementMin: number;
   placementMax: number;
   teamName: string;
   points: number;
+  prizeUsd: number;
   players: string[];
 };
 
@@ -45,9 +49,11 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
       supabase
         .from('event_placements')
         .select(
-          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date)'
+          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region)'
         ),
-      supabase.from('points_scale').select('event_type, placement_min, placement_max, cdc_points'),
+      supabase
+        .from('points_scale')
+        .select('event_type, placement_min, placement_max, cdc_points, prize_usd, prize_usd_ap_la'),
     ]);
 
   if (placementsError) throw placementsError;
@@ -56,27 +62,44 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
   const scaleRows = (scale ?? []) as PointsScaleRow[];
   const rows = (placements ?? []) as unknown as PlacementRow[];
 
-  function lookupPoints(eventType: string, min: number, max: number) {
-    const exact = scaleRows.find(
+  function lookupScale(eventType: string, min: number, max: number) {
+    return scaleRows.find(
       (s) => s.event_type === eventType && s.placement_min === min && s.placement_max === max
     );
-    return exact ? exact.cdc_points : 0;
+  }
+
+  // Prize money is tracked at the TEAM level (unlike points, which are per-player,
+  // see computeStandings below) - Cup is the only event type where AP/LATAM prize
+  // differs from NA/EU even though CDC points don't (data/reference/cdc_points_and_prizing.md).
+  function lookupPrize(eventType: string, region: string, min: number, max: number) {
+    const scale = lookupScale(eventType, min, max);
+    if (!scale) return 0;
+    if (eventType === 'Cup' && (region === 'AP' || region === 'LATAM')) {
+      return scale.prize_usd_ap_la ?? 0;
+    }
+    return scale.prize_usd ?? 0;
   }
 
   return rows
     .filter((row) => row.events && row.teams)
-    .map((row) => ({
-      eventName: row.events!.name,
-      eventType: row.events!.type,
-      eventDate: row.events!.event_date,
-      placementMin: row.placement_min,
-      placementMax: row.placement_max,
-      teamName: row.teams!.name,
-      points: lookupPoints(row.events!.type, row.placement_min, row.placement_max),
-      players: [row.player1, row.player2, row.player3, row.player4].filter(
-        (p): p is string => p !== null
-      ),
-    }));
+    .map((row) => {
+      const eventType = row.events!.type;
+      const region = row.events!.region;
+      return {
+        eventName: row.events!.name,
+        eventType,
+        eventDate: row.events!.event_date,
+        region,
+        placementMin: row.placement_min,
+        placementMax: row.placement_max,
+        teamName: row.teams!.name,
+        points: lookupScale(eventType, row.placement_min, row.placement_max)?.cdc_points ?? 0,
+        prizeUsd: lookupPrize(eventType, region, row.placement_min, row.placement_max),
+        players: [row.player1, row.player2, row.player3, row.player4].filter(
+          (p): p is string => p !== null
+        ),
+      };
+    });
 }
 
 /**
