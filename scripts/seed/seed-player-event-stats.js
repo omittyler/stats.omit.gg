@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readCsvObjects, readCsvRows, toNumber } from './lib/csv.js';
@@ -8,6 +9,19 @@ import { supabase } from './lib/supabaseClient.js';
 
 const STATS_DIR = 'data/incoming/bo7_stats';
 const GAME = 'Black Ops 7';
+
+// Manually reviewed bo7_stats <-> placings.csv name mappings that will never
+// exact- or prefix-match automatically (e.g. bo7_stats "D3" vs placings.csv
+// "D3L1V3R" — placings.csv already has the correct spelling, there's nothing
+// to fix there; bo7_stats just uses a shorter nickname). Each entry was
+// confirmed against the candidate report by cross-checking the source data,
+// not guessed — see PROJECT.md §7/§8b. This file is committed (not gitignored
+// like the generated reports) since it's a deliberate, auditable record.
+function loadConfirmedAliases() {
+  const raw = readFileSync('scripts/seed/confirmed-aliases.json', 'utf8');
+  const entries = JSON.parse(raw);
+  return new Map(entries.map((e) => [`${e.file}|${e.bo7_stats_name.toLowerCase()}`, e]));
+}
 
 // Maps each per-event bo7_stats file to the (event_name, region) it matches in
 // placings.csv. The two "Full Season" rollup files are deliberately excluded —
@@ -44,6 +58,7 @@ function parseStatsFile(filePath) {
 export async function seedPlayerEventStats() {
   const placingsRows = readCsvObjects('data/incoming/placings.csv');
   const playerTeamIndex = buildPlayerTeamIndex(placingsRows);
+  const confirmedAliases = loadConfirmedAliases();
 
   const { data: eventRows, error: fetchError } = await supabase.from('events').select('id,name,region');
   if (fetchError) throw fetchError;
@@ -63,7 +78,10 @@ export async function seedPlayerEventStats() {
 
     const parsed = parseStatsFile(path.join(STATS_DIR, file));
     for (const { player_name, team_code, stats } of parsed) {
-      const resolved = resolvePlayerTeam(playerTeamIndex, key, player_name);
+      const alias = confirmedAliases.get(`${file}|${player_name.toLowerCase()}`);
+      const resolved = alias
+        ? { teamName: alias.team_name, canonicalName: alias.canonical_name }
+        : resolvePlayerTeam(playerTeamIndex, key, player_name);
       if (!resolved) {
         // A blank team_code means bo7_stats gives us zero independent signal for this
         // row, so a name-prefix match can't be cross-checked against anything and is
@@ -140,8 +158,8 @@ export async function seedPlayerEventStats() {
     await writeFile(reportPath, JSON.stringify(candidates, null, 2));
     console.warn(
       `player_event_stats: ${candidates.length} rows have exactly one likely name match ` +
-      `(e.g. bo7_stats "D3" vs placings.csv "D3L1V3R") but are NOT inserted — confirm each one, ` +
-      `then fix the spelling in placings.csv (not this report) and re-run. See ${reportPath}.`
+      `(e.g. bo7_stats "D3" vs placings.csv "D3L1V3R") but are NOT inserted — verify each one, ` +
+      `add confirmed matches to scripts/seed/confirmed-aliases.json, and re-run. See ${reportPath}.`
     );
   }
 }

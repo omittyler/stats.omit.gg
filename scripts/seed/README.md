@@ -36,14 +36,20 @@ auto-loaded into the database:
   not a resolver bug).
 - **`candidate-player-event-stats.json`** — no exact match, but exactly one *prefix* match
   (e.g. bo7_stats "D3" vs placings.csv "D3L1V3R" — the two sources truncate/shorten handles
-  in both directions). This is a suggestion, not an established match — confirm each one is
-  really the same player, then **fix the spelling in `placings.csv`** (not in this report)
-  and re-run the seed so it exact-matches next time. Only offered when the source row has a
-  real team code — a blank one means there's no independent signal to sanity-check a fuzzy
-  match against, and that's a real risk, not a theoretical one: Birmingham's blank-team-code
-  "Coti" turned out to have different K/D than the already-matched "CotiCR" — a different,
-  coincidentally similarly-named real player, not the same person spelled differently.
-  Blank-team-code rows land in the unresolved report instead (see below).
+  in both directions). This is a suggestion, not an established match. Only offered when the
+  source row has a real team code — a blank one means there's no independent signal to
+  sanity-check a fuzzy match against, and that's a real risk, not a theoretical one:
+  Birmingham's blank-team-code "Coti" turned out to have different K/D than the already-
+  matched "CotiCR" — a different, coincidentally similarly-named real player, not the same
+  person spelled differently. Blank-team-code rows land in the unresolved report instead.
+
+  **To confirm a candidate:** verify it (cross-check the raw CSV row, individual stats, or
+  teammates — don't just eyeball the names), then add an entry to
+  `scripts/seed/confirmed-aliases.json` (`{ file, bo7_stats_name, canonical_name, team_name }`)
+  and re-run. Editing `placings.csv` usually isn't the fix here — in most cases it already has
+  the correct spelling and bo7_stats is the one using a shortened nickname, so there's nothing
+  to change there. `confirmed-aliases.json` is committed (not gitignored) since it's a
+  deliberate, auditable record of what's been manually verified.
 - **`duplicate-player-event-stats.json`** — the same player appears more than once for the
   same event in the source CSV — a genuine data anomaly, not merged or picked between.
 
