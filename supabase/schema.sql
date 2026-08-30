@@ -15,7 +15,7 @@ create table if not exists events (
   game text not null default 'Black Ops 7',
   season int not null,
   stage int,
-  region text,
+  region text not null default '', -- '' for global events (Major/Champs), never null - see PROJECT.md §8f
   event_date date, -- confirmed 2026-08-30; same date applies across all regions for Cup/Elite. See PROJECT.md §8d.
   unique (name, region)
 );

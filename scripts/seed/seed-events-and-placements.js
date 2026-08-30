@@ -24,7 +24,10 @@ export async function seedEventsAndPlacements() {
         game: GAME,
         season: Number(row.season),
         stage: row.stage ? Number(row.stage) : null,
-        region: row.region || null,
+        // '', not null - NULL is never equal to NULL in SQL, which silently broke
+        // the unique(name, region) constraint for every global (Major/Champs)
+        // event and caused real duplicate rows. See PROJECT.md §8f.
+        region: row.region || '',
         event_date: getEventDate({ event_type: row.event_type, event_name: row.event_name, stage: row.stage }),
       });
     }
