@@ -259,6 +259,8 @@ User noticed `/standings`/`/players` totals looked additive across re-seeds and 
 
 **Lesson for this schema going forward:** a plain SQL `unique` constraint across a nullable column silently fails to dedupe null rows. Either avoid `NULL` in any column that's part of a uniqueness check (the fix taken here), or use a `coalesce()`-based unique index if `NULL` needs to stay meaningfully distinct from other values elsewhere.
 
+**Verified fixed 2026-08-30:** the migration needed two follow-up corrections mid-run (dedupe-before-repoint ordering to avoid a constraint violation on `event_placements`, then the same treatment for `player_event_stats`, which also references `events(id)` and was missed initially). After all three passes: `event_placements` = 1692 (correct), `player_event_stats` = 759 (correct), and both counts now stay stable across repeated `npm run seed` runs. `/standings` and `/players` confirmed showing correct numbers.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
