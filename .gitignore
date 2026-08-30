@@ -14,6 +14,7 @@ out/
 
 # seed script output (regenerated each run, not source)
 scripts/seed/unresolved-*.json
+scripts/seed/duplicate-*.json
 
 # misc
 .DS_Store

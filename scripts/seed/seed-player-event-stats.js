@@ -49,7 +49,7 @@ export async function seedPlayerEventStats() {
   if (fetchError) throw fetchError;
   const eventCache = new Map(eventRows.map((e) => [eventKey(e.name, e.region), e.id]));
 
-  const toInsert = [];
+  const resolvedByKey = new Map(); // `${player_name}|${event_id}` -> rows[] (>1 means a real duplicate, not a bug)
   const unresolved = [];
 
   for (const { file, name, region } of EVENT_FILES) {
@@ -67,13 +67,24 @@ export async function seedPlayerEventStats() {
         unresolved.push({ file, player_name, team_code });
         continue;
       }
-      toInsert.push({
-        player_name,
-        team_name: teamName,
-        event_id: eventId,
-        game: GAME,
-        ...stats,
-      });
+      const dupeKey = `${player_name}|${eventId}`;
+      const row = { player_name, team_name: teamName, event_id: eventId, game: GAME, ...stats, _file: file };
+      if (!resolvedByKey.has(dupeKey)) resolvedByKey.set(dupeKey, []);
+      resolvedByKey.get(dupeKey).push(row);
+    }
+  }
+
+  const toInsert = [];
+  const duplicates = [];
+  for (const rows of resolvedByKey.values()) {
+    if (rows.length === 1) {
+      const { _file, ...row } = rows[0];
+      toInsert.push(row);
+    } else {
+      // Same player appears more than once for the same event in the source data —
+      // a genuine data anomaly, not a resolver bug. Flag for manual review rather
+      // than guessing which row (or whether to merge them) is correct.
+      duplicates.push(...rows.map(({ _file, ...row }) => ({ file: _file, ...row })));
     }
   }
 
@@ -91,6 +102,16 @@ export async function seedPlayerEventStats() {
     console.warn(
       `player_event_stats: ${unresolved.length} rows could not be matched to a team ` +
       `(player name not found, or ambiguous, in placings.csv for that event) — skipped, not guessed. ` +
+      `See ${reportPath}.`
+    );
+  }
+
+  if (duplicates.length) {
+    const reportPath = 'scripts/seed/duplicate-player-event-stats.json';
+    await writeFile(reportPath, JSON.stringify(duplicates, null, 2));
+    console.warn(
+      `player_event_stats: ${duplicates.length} rows are duplicates — the same player appears ` +
+      `more than once for the same event in the source CSV(s). Skipped, not merged/picked. ` +
       `See ${reportPath}.`
     );
   }
