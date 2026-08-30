@@ -65,7 +65,13 @@ export async function seedPlayerEventStats() {
     for (const { player_name, team_code, stats } of parsed) {
       const resolved = resolvePlayerTeam(playerTeamIndex, key, player_name);
       if (!resolved) {
-        const fuzzy = findPrefixCandidates(playerTeamIndex, key, player_name);
+        // A blank team_code means bo7_stats gives us zero independent signal for this
+        // row, so a name-prefix match can't be cross-checked against anything and is
+        // a real risk of misattributing stats to the wrong team (confirmed 2026-08-30:
+        // Birmingham's blank-team "Coti" has different K/D than the already-matched
+        // "CotiCR" - a coincidentally similar but genuinely different real player).
+        // Only offer a fuzzy candidate when we have a team code to anchor it to.
+        const fuzzy = team_code ? findPrefixCandidates(playerTeamIndex, key, player_name) : [];
         if (fuzzy.length === 1) {
           candidates.push({
             file,
@@ -75,7 +81,7 @@ export async function seedPlayerEventStats() {
             candidate_team: fuzzy[0].teamName,
           });
         } else {
-          unresolved.push({ file, player_name, team_code });
+          unresolved.push({ file, player_name, team_code, reason: team_code ? undefined : 'team code missing in source' });
         }
         continue;
       }

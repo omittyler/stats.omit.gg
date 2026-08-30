@@ -38,7 +38,12 @@ auto-loaded into the database:
   (e.g. bo7_stats "D3" vs placings.csv "D3L1V3R" — the two sources truncate/shorten handles
   in both directions). This is a suggestion, not an established match — confirm each one is
   really the same player, then **fix the spelling in `placings.csv`** (not in this report)
-  and re-run the seed so it exact-matches next time.
+  and re-run the seed so it exact-matches next time. Only offered when the source row has a
+  real team code — a blank one means there's no independent signal to sanity-check a fuzzy
+  match against, and that's a real risk, not a theoretical one: Birmingham's blank-team-code
+  "Coti" turned out to have different K/D than the already-matched "CotiCR" — a different,
+  coincidentally similarly-named real player, not the same person spelled differently.
+  Blank-team-code rows land in the unresolved report instead (see below).
 - **`duplicate-player-event-stats.json`** — the same player appears more than once for the
   same event in the source CSV — a genuine data anomaly, not merged or picked between.
 
