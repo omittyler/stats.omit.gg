@@ -40,3 +40,30 @@ export function resolvePlayerTeam(playerTeamIndex, eventKey, playerName) {
   if (!entry || entry.teams.length !== 1) return null;
   return { teamName: entry.teams[0], canonicalName: entry.canonicalName };
 }
+
+/**
+ * Fallback for exact-match misses caused by real truncation/shortening between
+ * the two data sources (confirmed 2026-08-30: e.g. bo7_stats "D3" vs placings.csv
+ * "D3L1V3R"; the shortening can go either direction). Finds roster names for this
+ * event where one name is a prefix of the other, case-insensitively, and only
+ * among names that are themselves unambiguous (one team) in this event.
+ *
+ * Returns an array of { teamName, canonicalName } candidates — the caller must
+ * only trust this when exactly one candidate comes back, and should still treat
+ * it as a suggestion to confirm, not an established match, since a short prefix
+ * (like "DC") could plausibly match more than one real name in a large roster.
+ */
+export function findPrefixCandidates(playerTeamIndex, eventKey, playerName) {
+  const playerMap = playerTeamIndex.get(eventKey);
+  if (!playerMap) return [];
+  const lowerName = playerName.toLowerCase();
+  const candidates = [];
+  for (const [candidateLower, entry] of playerMap) {
+    if (entry.teams.length !== 1) continue; // don't surface an already-ambiguous name as a candidate
+    if (candidateLower === lowerName) continue; // would have exact-matched already
+    if (candidateLower.startsWith(lowerName) || lowerName.startsWith(candidateLower)) {
+      candidates.push({ teamName: entry.teams[0], canonicalName: entry.canonicalName });
+    }
+  }
+  return candidates;
+}

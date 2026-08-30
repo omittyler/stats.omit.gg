@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readCsvObjects, readCsvRows, toNumber } from './lib/csv.js';
-import { buildPlayerTeamIndex, resolvePlayerTeam } from './lib/playerTeamIndex.js';
+import { buildPlayerTeamIndex, resolvePlayerTeam, findPrefixCandidates } from './lib/playerTeamIndex.js';
 import { STAT_FIELDS } from './lib/statFields.js';
 import { chunk } from './lib/teams.js';
 import { supabase } from './lib/supabaseClient.js';
@@ -51,6 +51,7 @@ export async function seedPlayerEventStats() {
 
   const resolvedByKey = new Map(); // `${player_name}|${event_id}` -> rows[] (>1 means a real duplicate, not a bug)
   const unresolved = [];
+  const candidates = []; // exact match missed, but exactly one fuzzy (prefix) candidate found — needs manual confirmation
 
   for (const { file, name, region } of EVENT_FILES) {
     const key = eventKey(name, region);
@@ -64,7 +65,18 @@ export async function seedPlayerEventStats() {
     for (const { player_name, team_code, stats } of parsed) {
       const resolved = resolvePlayerTeam(playerTeamIndex, key, player_name);
       if (!resolved) {
-        unresolved.push({ file, player_name, team_code });
+        const fuzzy = findPrefixCandidates(playerTeamIndex, key, player_name);
+        if (fuzzy.length === 1) {
+          candidates.push({
+            file,
+            team_code,
+            bo7_stats_name: player_name,
+            candidate_placings_name: fuzzy[0].canonicalName,
+            candidate_team: fuzzy[0].teamName,
+          });
+        } else {
+          unresolved.push({ file, player_name, team_code });
+        }
         continue;
       }
       const { teamName, canonicalName } = resolved;
@@ -114,6 +126,16 @@ export async function seedPlayerEventStats() {
       `player_event_stats: ${duplicates.length} rows are duplicates — the same player appears ` +
       `more than once for the same event in the source CSV(s). Skipped, not merged/picked. ` +
       `See ${reportPath}.`
+    );
+  }
+
+  if (candidates.length) {
+    const reportPath = 'scripts/seed/candidate-player-event-stats.json';
+    await writeFile(reportPath, JSON.stringify(candidates, null, 2));
+    console.warn(
+      `player_event_stats: ${candidates.length} rows have exactly one likely name match ` +
+      `(e.g. bo7_stats "D3" vs placings.csv "D3L1V3R") but are NOT inserted — confirm each one, ` +
+      `then fix the spelling in placings.csv (not this report) and re-run. See ${reportPath}.`
     );
   }
 }

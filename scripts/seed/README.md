@@ -26,10 +26,23 @@ Every step upserts on its table's natural key, so re-running is safe.
 `bo7_stats/*.csv` identifies teams by short codes (`TBG`, `P7N`, `HUN`, ...), not the full
 names used everywhere else. The seed script resolves each stat row's real team by looking
 up that player's name directly in `placings.csv` for the same event — not by guessing from
-the code. A player who isn't found (or who maps to more than one team for that event, a
-real ambiguity elsewhere in this dataset) is skipped and logged to
-`scripts/seed/unresolved-player-event-stats.json` (gitignored) instead of guessed. Check
-that file after a run and decide case by case — don't bulk-accept it.
+the code. Matching is case-insensitive (the two sources capitalize handles inconsistently),
+and `placings.csv`'s spelling is always the one stored, since it's the curated source.
+
+Three outcomes when a player's name doesn't exactly match, all gitignored reports, none
+auto-loaded into the database:
+- **`unresolved-player-event-stats.json`** — no match, or the name is genuinely ambiguous
+  (maps to more than one team for that event — a real conflict elsewhere in this dataset,
+  not a resolver bug).
+- **`candidate-player-event-stats.json`** — no exact match, but exactly one *prefix* match
+  (e.g. bo7_stats "D3" vs placings.csv "D3L1V3R" — the two sources truncate/shorten handles
+  in both directions). This is a suggestion, not an established match — confirm each one is
+  really the same player, then **fix the spelling in `placings.csv`** (not in this report)
+  and re-run the seed so it exact-matches next time.
+- **`duplicate-player-event-stats.json`** — the same player appears more than once for the
+  same event in the source CSV — a genuine data anomaly, not merged or picked between.
+
+Check these after every run and decide case by case — don't bulk-accept any of them.
 
 The two "BO7 Full Season" files are not seeded — they're rollups, not tied to one event, so
 this per-event lookup can't run against them. See PROJECT.md §7.
