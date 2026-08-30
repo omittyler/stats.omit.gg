@@ -36,12 +36,15 @@ auto-loaded into the database:
   not a resolver bug).
 - **`candidate-player-event-stats.json`** — no exact match, but exactly one *prefix* match
   (e.g. bo7_stats "D3" vs placings.csv "D3L1V3R" — the two sources truncate/shorten handles
-  in both directions). This is a suggestion, not an established match. Only offered when the
-  source row has a real team code — a blank one means there's no independent signal to
-  sanity-check a fuzzy match against, and that's a real risk, not a theoretical one:
+  in both directions) that's also **corroborated**: at least one other player under the same
+  team code in that file already exact-matched to that same team. A blank or uncorroborated
+  team code isn't enough on its own — a unique prefix match against the wrong team is a real
+  risk, not a theoretical one. Two confirmed examples from cross-checking real seed runs:
   Birmingham's blank-team-code "Coti" turned out to have different K/D than the already-
-  matched "CotiCR" — a different, coincidentally similarly-named real player, not the same
-  person spelled differently. Blank-team-code rows land in the unresolved report instead.
+  matched "CotiCR" (a different, coincidentally similarly-named real player); Dallas's "Tkay"
+  (team code OXO, a team entirely absent from placings.csv) coincidentally prefix-matched
+  unrelated "OutBreak Gaming"'s real player "tK" before the corroboration requirement caught
+  it. Rows without corroboration land in the unresolved report instead, tagged with why.
 
   **To confirm a candidate:** verify it (cross-check the raw CSV row, individual stats, or
   teammates — don't just eyeball the names), then add an entry to

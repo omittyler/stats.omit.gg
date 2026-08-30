@@ -77,37 +77,62 @@ export async function seedPlayerEventStats() {
     }
 
     const parsed = parseStatsFile(path.join(STATS_DIR, file));
+
+    // Pass 1: exact/alias matches only. Also records, per team_code, which real
+    // team that code corroborates - a code with zero exact matches (e.g. every
+    // player on that team is missing from placings.csv) gives NO corroboration,
+    // no matter how unique a later prefix match against some unrelated team's
+    // roster looks. This is what catches false positives like bo7_stats "Tkay"
+    // (team code OXO, a team absent from placings.csv entirely) coincidentally
+    // prefix-matching unrelated "OutBreak Gaming"'s real player "tK" - confirmed
+    // 2026-08-30 after that exact mistake made it into a first draft of this file.
+    const teamCodeCorroboration = new Map(); // team_code -> Set<teamName>
+    const pending = [];
     for (const { player_name, team_code, stats } of parsed) {
       const alias = confirmedAliases.get(`${file}|${player_name.toLowerCase()}`);
       const resolved = alias
         ? { teamName: alias.team_name, canonicalName: alias.canonical_name }
         : resolvePlayerTeam(playerTeamIndex, key, player_name);
       if (!resolved) {
-        // A blank team_code means bo7_stats gives us zero independent signal for this
-        // row, so a name-prefix match can't be cross-checked against anything and is
-        // a real risk of misattributing stats to the wrong team (confirmed 2026-08-30:
-        // Birmingham's blank-team "Coti" has different K/D than the already-matched
-        // "CotiCR" - a coincidentally similar but genuinely different real player).
-        // Only offer a fuzzy candidate when we have a team code to anchor it to.
-        const fuzzy = team_code ? findPrefixCandidates(playerTeamIndex, key, player_name) : [];
-        if (fuzzy.length === 1) {
-          candidates.push({
-            file,
-            team_code,
-            bo7_stats_name: player_name,
-            candidate_placings_name: fuzzy[0].canonicalName,
-            candidate_team: fuzzy[0].teamName,
-          });
-        } else {
-          unresolved.push({ file, player_name, team_code, reason: team_code ? undefined : 'team code missing in source' });
-        }
+        pending.push({ player_name, team_code, stats });
         continue;
+      }
+      if (team_code) {
+        if (!teamCodeCorroboration.has(team_code)) teamCodeCorroboration.set(team_code, new Set());
+        teamCodeCorroboration.get(team_code).add(resolved.teamName);
       }
       const { teamName, canonicalName } = resolved;
       const dupeKey = `${canonicalName}|${eventId}`;
       const row = { player_name: canonicalName, team_name: teamName, event_id: eventId, game: GAME, ...stats, _file: file };
       if (!resolvedByKey.has(dupeKey)) resolvedByKey.set(dupeKey, []);
       resolvedByKey.get(dupeKey).push(row);
+    }
+
+    // Pass 2: only now try fuzzy (prefix) matches, requiring the guessed team to be
+    // corroborated by at least one other exact-matched teammate under the same code.
+    for (const { player_name, team_code, stats } of pending) {
+      if (!team_code) {
+        unresolved.push({ file, player_name, team_code, reason: 'team code missing in source' });
+        continue;
+      }
+      const fuzzy = findPrefixCandidates(playerTeamIndex, key, player_name);
+      const corroborated = teamCodeCorroboration.get(team_code);
+      if (fuzzy.length === 1 && corroborated?.size === 1 && corroborated.has(fuzzy[0].teamName)) {
+        candidates.push({
+          file,
+          team_code,
+          bo7_stats_name: player_name,
+          candidate_placings_name: fuzzy[0].canonicalName,
+          candidate_team: fuzzy[0].teamName,
+        });
+      } else {
+        unresolved.push({
+          file,
+          player_name,
+          team_code,
+          reason: fuzzy.length === 1 ? 'prefix match found but not corroborated by another teammate under the same team code' : undefined,
+        });
+      }
     }
   }
 
