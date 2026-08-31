@@ -1,13 +1,33 @@
 import Link from 'next/link';
-import { computeStandings } from '@/lib/standings';
+import { computeStandings, getTeamLogos, type TeamStanding } from '@/lib/standings';
+import { TeamBadge } from '@/components/TeamBadge';
+import SortableTable, { type Column } from '@/components/SortableTable';
 
 // Standings change whenever placings.csv/the DB changes (re-seeds, corrections).
 // Without this, Next.js caches the underlying Supabase fetch and can keep
 // showing stale numbers after a fix, even on a hard refresh.
 export const dynamic = 'force-dynamic';
 
+type Row = TeamStanding & { rank: number };
+
 export default async function StandingsPage() {
-  const { teamStandings } = await computeStandings();
+  const [{ teamStandings }, logos] = await Promise.all([computeStandings(), getTeamLogos()]);
+
+  // Rank is fixed to each team's actual points-based standing, computed here
+  // before sorting - so it stays correct even when the table is re-sorted by
+  // Team name instead of Points.
+  const rows: Row[] = teamStandings.map((t, i) => ({ ...t, rank: i + 1 }));
+
+  const columns: Column<Row>[] = [
+    { key: 'rank', label: 'Rank', render: (r) => r.rank, align: 'right' },
+    {
+      key: 'team',
+      label: 'Team',
+      sortValue: (r) => r.name,
+      render: (r) => <TeamBadge name={r.name} logoFilename={logos[r.name]} />,
+    },
+    { key: 'points', label: 'Points', sortValue: (r) => r.points, render: (r) => r.points.toLocaleString(), align: 'right' },
+  ];
 
   return (
     <main className="container">
@@ -20,26 +40,7 @@ export default async function StandingsPage() {
         for a couple of known name-collision caveats.
       </p>
       <div className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Team</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teamStandings.map((team, i) => (
-              <tr key={team.name}>
-                <td>{i + 1}</td>
-                <td>
-                  <Link href={`/teams/${encodeURIComponent(team.name)}`}>{team.name}</Link>
-                </td>
-                <td>{team.points.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SortableTable columns={columns} rows={rows} initialSortKey="points" />
       </div>
     </main>
   );

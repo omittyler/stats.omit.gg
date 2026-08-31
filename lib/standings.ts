@@ -317,3 +317,10 @@ export async function getPlayerEventStatsSummaries(
 
   return result;
 }
+
+/** Team name -> logo filename, for rendering a small badge next to a team name in a table. */
+export async function getTeamLogos(): Promise<Record<string, string>> {
+  const { data, error } = await supabase.from('teams').select('name, logo_filename');
+  if (error) throw error;
+  return Object.fromEntries((data ?? []).map((t) => [t.name, t.logo_filename]));
+}

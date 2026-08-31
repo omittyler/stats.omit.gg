@@ -1,8 +1,14 @@
 import Link from 'next/link';
-import { getEnrichedPlacements, computeStandings, getPlayerEventStatsSummaries } from '@/lib/standings';
+import {
+  getEnrichedPlacements,
+  computeStandings,
+  getPlayerEventStatsSummaries,
+  getTeamLogos,
+} from '@/lib/standings';
 import { getPlayerSeasonStats } from '@/lib/statLeaderboards';
 import PlayerEventsTable from '@/components/PlayerEventsTable';
 import { StatDetail } from '@/components/StatDetail';
+import { TeamBadge } from '@/components/TeamBadge';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +27,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const statsMap = await getPlayerEventStatsSummaries(playerName);
   const statsByEvent = Object.fromEntries(statsMap);
   const seasonStats = await getPlayerSeasonStats(playerName);
+  const logos = await getTeamLogos();
 
   if (!standing) {
     return (
@@ -37,9 +44,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         &larr; Back to player points
       </Link>
       <h1>{playerName}</h1>
-      <p className="note">
-        Current team:{' '}
-        <Link href={`/teams/${encodeURIComponent(standing.currentTeam)}`}>{standing.currentTeam}</Link>
+      <p className="note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        Current team: <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
         {' — '}Season points:{' '}
         <strong style={{ color: 'var(--text)' }}>{standing.points.toLocaleString()}</strong>
       </p>
@@ -59,7 +65,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Events</h2>
         <p className="note">Click an event to see this player&apos;s stats from it, if available.</p>
-        <PlayerEventsTable history={history} statsByEvent={statsByEvent} />
+        <PlayerEventsTable history={history} statsByEvent={statsByEvent} logos={logos} />
       </div>
     </main>
   );

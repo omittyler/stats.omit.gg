@@ -1,8 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getStatLeaderboards, STAT_CATEGORIES, type StatCategorySlug } from '@/lib/statLeaderboards';
+import {
+  getStatLeaderboards,
+  STAT_CATEGORIES,
+  type StatCategorySlug,
+  type StatLeaderboardEntry,
+} from '@/lib/statLeaderboards';
+import SortableTable, { type Column } from '@/components/SortableTable';
 
 export const dynamic = 'force-dynamic';
+
+type Row = StatLeaderboardEntry & { rank: number };
 
 export default async function LeaderboardPage({
   params,
@@ -18,7 +26,18 @@ export default async function LeaderboardPage({
   const { title, resultKey, formatValue } = STAT_CATEGORIES[slug];
 
   const results = await getStatLeaderboards();
-  const entries = results[resultKey];
+  const rows: Row[] = results[resultKey].map((e, i) => ({ ...e, rank: i + 1 }));
+
+  const columns: Column<Row>[] = [
+    { key: 'rank', label: 'Rank', render: (r) => r.rank, align: 'right' },
+    {
+      key: 'player',
+      label: 'Player',
+      sortValue: (r) => r.playerName,
+      render: (r) => <Link href={`/players/${encodeURIComponent(r.playerName)}`}>{r.playerName}</Link>,
+    },
+    { key: 'value', label: title, sortValue: (r) => r.value, render: (r) => formatValue(r.value), align: 'right' },
+  ];
 
   return (
     <main className="container">
@@ -31,28 +50,7 @@ export default async function LeaderboardPage({
         least 15 matches played to be eligible.
       </p>
       <div className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Player</th>
-              <th>{title}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((entry, i) => (
-              <tr key={entry.playerName}>
-                <td>{i + 1}</td>
-                <td>
-                  <Link href={`/players/${encodeURIComponent(entry.playerName)}`}>
-                    {entry.playerName}
-                  </Link>
-                </td>
-                <td>{formatValue(entry.value)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SortableTable columns={columns} rows={rows} initialSortKey="value" />
       </div>
     </main>
   );

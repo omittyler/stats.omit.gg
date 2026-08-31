@@ -1,9 +1,9 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import Link from 'next/link';
 import type { EventStatsSummary } from '@/lib/standings';
 import { StatDetail } from './StatDetail';
+import { TeamBadge } from './TeamBadge';
 
 export type PlayerEventRow = {
   eventName: string;
@@ -21,9 +21,11 @@ function formatPlacement(min: number, max: number) {
 export default function PlayerEventsTable({
   history,
   statsByEvent,
+  logos,
 }: {
   history: PlayerEventRow[];
   statsByEvent: Record<string, EventStatsSummary>;
+  logos: Record<string, string>;
 }) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
@@ -46,13 +48,8 @@ export default function PlayerEventsTable({
             <Fragment key={i}>
               <tr onClick={() => setExpanded(isOpen ? null : i)} style={{ cursor: 'pointer' }}>
                 <td>{h.eventName}</td>
-                <td>
-                  <Link
-                    href={`/teams/${encodeURIComponent(h.teamName)}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {h.teamName}
-                  </Link>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <TeamBadge name={h.teamName} logoFilename={logos[h.teamName]} />
                 </td>
                 <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
                 <td>{h.points.toLocaleString()}</td>
