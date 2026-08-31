@@ -32,7 +32,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
 
   if (!teamRow && !standing && !history.length) {
     return (
-      <main style={{ padding: 32, maxWidth: 720, margin: '0 auto' }}>
+      <main className="container">
         <p>Team &ldquo;{teamName}&rdquo; not found.</p>
         <Link href="/standings">&larr; Back to standings</Link>
       </main>
@@ -51,11 +51,11 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   );
 
   return (
-    <main style={{ padding: 32, maxWidth: 720, margin: '0 auto' }}>
-      <p>
-        <Link href="/standings">&larr; Back to standings</Link>
-      </p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+    <main className="container">
+      <Link className="back-link" href="/standings">
+        &larr; Back to standings
+      </Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
         {teamRow && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -69,56 +69,60 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
         <h1 style={{ margin: 0 }}>{teamName}</h1>
       </div>
 
-      <p style={{ color: '#9aa0ac' }}>
+      <p className="note">
         Current season points (sum of current roster):{' '}
-        <strong>{(standing?.points ?? 0).toLocaleString()}</strong>
+        <strong style={{ color: 'var(--text)' }}>{(standing?.points ?? 0).toLocaleString()}</strong>
       </p>
 
-      <h2>Current Roster</h2>
-      {currentRoster.length ? (
-        <ul>
-          {currentRoster.map((p) => (
-            <li key={p}>
-              <Link href={`/players/${encodeURIComponent(p)}`}>{p}</Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p style={{ color: '#9aa0ac' }}>No current roster on record.</p>
-      )}
-
-      {previousPlayers.length > 0 && (
-        <>
-          <h2>Previous Players</h2>
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Current Roster</h2>
+        {currentRoster.length ? (
           <ul>
-            {previousPlayers.map((p) => (
+            {currentRoster.map((p) => (
               <li key={p}>
                 <Link href={`/players/${encodeURIComponent(p)}`}>{p}</Link>
               </li>
             ))}
           </ul>
-        </>
-      )}
+        ) : (
+          <p className="note">No current roster on record.</p>
+        )}
 
-      <h2>Events</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Placement</th>
-            <th>Prize</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((h, i) => (
-            <tr key={i}>
-              <td>{h.eventName}</td>
-              <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
-              <td>{formatPrize(h.prizeUsd)}</td>
+        {previousPlayers.length > 0 && (
+          <>
+            <h2>Previous Players</h2>
+            <ul>
+              {previousPlayers.map((p) => (
+                <li key={p}>
+                  <Link href={`/players/${encodeURIComponent(p)}`}>{p}</Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Events</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Placement</th>
+              <th>Prize</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {history.map((h, i) => (
+              <tr key={i}>
+                <td>{h.eventName}</td>
+                <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
+                <td>{formatPrize(h.prizeUsd)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }

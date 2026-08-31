@@ -21,7 +21,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
 
   if (!standing) {
     return (
-      <main style={{ padding: 32, maxWidth: 720, margin: '0 auto' }}>
+      <main className="container">
         <p>Player &ldquo;{playerName}&rdquo; not found.</p>
         <Link href="/players">&larr; Back to player points</Link>
       </main>
@@ -29,40 +29,43 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   }
 
   return (
-    <main style={{ padding: 32, maxWidth: 720, margin: '0 auto' }}>
-      <p>
-        <Link href="/players">&larr; Back to player points</Link>
-      </p>
+    <main className="container">
+      <Link className="back-link" href="/players">
+        &larr; Back to player points
+      </Link>
       <h1>{playerName}</h1>
-      <p style={{ color: '#9aa0ac' }}>
+      <p className="note">
         Current team:{' '}
         <Link href={`/teams/${encodeURIComponent(standing.currentTeam)}`}>{standing.currentTeam}</Link>
-        {' — '}Season points: <strong>{standing.points.toLocaleString()}</strong>
+        {' — '}Season points:{' '}
+        <strong style={{ color: 'var(--text)' }}>{standing.points.toLocaleString()}</strong>
       </p>
 
-      <h2>Events</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Team</th>
-            <th>Placement</th>
-            <th>Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((h, i) => (
-            <tr key={i}>
-              <td>{h.eventName}</td>
-              <td>
-                <Link href={`/teams/${encodeURIComponent(h.teamName)}`}>{h.teamName}</Link>
-              </td>
-              <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
-              <td>{h.points.toLocaleString()}</td>
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Events</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Team</th>
+              <th>Placement</th>
+              <th>Points</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {history.map((h, i) => (
+              <tr key={i}>
+                <td>{h.eventName}</td>
+                <td>
+                  <Link href={`/teams/${encodeURIComponent(h.teamName)}`}>{h.teamName}</Link>
+                </td>
+                <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
+                <td>{h.points.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }

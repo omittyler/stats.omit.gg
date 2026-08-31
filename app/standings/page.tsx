@@ -10,35 +10,37 @@ export default async function StandingsPage() {
   const { teamStandings } = await computeStandings();
 
   return (
-    <main style={{ padding: 32, maxWidth: 720, margin: '0 auto' }}>
+    <main className="container">
       <h1>2026 Season Team Standings</h1>
-      <p style={{ color: '#9aa0ac', fontSize: '0.9rem' }}>
+      <p className="note">
         A team&apos;s points are the sum of its <strong>current roster&apos;s</strong> individual point
         totals — CDC points are earned by, and travel with, the player, not the team. &ldquo;Current
         team&rdquo; is derived from each player&apos;s most recent event by date. See{' '}
         <Link href="/players">the player leaderboard</Link> for individual totals, and PROJECT.md §8d
         for a couple of known name-collision caveats.
       </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Team</th>
-            <th>Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teamStandings.map((team, i) => (
-            <tr key={team.name}>
-              <td>{i + 1}</td>
-              <td>
-                <Link href={`/teams/${encodeURIComponent(team.name)}`}>{team.name}</Link>
-              </td>
-              <td>{team.points.toLocaleString()}</td>
+      <div className="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Team</th>
+              <th>Points</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teamStandings.map((team, i) => (
+              <tr key={team.name}>
+                <td>{i + 1}</td>
+                <td>
+                  <Link href={`/teams/${encodeURIComponent(team.name)}`}>{team.name}</Link>
+                </td>
+                <td>{team.points.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }
