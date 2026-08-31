@@ -51,14 +51,14 @@ export default async function HomePage() {
       <h1>stats.omit.gg</h1>
       <p className="note">Call of Duty Challengers stats hub — early build.</p>
       <p>
-        <Link href="/standings">View 2026 Season Team Standings &rarr;</Link>
+        <Link href="/standings">View Black Ops 7 (BO7) Team Standings &rarr;</Link>
         {' · '}
-        <Link href="/players">View 2026 Season Player Points &rarr;</Link>
+        <Link href="/players">View Black Ops 7 (BO7) Player Points &rarr;</Link>
         {' · '}
         <Link href="/teams">Browse Teams &rarr;</Link>
       </p>
 
-      <h2>Top 5 — 2026 Season</h2>
+      <h2>Top 5 — Black Ops 7 (BO7)</h2>
       <p className="note">
         Sourced directly from the stats provider&apos;s own full-season totals per player (not summed
         by us from individual events). K/D and Slayer Rating require at least 2 matches played to

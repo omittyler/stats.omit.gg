@@ -10,9 +10,9 @@ export default async function PlayersPage() {
 
   return (
     <main className="container">
-      <h1>2026 Season Player Points</h1>
+      <h1>Black Ops 7 (BO7) Player Points</h1>
       <p className="note">
-        Sum of CDC points earned across every 2026 event, attributed to the player (full placement
+        Sum of CDC points earned across every Black Ops 7 (BO7) event, attributed to the player (full placement
         points each roster player, not split). &ldquo;Current Team&rdquo; is that player&apos;s most
         recent event by date. See <Link href="/standings">team standings</Link>, which are built from
         these totals. Known caveat: a couple of handles ("Apollo", "Law") are confirmed to be two

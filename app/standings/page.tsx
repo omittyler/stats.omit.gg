@@ -11,7 +11,7 @@ export default async function StandingsPage() {
 
   return (
     <main className="container">
-      <h1>2026 Season Team Standings</h1>
+      <h1>Black Ops 7 (BO7) Team Standings</h1>
       <p className="note">
         A team&apos;s points are the sum of its <strong>current roster&apos;s</strong> individual point
         totals — CDC points are earned by, and travel with, the player, not the team. &ldquo;Current
