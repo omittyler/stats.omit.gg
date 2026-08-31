@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { TeamStanding } from '@/lib/standings';
 import SortableTable, { type Column } from './SortableTable';
 import { TeamBadge } from './TeamBadge';
@@ -13,6 +14,11 @@ export default function StandingsTable({
   rows: Row[];
   logos: Record<string, string>;
 }) {
+  const [regionFilter, setRegionFilter] = useState('all');
+  const regions = [...new Set(rows.map((r) => r.region || 'Other'))].sort();
+  const filteredRows =
+    regionFilter === 'all' ? rows : rows.filter((r) => (r.region || 'Other') === regionFilter);
+
   const columns: Column<Row>[] = [
     { key: 'rank', label: 'Rank', render: (r) => r.rank, align: 'right' },
     {
@@ -30,5 +36,21 @@ export default function StandingsTable({
     },
   ];
 
-  return <SortableTable columns={columns} rows={rows} initialSortKey="points" />;
+  return (
+    <div>
+      {regions.length > 1 && (
+        <div className="table-filter-row">
+          <button className={regionFilter === 'all' ? 'active' : ''} onClick={() => setRegionFilter('all')}>
+            All
+          </button>
+          {regions.map((r) => (
+            <button key={r} className={regionFilter === r ? 'active' : ''} onClick={() => setRegionFilter(r)}>
+              {r}
+            </button>
+          ))}
+        </div>
+      )}
+      <SortableTable columns={columns} rows={filteredRows} initialSortKey="points" />
+    </div>
+  );
 }

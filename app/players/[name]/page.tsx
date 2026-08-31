@@ -11,8 +11,21 @@ import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format'
 import PlayerEventsTable from '@/components/PlayerEventsTable';
 import { StatDetail } from '@/components/StatDetail';
 import { TeamBadge } from '@/components/TeamBadge';
+import { TrendChart } from '@/components/TrendChart';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ name: string }> }) {
+  const { name: rawName } = await params;
+  const playerName = decodeURIComponent(rawName);
+  const { playerStandings } = await computeStandings();
+  const standing = playerStandings.find((p) => p.name === playerName);
+  if (!standing) return { title: `${playerName} — stats.omit.gg` };
+  return {
+    title: `${playerName} — stats.omit.gg`,
+    description: `${playerName} (${standing.currentTeam}) — ${standing.points.toLocaleString()} CDC points this Black Ops 7 (BO7) season.`,
+  };
+}
 
 export default async function PlayerPage({ params }: { params: Promise<{ name: string }> }) {
   const { name: rawName } = await params;
@@ -40,6 +53,17 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   // per-player payout actually needs computing - this display is separate.
   const totalEarnings = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
+
+  // Cumulative points across the season, chronological order - this is
+  // exactly how standing.points itself is built (sum of every event's
+  // points), just exposed as a running total per event for the trend chart.
+  let cumulative = 0;
+  const trendData = [...history]
+    .sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''))
+    .map((h) => {
+      cumulative += h.points;
+      return { label: h.eventName, value: cumulative };
+    });
 
   if (!standing) {
     return (
@@ -117,6 +141,18 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
             <div className="stat-card-value">—</div>
           )}
         </div>
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Season Trend</h2>
+        <p className="note">Cumulative CDC points across the season, in event order. Hover a point for details.</p>
+        <TrendChart data={trendData} />
+        {trendData.length > 1 && (
+          <div className="trend-summary">
+            <span>{trendData[0].label}</span>
+            <span>{trendData[trendData.length - 1].label}</span>
+          </div>
+        )}
       </div>
 
       <div className="card">

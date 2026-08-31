@@ -35,8 +35,8 @@ export type EnrichedPlacement = {
   players: string[];
 };
 
-export type PlayerStanding = { name: string; points: number; currentTeam: string };
-export type TeamStanding = { name: string; points: number; players: string[] };
+export type PlayerStanding = { name: string; points: number; currentTeam: string; region: string };
+export type TeamStanding = { name: string; points: number; players: string[]; region: string };
 
 /**
  * Fetches every placement, joined with its team/event, and the CDC points it's
@@ -122,7 +122,10 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
 export async function computeStandings(placements?: EnrichedPlacement[]) {
   const rows = placements ?? (await getEnrichedPlacements());
 
-  const players = new Map<string, { total: number; lastDate: string; lastTeam: string }>();
+  const players = new Map<
+    string,
+    { total: number; lastDate: string; lastTeam: string; lastRegionDate: string; region: string }
+  >();
 
   for (const row of rows) {
     const date = row.eventDate ?? '';
@@ -134,29 +137,58 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
           existing.lastDate = date;
           existing.lastTeam = row.teamName;
         }
+        // Region tracked separately from "current team" - Major/Champs events
+        // carry no region at all, so a player whose most recent event was a
+        // Major would otherwise lose their real NA/EU tag. Uses their most
+        // recent event that DOES have a region instead.
+        if (row.region && date > existing.lastRegionDate) {
+          existing.lastRegionDate = date;
+          existing.region = row.region;
+        }
       } else {
-        players.set(name, { total: row.points, lastDate: date, lastTeam: row.teamName });
+        players.set(name, {
+          total: row.points,
+          lastDate: date,
+          lastTeam: row.teamName,
+          lastRegionDate: row.region ? date : '',
+          region: row.region || '',
+        });
       }
     }
   }
 
   const playerStandings: PlayerStanding[] = [...players.entries()]
-    .map(([name, agg]) => ({ name, points: agg.total, currentTeam: agg.lastTeam }))
+    .map(([name, agg]) => ({ name, points: agg.total, currentTeam: agg.lastTeam, region: agg.region }))
     .sort((a, b) => b.points - a.points);
 
-  const teamTotals = new Map<string, { points: number; players: string[] }>();
-  for (const { name, points, currentTeam } of playerStandings) {
+  const teamTotals = new Map<string, { points: number; players: string[]; regionCounts: Map<string, number> }>();
+  for (const { name, points, currentTeam, region } of playerStandings) {
     const existing = teamTotals.get(currentTeam);
     if (existing) {
       existing.points += points;
       existing.players.push(name);
+      if (region) existing.regionCounts.set(region, (existing.regionCounts.get(region) ?? 0) + 1);
     } else {
-      teamTotals.set(currentTeam, { points, players: [name] });
+      const regionCounts = new Map<string, number>();
+      if (region) regionCounts.set(region, 1);
+      teamTotals.set(currentTeam, { points, players: [name], regionCounts });
     }
   }
 
+  // A team's region is whichever region most of its current roster's players
+  // are tagged with (a roster should be regionally homogeneous in practice).
   const teamStandings: TeamStanding[] = [...teamTotals.entries()]
-    .map(([name, v]) => ({ name, points: v.points, players: v.players }))
+    .map(([name, v]) => {
+      let region = '';
+      let best = 0;
+      for (const [r, count] of v.regionCounts) {
+        if (count > best) {
+          best = count;
+          region = r;
+        }
+      }
+      return { name, points: v.points, players: v.players, region };
+    })
     .sort((a, b) => b.points - a.points);
 
   return { playerStandings, teamStandings };
@@ -316,6 +348,45 @@ export async function getPlayerEventStatsSummaries(
   }
 
   return result;
+}
+
+export type RecentEventGroup = {
+  eventName: string;
+  region: string;
+  eventDate: string | null;
+  topPlacements: { teamName: string; placementMin: number; placementMax: number }[];
+};
+
+/**
+ * The most recent event date on record, split into one group per (event,
+ * region) pair that shares that date - e.g. a Cup's NA and EU brackets run
+ * the same day but are two separate groups here, each with its own top 3.
+ * Powers the home page's "Recent Results" spotlight.
+ */
+export async function getRecentEvents(placements?: EnrichedPlacement[]): Promise<RecentEventGroup[]> {
+  const rows = placements ?? (await getEnrichedPlacements());
+  const dated = rows.filter((r): r is EnrichedPlacement & { eventDate: string } => Boolean(r.eventDate));
+  if (!dated.length) return [];
+
+  const maxDate = dated.reduce((max, r) => (r.eventDate > max ? r.eventDate : max), dated[0].eventDate);
+  const latestRows = dated.filter((r) => r.eventDate === maxDate);
+
+  const groups = new Map<string, RecentEventGroup>();
+  for (const row of latestRows) {
+    const key = `${row.eventName}|${row.region}`;
+    if (!groups.has(key)) {
+      groups.set(key, { eventName: row.eventName, region: row.region, eventDate: row.eventDate, topPlacements: [] });
+    }
+    groups.get(key)!.topPlacements.push({
+      teamName: row.teamName,
+      placementMin: row.placementMin,
+      placementMax: row.placementMax,
+    });
+  }
+
+  return [...groups.values()]
+    .map((g) => ({ ...g, topPlacements: g.topPlacements.sort((a, b) => a.placementMin - b.placementMin).slice(0, 3) }))
+    .sort((a, b) => a.eventName.localeCompare(b.eventName));
 }
 
 /** Team name -> logo filename, for rendering a small badge next to a team name in a table. */

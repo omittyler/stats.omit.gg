@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getEnrichedPlacements, computeStandings } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
+import { TrendChart } from '@/components/TrendChart';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,18 @@ function formatPlacement(min: number, max: number) {
 
 function formatPrize(prizeUsd: number) {
   return prizeUsd > 0 ? formatUsd(prizeUsd) : '-';
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ name: string }> }) {
+  const { name: rawName } = await params;
+  const teamName = decodeURIComponent(rawName);
+  const { teamStandings } = await computeStandings();
+  const standing = teamStandings.find((t) => t.name === teamName);
+  if (!standing) return { title: `${teamName} — stats.omit.gg` };
+  return {
+    title: `${teamName} — stats.omit.gg`,
+    description: `${teamName} — ${standing.points.toLocaleString()} CDC points this Black Ops 7 (BO7) season.`,
+  };
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ name: string }> }) {
@@ -69,6 +82,17 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   const totalPrize = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
 
+  // This org's own points at each of its own results, not the "sum of
+  // current roster" headline stat above (those two numbers can genuinely
+  // differ when the roster has changed - see the Current Roster note below).
+  let cumulative = 0;
+  const trendData = [...history]
+    .sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''))
+    .map((h) => {
+      cumulative += h.points;
+      return { label: h.eventName, value: cumulative };
+    });
+
   return (
     <main className="container">
       <Link className="back-link" href="/standings">
@@ -114,6 +138,21 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
             <div className="stat-card-value">—</div>
           )}
         </div>
+      </div>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Season Trend</h2>
+        <p className="note">
+          Cumulative CDC points earned by this org&apos;s own results across the season (not the
+          current-roster sum above). Hover a point for details.
+        </p>
+        <TrendChart data={trendData} />
+        {trendData.length > 1 && (
+          <div className="trend-summary">
+            <span>{trendData[0].label}</span>
+            <span>{trendData[trendData.length - 1].label}</span>
+          </div>
+        )}
       </div>
 
       <div className="card">

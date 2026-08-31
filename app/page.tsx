@@ -5,6 +5,8 @@ import {
   type StatCategorySlug,
   type StatLeaderboardEntry,
 } from '@/lib/statLeaderboards';
+import { getRecentEvents } from '@/lib/standings';
+import { formatPlacementOrdinal } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +47,7 @@ function StatBox({
 
 export default async function HomePage() {
   const results = await getStatLeaderboards(5);
+  const recentEvents = await getRecentEvents();
 
   return (
     <main className="container">
@@ -57,6 +60,30 @@ export default async function HomePage() {
           <Link href="/teams">Browse Teams &rarr;</Link>
         </div>
       </div>
+
+      {recentEvents.length > 0 && (
+        <>
+          <h2>Recent Results</h2>
+          <div className="recent-events-grid">
+            {recentEvents.map((group) => (
+              <div className="recent-event-card" key={`${group.eventName}|${group.region}`}>
+                <h3>{group.eventName}</h3>
+                {group.region && <span className="region-tag">{group.region}</span>}
+                <ol>
+                  {group.topPlacements.map((p, i) => (
+                    <li key={i}>
+                      <span className="placement">
+                        {formatPlacementOrdinal(p.placementMin, p.placementMax)}
+                      </span>
+                      <Link href={`/teams/${encodeURIComponent(p.teamName)}`}>{p.teamName}</Link>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <h2>Top 5 — Black Ops 7 (BO7)</h2>
       <p className="note">
