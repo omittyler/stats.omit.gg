@@ -63,7 +63,44 @@ function buildCanonicalNameMap(): Map<string, string> {
  * cover 9 of ~18 tracked events, see PROJECT.md §7). One row per player
  * already IS their season total, so no aggregation across rows is needed here.
  */
-export async function getStatLeaderboards() {
+export const STAT_CATEGORIES = {
+  kd: { title: 'K/D Ratio', resultKey: 'kd', formatValue: (v: number) => v.toFixed(2) },
+  'slayer-rating': {
+    title: 'Slayer Rating',
+    resultKey: 'slayerRating',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  damage: { title: 'Damage', resultKey: 'damage', formatValue: (v: number) => v.toLocaleString() },
+  'hardpoint-kd': {
+    title: 'Hardpoint K/D',
+    resultKey: 'hpKd',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  'search-and-destroy-kd': {
+    title: 'Search & Destroy K/D',
+    resultKey: 'sndKd',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  'overload-kd': {
+    title: 'Overload K/D',
+    resultKey: 'ovlKd',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+} as const;
+
+export type StatCategorySlug = keyof typeof STAT_CATEGORIES;
+
+/**
+ * Season-aggregate stat leaderboards, read directly from the "BO7 Full Season"
+ * files - these are the stats provider's own complete season totals per
+ * player, not something summed from the partial per-event files (which only
+ * cover 9 of ~18 tracked events, see PROJECT.md §7). One row per player
+ * already IS their season total, so no aggregation across rows is needed here.
+ *
+ * Pass `limit` to cap each list (e.g. 5 for the home page); omit it for the
+ * full leaderboard pages.
+ */
+export async function getStatLeaderboards(limit?: number) {
   const canonicalNames = buildCanonicalNameMap();
   const rows = FULL_SEASON_FILES.flatMap((file) =>
     parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
@@ -78,28 +115,34 @@ export async function getStatLeaderboards() {
   // explicitly discussed with the user, flagged as a judgment call.
   const MIN_MATCHES = 2;
 
+  function cap(list: StatLeaderboardEntry[]): StatLeaderboardEntry[] {
+    return limit ? list.slice(0, limit) : list;
+  }
+
   function topByRatio(k: string, d: string): StatLeaderboardEntry[] {
-    return rows
-      .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && (r[d] ?? 0) > 0)
-      .map((r) => ({
-        playerName: canonicalize(r.player_name),
-        value: (r[k] ?? 0) / (r[d] as number),
-        qualifyingEvents: r.matches_total ?? 0,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+    return cap(
+      rows
+        .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && (r[d] ?? 0) > 0)
+        .map((r) => ({
+          playerName: canonicalize(r.player_name),
+          value: (r[k] ?? 0) / (r[d] as number),
+          qualifyingEvents: r.matches_total ?? 0,
+        }))
+        .sort((a, b) => b.value - a.value)
+    );
   }
 
   function topByValue(field: string): StatLeaderboardEntry[] {
-    return rows
-      .filter((r) => r[field] !== null)
-      .map((r) => ({
-        playerName: canonicalize(r.player_name),
-        value: r[field] as number,
-        qualifyingEvents: r.matches_total ?? 0,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+    return cap(
+      rows
+        .filter((r) => r[field] !== null)
+        .map((r) => ({
+          playerName: canonicalize(r.player_name),
+          value: r[field] as number,
+          qualifyingEvents: r.matches_total ?? 0,
+        }))
+        .sort((a, b) => b.value - a.value)
+    );
   }
 
   const kd = topByRatio('overall_k', 'overall_d');
@@ -107,15 +150,16 @@ export async function getStatLeaderboards() {
   const sndKd = topByRatio('snd_k', 'snd_d');
   const ovlKd = topByRatio('ovl_k', 'ovl_d');
   const damage = topByValue('overall_dmg');
-  const slayerRating = rows
-    .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && r.overall_slayer_rating !== null)
-    .map((r) => ({
-      playerName: canonicalize(r.player_name),
-      value: r.overall_slayer_rating as number,
-      qualifyingEvents: r.matches_total ?? 0,
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5);
+  const slayerRating = cap(
+    rows
+      .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && r.overall_slayer_rating !== null)
+      .map((r) => ({
+        playerName: canonicalize(r.player_name),
+        value: r.overall_slayer_rating as number,
+        qualifyingEvents: r.matches_total ?? 0,
+      }))
+      .sort((a, b) => b.value - a.value)
+  );
 
   return { kd, slayerRating, damage, hpKd, sndKd, ovlKd };
 }

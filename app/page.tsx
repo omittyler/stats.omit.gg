@@ -1,13 +1,20 @@
 import Link from 'next/link';
-import { getStatLeaderboards, type StatLeaderboardEntry } from '@/lib/statLeaderboards';
+import {
+  getStatLeaderboards,
+  STAT_CATEGORIES,
+  type StatCategorySlug,
+  type StatLeaderboardEntry,
+} from '@/lib/statLeaderboards';
 
 export const dynamic = 'force-dynamic';
 
 function StatBox({
+  slug,
   title,
   entries,
   formatValue,
 }: {
+  slug: StatCategorySlug;
   title: string;
   entries: StatLeaderboardEntry[];
   formatValue: (value: number) => string;
@@ -29,12 +36,15 @@ function StatBox({
       ) : (
         <p className="note">Not enough data yet.</p>
       )}
+      <Link href={`/leaderboards/${slug}`} className="stat-box-link">
+        View Full Leaderboard &rarr;
+      </Link>
     </div>
   );
 }
 
 export default async function HomePage() {
-  const { kd, slayerRating, damage, hpKd, sndKd, ovlKd } = await getStatLeaderboards();
+  const results = await getStatLeaderboards(5);
 
   return (
     <main className="container">
@@ -55,12 +65,17 @@ export default async function HomePage() {
         appear here, so one great match can&apos;t top the list on its own.
       </p>
       <div className="stat-grid">
-        <StatBox title="K/D Ratio" entries={kd} formatValue={(v) => v.toFixed(2)} />
-        <StatBox title="Slayer Rating" entries={slayerRating} formatValue={(v) => v.toFixed(2)} />
-        <StatBox title="Damage" entries={damage} formatValue={(v) => v.toLocaleString()} />
-        <StatBox title="Hardpoint K/D" entries={hpKd} formatValue={(v) => v.toFixed(2)} />
-        <StatBox title="Search & Destroy K/D" entries={sndKd} formatValue={(v) => v.toFixed(2)} />
-        <StatBox title="Overload K/D" entries={ovlKd} formatValue={(v) => v.toFixed(2)} />
+        {(Object.entries(STAT_CATEGORIES) as [StatCategorySlug, (typeof STAT_CATEGORIES)[StatCategorySlug]][]).map(
+          ([slug, { title, resultKey, formatValue }]) => (
+            <StatBox
+              key={slug}
+              slug={slug}
+              title={title}
+              entries={results[resultKey]}
+              formatValue={formatValue}
+            />
+          )
+        )}
       </div>
     </main>
   );
