@@ -61,8 +61,8 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
           <img
             src={`/teams/${teamRow.logo_filename}`}
             alt={teamName}
-            width={64}
-            height={64}
+            width={112}
+            height={112}
             style={{ objectFit: 'contain' }}
           />
         )}
