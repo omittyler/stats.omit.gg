@@ -1,11 +1,8 @@
 import Link from 'next/link';
-import { getEnrichedPlacements, computeStandings } from '@/lib/standings';
+import { getEnrichedPlacements, computeStandings, getPlayerEventStatsSummaries } from '@/lib/standings';
+import PlayerEventsTable from '@/components/PlayerEventsTable';
 
 export const dynamic = 'force-dynamic';
-
-function formatPlacement(min: number, max: number) {
-  return min === max ? `${min}` : `${min}-${max}`;
-}
 
 export default async function PlayerPage({ params }: { params: Promise<{ name: string }> }) {
   const { name: rawName } = await params;
@@ -18,6 +15,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const history = placements
     .filter((p) => p.players.includes(playerName))
     .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? ''));
+
+  const statsMap = await getPlayerEventStatsSummaries(playerName);
+  const statsByEvent = Object.fromEntries(statsMap);
 
   if (!standing) {
     return (
@@ -43,28 +43,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Events</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Team</th>
-              <th>Placement</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((h, i) => (
-              <tr key={i}>
-                <td>{h.eventName}</td>
-                <td>
-                  <Link href={`/teams/${encodeURIComponent(h.teamName)}`}>{h.teamName}</Link>
-                </td>
-                <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
-                <td>{h.points.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="note">Click an event to see this player&apos;s stats from it, if available.</p>
+        <PlayerEventsTable history={history} statsByEvent={statsByEvent} />
       </div>
     </main>
   );

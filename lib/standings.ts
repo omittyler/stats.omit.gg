@@ -158,3 +158,93 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
 
   return { playerStandings, teamStandings };
 }
+
+export type EventStatsSummary = {
+  overallK: number | null;
+  overallD: number | null;
+  overallKd: number | null;
+  overallDmg: number | null;
+  overallSlayerRating: number | null;
+  hpMaps: number | null;
+  hpK: number | null;
+  hpD: number | null;
+  hpKd: number | null;
+  sndMaps: number | null;
+  sndK: number | null;
+  sndD: number | null;
+  sndKd: number | null;
+  ovlMaps: number | null;
+  ovlK: number | null;
+  ovlD: number | null;
+  ovlKd: number | null;
+};
+
+type PlayerEventStatsRow = {
+  overall_k: number | null;
+  overall_d: number | null;
+  overall_kd: number | null;
+  overall_dmg: number | null;
+  overall_slayer_rating: number | null;
+  hp_maps: number | null;
+  hp_k: number | null;
+  hp_d: number | null;
+  hp_kd: number | null;
+  snd_maps: number | null;
+  snd_k: number | null;
+  snd_d: number | null;
+  snd_kd: number | null;
+  ovl_maps: number | null;
+  ovl_k: number | null;
+  ovl_d: number | null;
+  ovl_kd: number | null;
+  events: { name: string; region: string } | null;
+};
+
+/**
+ * Per-event stat breakdowns for one player, from player_event_stats - only
+ * covers events with bo7_stats data (9 of ~18 tracked events, see PROJECT.md
+ * §7), and only where that specific player was resolvable in the seed
+ * script. Callers should expect gaps and show a clear "no stats" message
+ * rather than treating a miss as an error.
+ */
+export async function getPlayerEventStatsSummaries(
+  playerName: string
+): Promise<Map<string, EventStatsSummary>> {
+  const { data, error } = await supabase
+    .from('player_event_stats')
+    .select(
+      'overall_k, overall_d, overall_kd, overall_dmg, overall_slayer_rating, hp_maps, hp_k, hp_d, hp_kd, snd_maps, snd_k, snd_d, snd_kd, ovl_maps, ovl_k, ovl_d, ovl_kd, events(name, region)'
+    )
+    .eq('player_name', playerName);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as PlayerEventStatsRow[];
+  const map = new Map<string, EventStatsSummary>();
+
+  for (const row of rows) {
+    if (!row.events) continue;
+    const key = `${row.events.name}|${row.events.region}`;
+    map.set(key, {
+      overallK: row.overall_k,
+      overallD: row.overall_d,
+      overallKd: row.overall_kd,
+      overallDmg: row.overall_dmg,
+      overallSlayerRating: row.overall_slayer_rating,
+      hpMaps: row.hp_maps,
+      hpK: row.hp_k,
+      hpD: row.hp_d,
+      hpKd: row.hp_kd,
+      sndMaps: row.snd_maps,
+      sndK: row.snd_k,
+      sndD: row.snd_d,
+      sndKd: row.snd_kd,
+      ovlMaps: row.ovl_maps,
+      ovlK: row.ovl_k,
+      ovlD: row.ovl_d,
+      ovlKd: row.ovl_kd,
+    });
+  }
+
+  return map;
+}
