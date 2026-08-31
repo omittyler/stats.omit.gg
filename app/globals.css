@@ -230,45 +230,55 @@ tbody tr:hover {
 .stat-detail {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   padding: 16px 4px;
 }
 
-.stat-detail-section h4 {
-  margin: 0 0 8px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+.stat-section-title {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
   font-weight: 700;
+  color: var(--text);
 }
 
-.stat-tile-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.stat-pair-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.stat-tile {
+.stat-pair-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 84px;
-  padding: 8px 14px;
+  gap: 4px;
+  padding: 10px 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
 
-.stat-tile-label {
+.stat-pair-title {
   font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  font-weight: 700;
 }
 
-.stat-tile-value {
-  font-size: 1.05rem;
+.stat-pair-values {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.stat-pair-value {
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
+}
+
+.stat-pair-rank {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }

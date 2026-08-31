@@ -159,46 +159,77 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
   return { playerStandings, teamStandings };
 }
 
+export type RankedStat = { value: number | null; rank: number | null };
+
 export type EventStatsSummary = {
-  overallK: number | null;
-  overallD: number | null;
-  overallKd: number | null;
-  overallDmg: number | null;
-  overallSlayerRating: number | null;
+  matchesTotal: number | null;
+  matchesW: number | null;
+  matchesL: number | null;
+  mapsTotal: number | null;
+  mapsW: number | null;
+  mapsL: number | null;
+
+  overallKd: RankedStat;
+  overallKad: RankedStat;
+  overallSlayerRating: RankedStat;
+  overallDamageRating: RankedStat;
+
   hpMaps: number | null;
-  hpK: number | null;
-  hpD: number | null;
-  hpKd: number | null;
+  hpKd: RankedStat;
+  hpHillTimePer10: RankedStat;
+  hpKPer10: RankedStat;
+  hpDmgPer10: RankedStat;
+
   sndMaps: number | null;
-  sndK: number | null;
-  sndD: number | null;
-  sndKd: number | null;
+  sndKd: RankedStat;
+  sndOpeningDuelWinPct: RankedStat;
+  sndKPerR: RankedStat;
+  sndDmgPerR: RankedStat;
+
   ovlMaps: number | null;
-  ovlK: number | null;
-  ovlD: number | null;
-  ovlKd: number | null;
+  ovlKd: RankedStat;
+  ovlGoalsPer10: RankedStat;
+  ovlKPer10: RankedStat;
+  ovlDmgPer10: RankedStat;
 };
 
-type PlayerEventStatsRow = {
-  overall_k: number | null;
-  overall_d: number | null;
-  overall_kd: number | null;
-  overall_dmg: number | null;
-  overall_slayer_rating: number | null;
-  hp_maps: number | null;
-  hp_k: number | null;
-  hp_d: number | null;
-  hp_kd: number | null;
-  snd_maps: number | null;
-  snd_k: number | null;
-  snd_d: number | null;
-  snd_kd: number | null;
-  ovl_maps: number | null;
-  ovl_k: number | null;
-  ovl_d: number | null;
-  ovl_kd: number | null;
-  events: { name: string; region: string } | null;
-};
+// The stat fields ranked against every other player at the same event (see
+// getPlayerEventStatsSummaries) - all treated as higher-is-better.
+const RANKED_FIELDS = [
+  'overall_kd',
+  'overall_kad',
+  'overall_slayer_rating',
+  'overall_damage_rating',
+  'hp_kd',
+  'hp_hill_time_per_10',
+  'hp_k_per_10',
+  'hp_dmg_per_10',
+  'snd_kd',
+  'snd_opening_duel_win_pct',
+  'snd_k_per_r',
+  'snd_dmg_per_r',
+  'ovl_kd',
+  'ovl_goals_per_10',
+  'ovl_k_per_10',
+  'ovl_dmg_per_10',
+] as const;
+
+type RankedField = (typeof RANKED_FIELDS)[number];
+
+type FullPlayerEventStatsRow = { player_name: string; events: { name: string; region: string } | null } & Record<
+  RankedField,
+  number | null
+> & {
+    matches_total: number | null;
+    matches_w: number | null;
+    matches_l: number | null;
+    maps_total: number | null;
+    maps_w: number | null;
+    maps_l: number | null;
+    hp_maps: number | null;
+    snd_maps: number | null;
+    ovl_maps: number | null;
+  };
 
 /**
  * Per-event stat breakdowns for one player, from player_event_stats - only
@@ -206,6 +237,10 @@ type PlayerEventStatsRow = {
  * §7), and only where that specific player was resolvable in the seed
  * script. Callers should expect gaps and show a clear "no stats" message
  * rather than treating a miss as an error.
+ *
+ * Each ranked stat (RANKED_FIELDS) is ranked against every OTHER player who
+ * has a row for that same event - i.e. "how this player did at this specific
+ * event compared to everyone else who played it," not a season-wide rank.
  */
 export async function getPlayerEventStatsSummaries(
   playerName: string
@@ -213,38 +248,69 @@ export async function getPlayerEventStatsSummaries(
   const { data, error } = await supabase
     .from('player_event_stats')
     .select(
-      'overall_k, overall_d, overall_kd, overall_dmg, overall_slayer_rating, hp_maps, hp_k, hp_d, hp_kd, snd_maps, snd_k, snd_d, snd_kd, ovl_maps, ovl_k, ovl_d, ovl_kd, events(name, region)'
-    )
-    .eq('player_name', playerName);
+      `player_name, matches_total, matches_w, matches_l, maps_total, maps_w, maps_l, hp_maps, snd_maps, ovl_maps, ${RANKED_FIELDS.join(', ')}, events(name, region)`
+    );
 
   if (error) throw error;
 
-  const rows = (data ?? []) as unknown as PlayerEventStatsRow[];
-  const map = new Map<string, EventStatsSummary>();
+  const rows = (data ?? []) as unknown as FullPlayerEventStatsRow[];
 
+  const byEvent = new Map<string, FullPlayerEventStatsRow[]>();
   for (const row of rows) {
     if (!row.events) continue;
     const key = `${row.events.name}|${row.events.region}`;
-    map.set(key, {
-      overallK: row.overall_k,
-      overallD: row.overall_d,
-      overallKd: row.overall_kd,
-      overallDmg: row.overall_dmg,
-      overallSlayerRating: row.overall_slayer_rating,
-      hpMaps: row.hp_maps,
-      hpK: row.hp_k,
-      hpD: row.hp_d,
-      hpKd: row.hp_kd,
-      sndMaps: row.snd_maps,
-      sndK: row.snd_k,
-      sndD: row.snd_d,
-      sndKd: row.snd_kd,
-      ovlMaps: row.ovl_maps,
-      ovlK: row.ovl_k,
-      ovlD: row.ovl_d,
-      ovlKd: row.ovl_kd,
+    if (!byEvent.has(key)) byEvent.set(key, []);
+    byEvent.get(key)!.push(row);
+  }
+
+  const result = new Map<string, EventStatsSummary>();
+
+  for (const [key, eventRows] of byEvent) {
+    const target = eventRows.find((r) => r.player_name === playerName);
+    if (!target) continue;
+
+    function rankOf(field: RankedField): RankedStat {
+      const value = target![field];
+      if (value === null) return { value: null, rank: null };
+      const sorted = eventRows
+        .map((r) => r[field])
+        .filter((v): v is number => v !== null)
+        .sort((a, b) => b - a);
+      return { value, rank: sorted.indexOf(value) + 1 };
+    }
+
+    result.set(key, {
+      matchesTotal: target.matches_total,
+      matchesW: target.matches_w,
+      matchesL: target.matches_l,
+      mapsTotal: target.maps_total,
+      mapsW: target.maps_w,
+      mapsL: target.maps_l,
+
+      overallKd: rankOf('overall_kd'),
+      overallKad: rankOf('overall_kad'),
+      overallSlayerRating: rankOf('overall_slayer_rating'),
+      overallDamageRating: rankOf('overall_damage_rating'),
+
+      hpMaps: target.hp_maps,
+      hpKd: rankOf('hp_kd'),
+      hpHillTimePer10: rankOf('hp_hill_time_per_10'),
+      hpKPer10: rankOf('hp_k_per_10'),
+      hpDmgPer10: rankOf('hp_dmg_per_10'),
+
+      sndMaps: target.snd_maps,
+      sndKd: rankOf('snd_kd'),
+      sndOpeningDuelWinPct: rankOf('snd_opening_duel_win_pct'),
+      sndKPerR: rankOf('snd_k_per_r'),
+      sndDmgPerR: rankOf('snd_dmg_per_r'),
+
+      ovlMaps: target.ovl_maps,
+      ovlKd: rankOf('ovl_kd'),
+      ovlGoalsPer10: rankOf('ovl_goals_per_10'),
+      ovlKPer10: rankOf('ovl_k_per_10'),
+      ovlDmgPer10: rankOf('ovl_dmg_per_10'),
     });
   }
 
-  return map;
+  return result;
 }

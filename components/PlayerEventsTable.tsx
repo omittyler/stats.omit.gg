@@ -1,8 +1,8 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import type { EventStatsSummary } from '@/lib/standings';
+import type { EventStatsSummary, RankedStat } from '@/lib/standings';
 
 export type PlayerEventRow = {
   eventName: string;
@@ -17,89 +17,126 @@ function formatPlacement(min: number, max: number) {
   return min === max ? `${min}` : `${min}-${max}`;
 }
 
-function formatKd(k: number | null, d: number | null, kd: number | null) {
-  if (kd !== null) return kd.toFixed(2);
-  if (k !== null && d !== null && d > 0) return (k / d).toFixed(2);
-  return '-';
-}
+const dec = (v: number) => v.toFixed(2);
+const pct = (v: number) => `${v.toFixed(0)}%`;
 
-type Tile = { label: string; value: string };
-
-function StatTile({ label, value }: Tile) {
+function RankedBlock({
+  title,
+  stat,
+  format,
+}: {
+  title: string;
+  stat: RankedStat;
+  format: (v: number) => string;
+}) {
   return (
-    <div className="stat-tile">
-      <span className="stat-tile-label">{label}</span>
-      <span className="stat-tile-value">{value}</span>
-    </div>
-  );
-}
-
-function StatSection({ title, tiles }: { title: string; tiles: Tile[] }) {
-  return (
-    <div className="stat-detail-section">
-      <h4>{title}</h4>
-      <div className="stat-tile-grid">
-        {tiles.map((t) => (
-          <StatTile key={t.label} {...t} />
-        ))}
+    <div className="stat-pair-block">
+      <span className="stat-pair-title">{title}</span>
+      <div className="stat-pair-values">
+        <span className="stat-pair-value">{stat.value !== null ? format(stat.value) : '-'}</span>
+        <span className="stat-pair-rank">{stat.rank !== null ? `#${stat.rank}` : '-'}</span>
       </div>
     </div>
   );
 }
 
+function TotalsBlock({
+  title,
+  total,
+  w,
+  l,
+}: {
+  title: string;
+  total: number | null;
+  w: number | null;
+  l: number | null;
+}) {
+  const winPct = w !== null && l !== null && w + l > 0 ? Math.round((w / (w + l)) * 100) : null;
+  return (
+    <div className="stat-pair-block">
+      <span className="stat-pair-title">{title}</span>
+      <span className="stat-pair-value" style={{ fontSize: '1.2rem' }}>
+        {total ?? '-'}
+      </span>
+      <div className="stat-pair-values">
+        <span className="stat-pair-rank">{w ?? '-'}W</span>
+        <span className="stat-pair-rank">{l ?? '-'}L</span>
+        <span className="stat-pair-rank">{winPct !== null ? `${winPct}%` : '-'}</span>
+      </div>
+    </div>
+  );
+}
+
+function StatPairRow({ left, right }: { left: ReactNode; right: ReactNode }) {
+  return (
+    <div className="stat-pair-row">
+      {left}
+      {right}
+    </div>
+  );
+}
+
 function StatDetail({ stats }: { stats: EventStatsSummary }) {
-  const sections: { title: string; tiles: Tile[] }[] = [
-    {
-      title: 'Overall',
-      tiles: [
-        { label: 'Kills', value: String(stats.overallK ?? '-') },
-        { label: 'Deaths', value: String(stats.overallD ?? '-') },
-        { label: 'K/D', value: formatKd(stats.overallK, stats.overallD, stats.overallKd) },
-        { label: 'Damage', value: stats.overallDmg?.toLocaleString() ?? '-' },
-        { label: 'Slayer Rating', value: stats.overallSlayerRating?.toFixed(2) ?? '-' },
-      ],
-    },
-  ];
-
-  if ((stats.hpMaps ?? 0) > 0) {
-    sections.push({
-      title: 'Hardpoint',
-      tiles: [
-        { label: 'Maps', value: String(stats.hpMaps) },
-        { label: 'Kills', value: String(stats.hpK ?? '-') },
-        { label: 'Deaths', value: String(stats.hpD ?? '-') },
-        { label: 'K/D', value: formatKd(stats.hpK, stats.hpD, stats.hpKd) },
-      ],
-    });
-  }
-  if ((stats.sndMaps ?? 0) > 0) {
-    sections.push({
-      title: 'Search & Destroy',
-      tiles: [
-        { label: 'Maps', value: String(stats.sndMaps) },
-        { label: 'Kills', value: String(stats.sndK ?? '-') },
-        { label: 'Deaths', value: String(stats.sndD ?? '-') },
-        { label: 'K/D', value: formatKd(stats.sndK, stats.sndD, stats.sndKd) },
-      ],
-    });
-  }
-  if ((stats.ovlMaps ?? 0) > 0) {
-    sections.push({
-      title: 'Overload',
-      tiles: [
-        { label: 'Maps', value: String(stats.ovlMaps) },
-        { label: 'Kills', value: String(stats.ovlK ?? '-') },
-        { label: 'Deaths', value: String(stats.ovlD ?? '-') },
-        { label: 'K/D', value: formatKd(stats.ovlK, stats.ovlD, stats.ovlKd) },
-      ],
-    });
-  }
-
   return (
     <div className="stat-detail">
-      {sections.map((s) => (
-        <StatSection key={s.title} title={s.title} tiles={s.tiles} />
-      ))}
+      <StatPairRow
+        left={<TotalsBlock title="Matches" total={stats.matchesTotal} w={stats.matchesW} l={stats.matchesL} />}
+        right={<TotalsBlock title="Maps" total={stats.mapsTotal} w={stats.mapsW} l={stats.mapsL} />}
+      />
+
+      <h4 className="stat-section-title">Overall</h4>
+      <StatPairRow
+        left={<RankedBlock title="K/D" stat={stats.overallKd} format={dec} />}
+        right={<RankedBlock title="KA/D" stat={stats.overallKad} format={dec} />}
+      />
+      <StatPairRow
+        left={<RankedBlock title="Slayer Rating" stat={stats.overallSlayerRating} format={dec} />}
+        right={<RankedBlock title="Damage Rating" stat={stats.overallDamageRating} format={dec} />}
+      />
+
+      {(stats.hpMaps ?? 0) > 0 && (
+        <>
+          <h4 className="stat-section-title">Hardpoint</h4>
+          <StatPairRow
+            left={<RankedBlock title="K/D" stat={stats.hpKd} format={dec} />}
+            right={<RankedBlock title="Hill Time per 10" stat={stats.hpHillTimePer10} format={dec} />}
+          />
+          <StatPairRow
+            left={<RankedBlock title="Kills per 10" stat={stats.hpKPer10} format={dec} />}
+            right={<RankedBlock title="Damage per 10" stat={stats.hpDmgPer10} format={dec} />}
+          />
+        </>
+      )}
+
+      {(stats.sndMaps ?? 0) > 0 && (
+        <>
+          <h4 className="stat-section-title">Search &amp; Destroy</h4>
+          <StatPairRow
+            left={<RankedBlock title="K/D" stat={stats.sndKd} format={dec} />}
+            right={
+              <RankedBlock title="Opening Duel Win %" stat={stats.sndOpeningDuelWinPct} format={pct} />
+            }
+          />
+          <StatPairRow
+            left={<RankedBlock title="Kills per Round" stat={stats.sndKPerR} format={dec} />}
+            right={<RankedBlock title="Damage per Round" stat={stats.sndDmgPerR} format={dec} />}
+          />
+        </>
+      )}
+
+      {(stats.ovlMaps ?? 0) > 0 && (
+        <>
+          <h4 className="stat-section-title">Overload</h4>
+          <StatPairRow
+            left={<RankedBlock title="K/D" stat={stats.ovlKd} format={dec} />}
+            right={<RankedBlock title="Goals per 10" stat={stats.ovlGoalsPer10} format={dec} />}
+          />
+          <StatPairRow
+            left={<RankedBlock title="Kills per 10" stat={stats.ovlKPer10} format={dec} />}
+            right={<RankedBlock title="Damage per 10" stat={stats.ovlDmgPer10} format={dec} />}
+          />
+        </>
+      )}
     </div>
   );
 }
