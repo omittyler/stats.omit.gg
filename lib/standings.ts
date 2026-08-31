@@ -324,3 +324,17 @@ export async function getTeamLogos(): Promise<Record<string, string>> {
   if (error) throw error;
   return Object.fromEntries((data ?? []).map((t) => [t.name, t.logo_filename]));
 }
+
+/**
+ * Every team/player name currently shown on the site (i.e. already scoped by
+ * getEnrichedPlacements' AP/LATAM and ad-hoc-squad filters), for the header
+ * search box. Small dataset (a few hundred entries at most) - fetched once
+ * per page load and filtered client-side rather than querying per keystroke.
+ */
+export async function getSearchIndex(): Promise<{ teams: string[]; players: string[] }> {
+  const { teamStandings, playerStandings } = await computeStandings();
+  return {
+    teams: teamStandings.map((t) => t.name),
+    players: playerStandings.map((p) => p.name),
+  };
+}
