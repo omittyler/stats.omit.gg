@@ -17,7 +17,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   const teamName = decodeURIComponent(rawName);
 
   const placements = await getEnrichedPlacements();
-  const { teamStandings } = await computeStandings(placements);
+  const { teamStandings, playerStandings } = await computeStandings(placements);
   const standing = teamStandings.find((t) => t.name === teamName);
 
   const history = placements
@@ -44,16 +44,26 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
     .eq('name', teamName)
     .maybeSingle();
 
-  // "Current roster" is specifically THIS team's own most recent event's roster -
+  // "Current roster" starts from THIS team's own most recent event's roster -
   // not just "whoever's own most-recent event happened to be with this team"
   // (that grouping, used for the team's points total, can include a player who
   // hasn't actually played the team's latest event if their own last appearance
-  // predates it). Everyone else who's ever played for this team goes under
-  // Previous Players instead. Confirmed 2026-08-30.
-  const currentRoster = history[0]?.players ?? [];
-  const previousPlayers = [...new Set(history.slice(1).flatMap((h) => h.players))].filter(
-    (p) => !currentRoster.includes(p)
+  // predates it - confirmed 2026-08-30). But that alone isn't enough either: if
+  // this org simply hasn't submitted a roster in a while, its "latest" roster
+  // can be stale - a player on it may have since moved to a genuinely newer
+  // team elsewhere. So each candidate is cross-checked against their OWN
+  // individually-computed current team (playerStandings, which already
+  // reflects their truly most recent appearance anywhere); anyone who's moved
+  // on drops into Previous Players instead. Confirmed 2026-08-31. An org whose
+  // entire last roster has since moved elsewhere correctly ends up with no
+  // current roster at all.
+  const latestRosterCandidates = history[0]?.players ?? [];
+  const currentRoster = latestRosterCandidates.filter(
+    (p) => playerStandings.find((ps) => ps.name === p)?.currentTeam === teamName
   );
+  const previousPlayers = [
+    ...new Set([...history.slice(1).flatMap((h) => h.players), ...latestRosterCandidates]),
+  ].filter((p) => !currentRoster.includes(p));
 
   return (
     <main className="container">
