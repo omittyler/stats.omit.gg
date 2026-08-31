@@ -5,12 +5,14 @@
   { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "Peach", "canonical_name": "Peachuhs", "team_name": "CGMT" },
   { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "Slater", "canonical_name": "slaterCoD", "team_name": "OutBreak Gaming" },
   { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "Jumpy", "canonical_name": "JumpyAC", "team_name": "Family Ties Blue" },
+  { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Decimate Gaming" },
   { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
   { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "Crazie", "canonical_name": "CrazieViews", "team_name": "Cryvor Esports" },
   { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "Bes", "canonical_name": "Beseatey", "team_name": "Supreme Ravens" },
   { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "ChunkRT", "canonical_name": "Chunk", "team_name": "AVNG Esports" },
+  { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "CotiCR", "canonical_name": "Coti", "team_name": "KAOS Esports" },
   { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "DylanSZN", "canonical_name": "Dylan", "team_name": "KAOS Esports" },
@@ -22,6 +24,7 @@
   { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "DevonIsFrosty", "canonical_name": "Devon", "team_name": "Blisk Esports" },
   { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "Mortem", "canonical_name": "MortemJokes", "team_name": "B2B" },
   { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "Allumnati", "canonical_name": "Allu", "team_name": "Cryvor Esports" },
+  { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Elite 1 - NA Player Stats.csv", "bo7_stats_name": "Uli", "canonical_name": "Ulisses", "team_name": "Project Notorious" },
   { "file": "BO7 Elite 1 - NA Player Stats.csv", "bo7_stats_name": "Aidanyx", "canonical_name": "Aidan", "team_name": "High Treason" },
@@ -30,15 +33,18 @@
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Synes" },
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Synes" },
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "RaZeSouL", "canonical_name": "RaZeSouLx", "team_name": "Night Vibes" },
+  { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Elite 2 - NA Player Stats.csv", "bo7_stats_name": "Vik", "canonical_name": "vikrzm", "team_name": "Death By CABAL" },
 
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "RazeSoul", "canonical_name": "RaZeSouLx", "team_name": "Avently" },
+  { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "NeRo", "canonical_name": "NeRoWoLFz", "team_name": "The Vicious" },
-  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Razesoul", "canonical_name": "RaZeSouLx", "team_name": "NOA" }
+  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Razesoul", "canonical_name": "RaZeSouLx", "team_name": "NOA" },
+  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" }
 ]

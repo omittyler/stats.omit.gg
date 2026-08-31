@@ -45,7 +45,7 @@ NexT Threat Black,2026 NA Elite Stage 1,Elite,2026,1,NA,11-12,Diamondcon,Standy,
 Stallions Black,2026 NA Elite Stage 1,Elite,2026,1,NA,11-12,Swagchecked,Cimbels,Okis,Ryann
 Clutch Rayn,2026 EU Elite Stage 1,Elite,2026,1,EU,1,Cobra,Lynz,Breszy,Melko
 Project 7,2026 EU Elite Stage 1,Elite,2026,1,EU,2,Mythix,Harry,FDot,Denza
-ROC Esports,2026 EU Elite Stage 1,Elite,2026,1,EU,3,d7om,d7oomx,Rxld,Khhx
+ROC Esports,2026 EU Elite Stage 1,Elite,2026,1,EU,3,d7om,d7oom,Rxld,Khhx
 Synes,2026 EU Elite Stage 1,Elite,2026,1,EU,4,D3L1V3R,Alfa,Depaa,Nadox
 Hybrid Nations,2026 EU Elite Stage 1,Elite,2026,1,EU,5-6,Twisted,Chunk,Scythe,Wailers
 Dark Horse Esports,2026 EU Elite Stage 1,Elite,2026,1,EU,5-6,Mighty,Syqz,Detain,Aspekt
@@ -56,7 +56,7 @@ Light Unlimited,2026 EU Elite Stage 1,Elite,2026,1,EU,9-10,Aiden,CleemZi,Dany,Zi
 Rauzan Esport,2026 EU Elite Stage 1,Elite,2026,1,EU,11-12,ZiRoW,Yazaah,Blade,Fibrone
 Los Lentejas,2026 EU Elite Stage 1,Elite,2026,1,EU,11-12,Reedy,envdiaN,surnas,PipeFatal
 Project 7,2026 EU Elite Stage 2,Elite,2026,2,EU,1,FDot,Harry,Mythix,Aspekt
-ROC Esports,2026 EU Elite Stage 2,Elite,2026,2,EU,2,d7om,d7oomx,Rxld,Khhx
+ROC Esports,2026 EU Elite Stage 2,Elite,2026,2,EU,2,d7om,d7oom,Rxld,Khhx
 Orgless (EU S2),2026 EU Elite Stage 2,Elite,2026,2,EU,3,Cobra,Lynz,Breszy,Melko
 ABLE Esports,2026 EU Elite Stage 2,Elite,2026,2,EU,4,Blade,DK,Scythe,Clutch
 For Fun EU,2026 EU Elite Stage 2,Elite,2026,2,EU,5-6,Mighty,Syqz,Detain,Denza
@@ -91,7 +91,7 @@ BitterSweet,2026 NA Elite Stage 3,Elite,2026,3,NA,9-10,Arcitys,Asim,FeLo,Manny
 Telluride Bush Gaming,2026 NA Elite Stage 3,Elite,2026,3,NA,9-10,Abe,Cammy,Capsidal,Prolute
 Team Orchid,2026 NA Elite Stage 3,Elite,2026,3,NA,11-12,Dak,Flames,Nemensions,Rspi
 Out The Mud,2026 NA Elite Stage 3,Elite,2026,3,NA,11-12,Cruze,Gunsiii,Peel,Whiz
-ROC Esports,2026 EU Elite Stage 3,Elite,2026,3,EU,1,d7oomx,d7om,Khhx,Rxld
+ROC Esports,2026 EU Elite Stage 3,Elite,2026,3,EU,1,d7oom,d7om,Khhx,Rxld
 OMiT Noir,2026 EU Elite Stage 3,Elite,2026,3,EU,2,Aspekt,Denza,DK,Ethan
 Project 7,2026 EU Elite Stage 3,Elite,2026,3,EU,3,FDot,Harry,Mythix,ReeaL
 NAJD,2026 EU Elite Stage 3,Elite,2026,3,EU,4,Clox,GntL,KingAbody,Shay
@@ -106,7 +106,7 @@ NOA,2026 EU Elite Stage 3,Elite,2026,3,EU,11-12,RaZeSouLx,Tamim,A9eelx,Zeyad
 OMiT,2026 EU Elite Stage 4,Elite,2026,4,EU,1,Aspekt,Denza,DK,Ethan
 Project 7,2026 EU Elite Stage 4,Elite,2026,4,EU,2,FDot,Harry,Henry,Mythix
 Exceptional Gaming,2026 EU Elite Stage 4,Elite,2026,4,EU,3,Breszy,Cobra,Lynz,Mighty
-ROC Esports,2026 EU Elite Stage 4,Elite,2026,4,EU,4,Clox,d7om,d7oomx,Khhx
+ROC Esports,2026 EU Elite Stage 4,Elite,2026,4,EU,4,Clox,d7om,d7oom,Khhx
 ASK Esport,2026 EU Elite Stage 4,Elite,2026,4,EU,5-6,Alfa,Depaa,Melko,Syqz
 Team France,2026 EU Elite Stage 4,Elite,2026,4,EU,5-6,Blade,Dany,Lqgend,Nadox
 BTD Esports,2026 EU Elite Stage 4,Elite,2026,4,EU,7-8,Clutch,Rush,Scythe,UH
@@ -127,7 +127,7 @@ Torn Esports,2026 NA Elite Stage 4,Elite,2026,4,NA,9-10,Dak,Hitmxn,Mince,Tkay
 OMNiA Gaming,2026 NA Elite Stage 4,Elite,2026,4,NA,9-10,Arcitys,Asim,Mack,Uli
 FC Stallions,2026 NA Elite Stage 4,Elite,2026,4,NA,11-12,Gio,IconZ,KB,Ruper
 OT Nation,2026 NA Elite Stage 4,Elite,2026,4,NA,11-12,Couti,cWadz,Darksived,DTG
-ROC Esports,2026 Major 1 - Dallas Open,Major,2026,,,1,Rxld,Khhx,d7oomx,d7om
+ROC Esports,2026 Major 1 - Dallas Open,Major,2026,,,1,Rxld,Khhx,d7oom,d7om
 Telluride Bush Gaming,2026 Major 1 - Dallas Open,Major,2026,,,2,Fire,Spart,Capsidal,Prolute
 Project 7,2026 Major 1 - Dallas Open,Major,2026,,,3,FDot,Denza,Harry,Mythix
 Huntsmen,2026 Major 1 - Dallas Open,Major,2026,,,4,Renegade,Rspi,Nium,Kips
@@ -192,7 +192,7 @@ TBF,2026 Major 1 - Dallas Open,Major,2026,,,49-64,,,,
 OutBreak Gaming,2026 Major 1 - Dallas Open,Major,2026,,,49-64,Buddha,tK,asylum,slaterCoD
 ABS,2026 Major 1 - Dallas Open,Major,2026,,,49-64,,,,
 Project Notorious,2026 Major 2 - Birmingham Open,Major,2026,,,1,Diamondcon,Afro,Beans,EriKBooM
-ROC Esports,2026 Major 2 - Birmingham Open,Major,2026,,,2,d7oomx,Khhx,Rxld,d7om
+ROC Esports,2026 Major 2 - Birmingham Open,Major,2026,,,2,d7oom,Khhx,Rxld,d7om
 FC Stallions,2026 Major 2 - Birmingham Open,Major,2026,,,3,IconZ,KB,Milly,Ruper
 For Fun Esports,2026 Major 2 - Birmingham Open,Major,2026,,,4,Uli,Gio,Vivid,Mack
 OMiT Brooklyn,2026 Major 2 - Birmingham Open,Major,2026,,,5-6,Brack,Asim,ReeaL,Cammy
@@ -259,7 +259,7 @@ Telluride Bush Gaming,2026 Major 3 - Atlanta Open,Major,2026,,,1,Prolute,Abe,Cam
 OMiT,2026 Major 3 - Atlanta Open,Major,2026,,,2,Aspekt,DK,Ethan,Denza
 OMiT Brooklyn,2026 Major 3 - Atlanta Open,Major,2026,,,3,2ReaL,PaulEhx,Standy,Wrecks
 FaZe Falcons,2026 Major 3 - Atlanta Open,Major,2026,,,4,Roxas,Alluka,KnoX,KingAbody
-ROC Esports,2026 Major 3 - Atlanta Open,Major,2026,,,5-6,d7om,Rxld,d7oomx,Khhx
+ROC Esports,2026 Major 3 - Atlanta Open,Major,2026,,,5-6,d7om,Rxld,d7oom,Khhx
 Huntsmen,2026 Major 3 - Atlanta Open,Major,2026,,,5-6,Renegade,oJohnny,Brack,Swooty
 OMNiA Gaming,2026 Major 3 - Atlanta Open,Major,2026,,,7-8,Andi,Booger,Nate,Peel
 CABAL Gaming,2026 Major 3 - Atlanta Open,Major,2026,,,7-8,Flames,Nemensions,Rspi,vikrzm
@@ -347,7 +347,7 @@ OMiT Brooklyn,2026 Major 4 - Paris Open,Major,2026,,,5-6,2ReaL,PaulEhx,Wrecks,Gw
 Stallions,2026 Major 4 - Paris Open,Major,2026,,,7-8,Asim,KB,Ruper,SkiL
 Project 7,2026 Major 4 - Paris Open,Major,2026,,,7-8,FDot,Harry,Mythix,HenRy
 Exceptional Gaming,2026 Major 4 - Paris Open,Major,2026,,,9-12,Cobra,Lynz,Breszy,Mighty
-ROC Esports,2026 Major 4 - Paris Open,Major,2026,,,9-12,d7om,d7oomx,Khhx,Rxld
+ROC Esports,2026 Major 4 - Paris Open,Major,2026,,,9-12,d7om,d7oom,Khhx,Rxld
 Huntsmen,2026 Major 4 - Paris Open,Major,2026,,,9-12,Renegade,oJohnny,Brack,Owakening
 OMNiA Gaming,2026 Major 4 - Paris Open,Major,2026,,,9-12,Uli,Mack,Arcitys,Mirage
 ASK Esport,2026 Major 4 - Paris Open,Major,2026,,,13-16,Syqz,Alfa,Melko,Depaa
@@ -405,7 +405,7 @@ Mindfreak,2026 Champs - Challengers Finals,Champs,2026,,,7-8,Crimzah,Fighta,Lyma
 OMNiA Invicta,2026 Champs - Challengers Finals,Champs,2026,,,9-12,Breszy,Cobra,Lynz,Mighty
 Torn Esports,2026 Champs - Challengers Finals,Champs,2026,,,9-12,Dak,Milly,Mince,Tkay
 Treaty 1 Gaming,2026 Champs - Challengers Finals,Champs,2026,,,9-12,Alfa,Depaa,Melko,Syqz
-ROC Esports,2026 Champs - Challengers Finals,Champs,2026,,,9-12,d7om,d7oomx,Khhx,Vortex
+ROC Esports,2026 Champs - Challengers Finals,Champs,2026,,,9-12,d7om,d7oom,Khhx,Vortex
 Atlantis Esports,2026 Champs - Challengers Finals,Champs,2026,,,13-16,Aveerse,Mint,Mish,Pengie
 TPC x Tempo,2026 Champs - Challengers Finals,Champs,2026,,,13-16,Booger,Hession,Kez,Slade
 Decimate Gaming,2026 Champs - Challengers Finals,Champs,2026,,,13-16,Caos,Coti,Dylan,ITraDex
@@ -417,7 +417,7 @@ JedKilEzUnk,2026 Cup 1,Cup,2026,,EU,4,Aspekt,Chunk,Kez,Detain
 Treaty 1 Gaming,2026 Cup 1,Cup,2026,,EU,5-6,BBConor,Rush,BenW,Jvlian
 Team ENEP1M,2026 Cup 1,Cup,2026,,EU,5-6,envdiaN,PipeFatal,Hyzzn,Reedy
 Team yLampy,2026 Cup 1,Cup,2026,,EU,7-8,Lampy,Scythe,Bizzyy,Twisted
-ROC Esports,2026 Cup 1,Cup,2026,,EU,7-8,d7om,rxld,d7oomx,Khhx
+ROC Esports,2026 Cup 1,Cup,2026,,EU,7-8,d7om,rxld,d7oom,Khhx
 Project Conquerors,2026 Cup 1,Cup,2026,,EU,9-16,Weaths,Naqho,ReeFleX,TrunK
 Team lDisarray,2026 Cup 1,Cup,2026,,EU,9-16,Disarray,Dizzy,Faisal,Yafty
 Team wailers,2026 Cup 1,Cup,2026,,EU,9-16,Wailers,Alfa,Henry,Ovrlay
@@ -527,7 +527,7 @@ One44 Gaming,2026 Cup 2,Cup,2026,,NA,17-32,Careful,SparKz,Hype,Loojjj
 Team ChrisRadial,2026 Cup 2,Cup,2026,,NA,17-32,Radial,Xotic,Noysii,Fame
 Team EJCod,2026 Cup 2,Cup,2026,,NA,17-32,EJ,Mitch,cliq,Vizmah
 WCi,2026 Cup 2,Cup,2026,,NA,17-32,Nastyy,Versaii,Lando,Josh
-ROC Esports,2026 Cup 2,Cup,2026,,EU,1,Rxld,d7om,d7oomx,Khhx
+ROC Esports,2026 Cup 2,Cup,2026,,EU,1,Rxld,d7om,d7oom,Khhx
 Clutch Rayn,2026 Cup 2,Cup,2026,,EU,2,Melko,Cobra,Lynz,Breszy
 Project 7,2026 Cup 2,Cup,2026,,EU,3,FDot,Mythix,Harry,Denza
 3English1Frenchie,2026 Cup 2,Cup,2026,,EU,4,Aspekt,Detain,Henry,Wailers
@@ -647,7 +647,7 @@ Clutch Rayn,2026 Cup 3,Cup,2026,,EU,2,Cobra,Lynz,Breszy,Melko
 Team D3L1V3R,2026 Cup 3,Cup,2026,,EU,3,D3L1V3R,Dany,Depaa,Nadox
 Dark Horse Esports,2026 Cup 3,Cup,2026,,EU,4,Mighty,Syqz,Aspekt,Detain
 OpTic Academy,2026 Cup 3,Cup,2026,,EU,5-6,Krona,Terra,Blade,Ellys
-ROC Esports,2026 Cup 3,Cup,2026,,EU,5-6,d7om,Rxld,Khhx,d7oomx
+ROC Esports,2026 Cup 3,Cup,2026,,EU,5-6,d7om,Rxld,Khhx,d7oom
 Treaty 1 Gaming,2026 Cup 3,Cup,2026,,EU,7-8,BBConor,Jvlian,Chunk,Rush
 Team Ovrlay,2026 Cup 3,Cup,2026,,EU,7-8,Ovrlay,Henry,Lampy,Kez
 Project Conquerors,2026 Cup 3,Cup,2026,,EU,9-16,TrunK,JamaL,Weaths,ReeFleX
@@ -875,7 +875,7 @@ Team KaiserTW,2026 Cup 5,Cup,2026,,NA,17-32,Kaiser,Cliq,sploady,Xotic
 Overtake Sector,2026 Cup 5,Cup,2026,,NA,17-32,5iso,2Lost,Rizy,AJBeams
 Torn Esports,2026 Cup 5,Cup,2026,,NA,17-32,Anura,Solar,cpr,NikoIsFree
 Team NotCloutzy,2026 Cup 5,Cup,2026,,NA,17-32,Cloutzy,awlu,sleepii,Activist
-ROC Esports,2026 Cup 5,Cup,2026,,EU,1,d7om,d7oomx,Rxld,Khhx
+ROC Esports,2026 Cup 5,Cup,2026,,EU,1,d7om,d7oom,Rxld,Khhx
 Lewtees Lions,2026 Cup 5,Cup,2026,,EU,2,Yafty,BBConor,Disarray,Faisal
 Clutch Rayn,2026 Cup 5,Cup,2026,,EU,3,Melko,Cobra,Lynz,Breszy
 Al-Ula Club,2026 Cup 5,Cup,2026,,EU,4,Op,KnoX,Littleboy,f9ly
@@ -1202,7 +1202,7 @@ Kings Order,2026 Cup 8,Cup,2026,,NA,17-32,Versaii,Peachuhs,Lando,Josh
 WWHD,2026 Cup 8,Cup,2026,,NA,17-32,Mansionz,Mattcod,Ferda,hype
 Team Cimbels,2026 Cup 8,Cup,2026,,NA,17-32,Cimbels,Ryann,Gunsiii,Nate
 Exceptional Gaming,2026 Cup 8,Cup,2026,,EU,1,Melko,Cobra,Breszy,Lynz
-ROC Esports,2026 Cup 8,Cup,2026,,EU,2,d7oomx,Khhx,d7om,Rxld
+ROC Esports,2026 Cup 8,Cup,2026,,EU,2,d7oom,Khhx,d7om,Rxld
 Project 7,2026 Cup 8,Cup,2026,,EU,3,FDot,Aspekt,Mythix,Harry
 For Fun EU,2026 Cup 8,Cup,2026,,EU,4,Mighty,Syqz,Denza,Detain
 Majin Club,2026 Cup 8,Cup,2026,,EU,5-6,Twisted,Lqgend,Wailers,Henry
@@ -1312,7 +1312,7 @@ Team KezCSM,2026 Cup 9,Cup,2026,,EU,5-6,Kez,Lampy,UH,Ethan
 Team Twisted,2026 Cup 9,Cup,2026,,EU,5-6,Disarray,BBConor,Vortex,Aspekt
 MR Bimes,2026 Cup 9,Cup,2026,,EU,7-8,ZiddiX,Blade,Depaa,Nadox
 Vitalize Esports,2026 Cup 9,Cup,2026,,EU,7-8,Izaac,SmolZiLa,Infinity,Kodasity
-ROC Esports,2026 Cup 9,Cup,2026,,EU,9-16,d7om,Rxld,d7oomx,Khhx
+ROC Esports,2026 Cup 9,Cup,2026,,EU,9-16,d7om,Rxld,d7oom,Khhx
 The Vicious,2026 Cup 9,Cup,2026,,EU,9-16,Faisal,NeRo WoLFz,Denza,Yafty
 Team RaZeSouLx,2026 Cup 9,Cup,2026,,EU,9-16,RaZeSouLx,Avo,A9eelx,Zeyad
 Team wailers,2026 Cup 9,Cup,2026,,EU,9-16,Wailers,Henry,Lqgend,Ovrlay
@@ -1499,7 +1499,7 @@ Team Kingjay720,2026 Cup 11,Cup,2026,,NA,17-32,Myth,KingJay,Buddha,tKayx
 Family Ties Blue,2026 Cup 11,Cup,2026,,NA,17-32,Skip,Niko,Furg,Anura
 Project 7,2026 Cup 11,Cup,2026,,EU,1,FDot,Harry,Mythix,Alfa
 OMiT,2026 Cup 11,Cup,2026,,EU,2,Aspekt,Ethan,DK,Denza
-ROC Esports,2026 Cup 11,Cup,2026,,EU,3,d7oomx,Rxld,Khhx,d7om
+ROC Esports,2026 Cup 11,Cup,2026,,EU,3,d7oom,Rxld,Khhx,d7om
 Team KezCSM,2026 Cup 11,Cup,2026,,EU,4,Kez,Detain,Ovrlay,Disarray
 ABLE x BTD,2026 Cup 11,Cup,2026,,EU,5-6,Clutch,Rush,Henry,UH
 Exceptional Gaming,2026 Cup 11,Cup,2026,,EU,5-6,Mighty,Breszy,Cobra,Lynz
@@ -1642,7 +1642,7 @@ ASK Esport,2026 Cup 13,Cup,2026,,EU,3,Syqz,Alfa,Melko,Depaa
 BTD Esports,2026 Cup 13,Cup,2026,,EU,4,Clutch,Rush,Scythe,UH
 OMiT,2026 Cup 13,Cup,2026,,EU,5-6,Aspekt,DK,Ethan,Denza
 Team France,2026 Cup 13,Cup,2026,,EU,5-6,BladeCNXN,Lqgend,Nadox,Wailers
-ROC Esports,2026 Cup 13,Cup,2026,,EU,7-8,d7om,d7oomx,Khhx,Clox
+ROC Esports,2026 Cup 13,Cup,2026,,EU,7-8,d7om,d7oom,Khhx,Clox
 Treaty1 Gaming,2026 Cup 13,Cup,2026,,EU,7-8,Detain,Disarray,Kez,Ovrlay
 xxxx,2026 Cup 13,Cup,2026,,EU,9-16,Synergy,Thunder,Slouth,RaZeSouLx
 Team Zeyad,2026 Cup 13,Cup,2026,,EU,9-16,Zeyad,Muhand,Rbod,ShortLy
