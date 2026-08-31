@@ -325,6 +325,41 @@ export async function getTeamLogos(): Promise<Record<string, string>> {
   return Object.fromEntries((data ?? []).map((t) => [t.name, t.logo_filename]));
 }
 
+export type PlayerDetails = {
+  fullName: string | null;
+  origin: string | null;
+  birthday: string | null;
+  photoFilename: string | null;
+  twitterUrl: string | null;
+  twitchUrl: string | null;
+};
+
+/**
+ * Player bio/photo details for one player, or null if they're not in
+ * data/incoming/player_details.csv yet. Looked up case-insensitively since a
+ * handful of gamertags differ in case from their placings.csv spelling (e.g.
+ * "Knox" vs "KnoX") - see PROJECT.md §8j. Fetches the whole (small, ~150-row)
+ * table and matches in JS rather than an `ilike` filter, since `ilike`
+ * treats `%`/`_` in the search value as wildcards and a gamertag could
+ * contain either.
+ */
+export async function getPlayerDetails(playerName: string): Promise<PlayerDetails | null> {
+  const { data, error } = await supabase
+    .from('players')
+    .select('gamertag, full_name, origin, birthday, photo_filename, twitter_url, twitch_url');
+  if (error) throw error;
+  const row = (data ?? []).find((p) => p.gamertag.toLowerCase() === playerName.toLowerCase());
+  if (!row) return null;
+  return {
+    fullName: row.full_name,
+    origin: row.origin,
+    birthday: row.birthday,
+    photoFilename: row.photo_filename,
+    twitterUrl: row.twitter_url,
+    twitchUrl: row.twitch_url,
+  };
+}
+
 /**
  * Every team/player name currently shown on the site (i.e. already scoped by
  * getEnrichedPlacements' AP/LATAM and ad-hoc-squad filters), for the header

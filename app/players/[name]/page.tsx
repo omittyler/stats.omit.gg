@@ -4,6 +4,7 @@ import {
   computeStandings,
   getPlayerEventStatsSummaries,
   getTeamLogos,
+  getPlayerDetails,
 } from '@/lib/standings';
 import { getPlayerSeasonStats } from '@/lib/statLeaderboards';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
@@ -29,6 +30,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const statsByEvent = Object.fromEntries(statsMap);
   const seasonStats = await getPlayerSeasonStats(playerName);
   const logos = await getTeamLogos();
+  const details = await getPlayerDetails(playerName);
 
   // Player page shows the full team prize for each event the player was on,
   // not their 25% split share - confirmed by user 2026-08-31, specifically
@@ -53,7 +55,24 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
       <Link className="back-link" href="/players">
         &larr; Back to player points
       </Link>
-      <h1>{playerName}</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/players/${details?.photoFilename || 'DefaultPlayer.png'}`}
+          alt={playerName}
+          width={112}
+          height={112}
+          style={{ objectFit: 'contain', borderRadius: 8 }}
+        />
+        <div>
+          <h1 style={{ margin: 0 }}>{playerName}</h1>
+          {(details?.fullName || details?.origin) && (
+            <p className="note" style={{ margin: '4px 0 0' }}>
+              {[details?.fullName, details?.origin].filter(Boolean).join(' — ')}
+            </p>
+          )}
+        </div>
+      </div>
       <p className="note" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         Current team: <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
         {' — '}Season points:{' '}
@@ -65,6 +84,20 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         <p className="note">
           Best finish: <strong style={{ color: 'var(--text)' }}>{formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}</strong>{' '}
           at {bestFinish.eventName} ({bestFinish.teamName})
+        </p>
+      )}
+      {(details?.twitterUrl || details?.twitchUrl) && (
+        <p className="note" style={{ display: 'flex', gap: 12 }}>
+          {details?.twitterUrl && (
+            <a href={details.twitterUrl} target="_blank" rel="noopener noreferrer">
+              Twitter/X
+            </a>
+          )}
+          {details?.twitchUrl && (
+            <a href={details.twitchUrl} target="_blank" rel="noopener noreferrer">
+              Twitch
+            </a>
+          )}
         </p>
       )}
 

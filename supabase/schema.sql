@@ -8,6 +8,21 @@ create table if not exists teams (
   logo_filename text not null default 'Default.png'
 );
 
+-- Player bios/photos, matched to placings.csv/player_event_stats' free-text
+-- player names by gamertag (case-insensitively, in application code — see
+-- PROJECT.md §7's "player identity is just a name string" limitation, which
+-- this table doesn't change). Sourced from data/incoming/player_details.csv.
+create table if not exists players (
+  id bigint generated always as identity primary key,
+  gamertag text not null unique,
+  full_name text,
+  origin text,
+  birthday date,
+  photo_filename text,
+  twitter_url text,
+  twitch_url text
+);
+
 create table if not exists events (
   id bigint generated always as identity primary key,
   name text not null,
