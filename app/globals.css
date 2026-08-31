@@ -1,11 +1,11 @@
 :root {
-  --bg: #0a0b0d;
-  --bg-elevated: #14161a;
-  --border: #24272e;
-  --text: #f2f3f5;
-  --text-muted: #9aa0ac;
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
+  --bg: #f5f6f8;
+  --bg-elevated: #ffffff;
+  --border: #e2e4e9;
+  --text: #14161a;
+  --text-muted: #6b7280;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
 }
 
 * {
@@ -78,6 +78,7 @@ a:hover {
   border-radius: 10px;
   padding: 20px 24px;
   margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .note {
@@ -107,7 +108,7 @@ th {
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .team-grid {
@@ -133,6 +134,7 @@ tbody tr:hover {
   border-radius: 10px;
   color: var(--text);
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .team-grid a:hover {
