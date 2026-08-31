@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getEnrichedPlacements, computeStandings } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
+import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ function formatPlacement(min: number, max: number) {
 }
 
 function formatPrize(prizeUsd: number) {
-  return prizeUsd > 0 ? `$${prizeUsd.toLocaleString()}` : '-';
+  return prizeUsd > 0 ? formatUsd(prizeUsd) : '-';
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ name: string }> }) {
@@ -65,6 +66,9 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
     ...new Set([...history.slice(1).flatMap((h) => h.players), ...latestRosterCandidates]),
   ].filter((p) => !currentRoster.includes(p));
 
+  const totalPrize = history.reduce((sum, h) => sum + h.prizeUsd, 0);
+  const bestFinish = findBestFinish(history);
+
   return (
     <main className="container">
       <Link className="back-link" href="/standings">
@@ -87,6 +91,20 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
       <p className="note">
         Current season points (sum of current roster):{' '}
         <strong style={{ color: 'var(--text)' }}>{(standing?.points ?? 0).toLocaleString()}</strong>
+        {' — '}Season prize earnings:{' '}
+        <strong style={{ color: 'var(--text)' }}>{formatUsd(totalPrize)}</strong>
+      </p>
+      <p className="note">
+        Competed in {history.length} event{history.length === 1 ? '' : 's'} this season.
+        {bestFinish && (
+          <>
+            {' '}Best finish:{' '}
+            <strong style={{ color: 'var(--text)' }}>
+              {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
+            </strong>{' '}
+            at {bestFinish.eventName}.
+          </>
+        )}
       </p>
 
       <div className="card">

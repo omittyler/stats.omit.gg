@@ -293,6 +293,14 @@ User asked for ideas to make the site more navigable; picked all three suggested
 - **Sortable table columns** — `components/SortableTable.tsx`, a generic client component with clickable headers that re-sorts the already-fetched array client-side (no refetch). Used by `/standings`, `/players`, `/leaderboards/[category]`. Rank is pre-computed into each row *before* sorting (not derived from post-sort position), so a player's displayed rank stays their real standing even while sorted by a different column. Player detail page's Events table deliberately kept chronological, not made sortable — order matters more there than on a leaderboard.
 - **Header search** — `components/SiteSearch.tsx`, a client component with a dropdown of matching teams/players. `getSearchIndex()` (`lib/standings.ts`) returns every currently-visible team/player name (already scoped by the AP/LATAM and ad-hoc-squad filters) in one fetch at the root layout; filtering happens client-side per keystroke rather than a query per keystroke, since the dataset is small (a few hundred names at most). `app/layout.tsx` is now an `async` Server Component to support this.
 
+## 8i. Profile Enrichment Pass (added 2026-08-31)
+
+User asked for ideas to add to player/team profile pages; picked all of the buildable-now ones:
+- **Player page:** season earnings (their 25% share of team prize per event they played, per the already-established split rule, §3 "Prize money" — always a fixed quarter regardless of how many of the 4 roster slots are actually recorded, so an incomplete roster doesn't inflate each known player's share) and a "Best finish" highlight (lowest `placementMin` in their history).
+- **Team page:** total season prize earnings (full, undivided sum) and a summary line (events competed in + best finish).
+- New `lib/format.ts`: `ordinal()`, `formatPlacementOrdinal()` (e.g. "5th-6th", for the new highlight text — distinct from the plain numeric "5-6" already used in table cells), `formatUsd()`, and `findBestFinish()` (shared by both pages).
+- Bigger ideas from the same conversation — real photos, bios, country, real names — are still blocked on `players.csv` (deprioritized, §7), not attempted here.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
