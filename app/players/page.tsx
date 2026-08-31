@@ -15,9 +15,9 @@ export default async function PlayersPage() {
         Sum of CDC points earned across every Black Ops 7 (BO7) event, attributed to the player (full placement
         points each roster player, not split). &ldquo;Current Team&rdquo; is that player&apos;s most
         recent event by date. See <Link href="/standings">team standings</Link>, which are built from
-        these totals. Known caveat: a couple of handles ("Apollo", "Law") are confirmed to be two
-        different real people who were never given distinct spellings — their totals here
-        incorrectly merge those two people until that's fixed at the source (PROJECT.md §7).
+        these totals. Known caveat: &ldquo;Clox&rdquo; is confirmed to be two different real people
+        who were never given distinct spellings — their totals here incorrectly merge those two
+        people until that&apos;s resolved at the source (PROJECT.md §7).
       </p>
       <div className="card">
         <table>
