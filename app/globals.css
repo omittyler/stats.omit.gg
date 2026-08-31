@@ -154,3 +154,61 @@ tbody tr:hover {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-box h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.stat-box ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: rank;
+}
+
+.stat-box li {
+  counter-increment: rank;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-box li:last-child {
+  border-bottom: none;
+}
+
+.stat-box li::before {
+  content: counter(rank);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: 1.2em;
+  flex-shrink: 0;
+}
+
+.stat-box li a {
+  flex: 1;
+}
+
+.stat-value {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
