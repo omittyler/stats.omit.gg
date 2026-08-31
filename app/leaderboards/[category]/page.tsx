@@ -1,16 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  getStatLeaderboards,
-  STAT_CATEGORIES,
-  type StatCategorySlug,
-  type StatLeaderboardEntry,
-} from '@/lib/statLeaderboards';
-import SortableTable, { type Column } from '@/components/SortableTable';
+import { getStatLeaderboards, STAT_CATEGORIES, type StatCategorySlug } from '@/lib/statLeaderboards';
+import LeaderboardTable from '@/components/LeaderboardTable';
 
 export const dynamic = 'force-dynamic';
-
-type Row = StatLeaderboardEntry & { rank: number };
 
 export default async function LeaderboardPage({
   params,
@@ -26,18 +19,9 @@ export default async function LeaderboardPage({
   const { title, resultKey, formatValue } = STAT_CATEGORIES[slug];
 
   const results = await getStatLeaderboards();
-  const rows: Row[] = results[resultKey].map((e, i) => ({ ...e, rank: i + 1 }));
-
-  const columns: Column<Row>[] = [
-    { key: 'rank', label: 'Rank', render: (r) => r.rank, align: 'right' },
-    {
-      key: 'player',
-      label: 'Player',
-      sortValue: (r) => r.playerName,
-      render: (r) => <Link href={`/players/${encodeURIComponent(r.playerName)}`}>{r.playerName}</Link>,
-    },
-    { key: 'value', label: title, sortValue: (r) => r.value, render: (r) => formatValue(r.value), align: 'right' },
-  ];
+  // formatValue is called here (server-side) rather than passed down, since
+  // functions can't cross the Server->Client boundary into LeaderboardTable.
+  const rows = results[resultKey].map((e, i) => ({ ...e, rank: i + 1, formattedValue: formatValue(e.value) }));
 
   return (
     <main className="container">
@@ -50,7 +34,7 @@ export default async function LeaderboardPage({
         least 15 matches played to be eligible.
       </p>
       <div className="card">
-        <SortableTable columns={columns} rows={rows} initialSortKey="value" />
+        <LeaderboardTable rows={rows} valueLabel={title} />
       </div>
     </main>
   );

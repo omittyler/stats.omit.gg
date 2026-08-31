@@ -1,35 +1,15 @@
 import Link from 'next/link';
-import { computeStandings, getTeamLogos, type PlayerStanding } from '@/lib/standings';
-import { TeamBadge } from '@/components/TeamBadge';
-import SortableTable, { type Column } from '@/components/SortableTable';
+import { computeStandings, getTeamLogos } from '@/lib/standings';
+import PlayersTable from '@/components/PlayersTable';
 
 // See app/standings/page.tsx - same reason: avoid Next.js caching this fetch
 // and showing stale numbers after the underlying data changes.
 export const dynamic = 'force-dynamic';
 
-type Row = PlayerStanding & { rank: number };
-
 export default async function PlayersPage() {
   const [{ playerStandings }, logos] = await Promise.all([computeStandings(), getTeamLogos()]);
 
-  const rows: Row[] = playerStandings.map((p, i) => ({ ...p, rank: i + 1 }));
-
-  const columns: Column<Row>[] = [
-    { key: 'rank', label: 'Rank', render: (r) => r.rank, align: 'right' },
-    {
-      key: 'player',
-      label: 'Player',
-      sortValue: (r) => r.name,
-      render: (r) => <Link href={`/players/${encodeURIComponent(r.name)}`}>{r.name}</Link>,
-    },
-    {
-      key: 'currentTeam',
-      label: 'Current Team',
-      sortValue: (r) => r.currentTeam,
-      render: (r) => <TeamBadge name={r.currentTeam} logoFilename={logos[r.currentTeam]} />,
-    },
-    { key: 'points', label: 'Points', sortValue: (r) => r.points, render: (r) => r.points.toLocaleString(), align: 'right' },
-  ];
+  const rows = playerStandings.map((p, i) => ({ ...p, rank: i + 1 }));
 
   return (
     <main className="container">
@@ -41,7 +21,7 @@ export default async function PlayersPage() {
         these totals.
       </p>
       <div className="card">
-        <SortableTable columns={columns} rows={rows} initialSortKey="points" />
+        <PlayersTable rows={rows} logos={logos} />
       </div>
     </main>
   );
