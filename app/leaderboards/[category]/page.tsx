@@ -27,8 +27,8 @@ export default async function LeaderboardPage({
       </Link>
       <h1>{title} — Full Leaderboard</h1>
       <p className="note">
-        Sourced from the stats provider&apos;s full-season totals per player. Ratio-based
-        leaderboards require at least 2 matches played to qualify.
+        Sourced from the stats provider&apos;s full-season totals per player. Players must have at
+        least 15 matches played to be eligible.
       </p>
       <div className="card">
         <table>

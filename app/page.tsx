@@ -61,8 +61,8 @@ export default async function HomePage() {
       <h2>Top 5 — Black Ops 7 (BO7)</h2>
       <p className="note">
         Sourced directly from the stats provider&apos;s own full-season totals per player (not summed
-        by us from individual events). K/D and Slayer Rating require at least 2 matches played to
-        appear here, so one great match can&apos;t top the list on its own.
+        by us from individual events). Players must have at least 15 matches played to be eligible
+        for any leaderboard here.
       </p>
       <div className="stat-grid">
         {(Object.entries(STAT_CATEGORIES) as [StatCategorySlug, (typeof STAT_CATEGORIES)[StatCategorySlug]][]).map(

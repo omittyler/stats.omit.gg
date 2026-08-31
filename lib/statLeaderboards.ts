@@ -110,10 +110,15 @@ export async function getStatLeaderboards(limit?: number) {
     return canonicalNames.get(name.toLowerCase()) ?? name;
   }
 
-  // Ratio-based leaderboards (K/D, Slayer Rating) require at least this many
-  // matches, otherwise a small sample could top the list unfairly - not
-  // explicitly discussed with the user, flagged as a judgment call.
-  const MIN_MATCHES = 2;
+  // Eligibility bar for every leaderboard category, confirmed by user
+  // 2026-08-31 (supersedes an earlier, unconfirmed 2-match placeholder that
+  // only applied to the ratio-based categories, and didn't apply to Damage
+  // at all).
+  const MIN_MATCHES = 15;
+
+  function isEligible(r: StatRow): boolean {
+    return (r.matches_total ?? 0) >= MIN_MATCHES;
+  }
 
   function cap(list: StatLeaderboardEntry[]): StatLeaderboardEntry[] {
     return limit ? list.slice(0, limit) : list;
@@ -122,7 +127,7 @@ export async function getStatLeaderboards(limit?: number) {
   function topByRatio(k: string, d: string): StatLeaderboardEntry[] {
     return cap(
       rows
-        .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && (r[d] ?? 0) > 0)
+        .filter((r) => isEligible(r) && (r[d] ?? 0) > 0)
         .map((r) => ({
           playerName: canonicalize(r.player_name),
           value: (r[k] ?? 0) / (r[d] as number),
@@ -135,7 +140,7 @@ export async function getStatLeaderboards(limit?: number) {
   function topByValue(field: string): StatLeaderboardEntry[] {
     return cap(
       rows
-        .filter((r) => r[field] !== null)
+        .filter((r) => isEligible(r) && r[field] !== null)
         .map((r) => ({
           playerName: canonicalize(r.player_name),
           value: r[field] as number,
@@ -152,7 +157,7 @@ export async function getStatLeaderboards(limit?: number) {
   const damage = topByValue('overall_dmg');
   const slayerRating = cap(
     rows
-      .filter((r) => (r.matches_total ?? 0) >= MIN_MATCHES && r.overall_slayer_rating !== null)
+      .filter((r) => isEligible(r) && r.overall_slayer_rating !== null)
       .map((r) => ({
         playerName: canonicalize(r.player_name),
         value: r.overall_slayer_rating as number,
