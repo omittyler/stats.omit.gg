@@ -48,15 +48,15 @@ export default async function HomePage() {
 
   return (
     <main className="container">
-      <h1>stats.omit.gg</h1>
-      <p className="note">Call of Duty Challengers stats hub — early build.</p>
-      <p>
-        <Link href="/standings">View Black Ops 7 (BO7) Team Standings &rarr;</Link>
-        {' · '}
-        <Link href="/players">View Black Ops 7 (BO7) Player Points &rarr;</Link>
-        {' · '}
-        <Link href="/teams">Browse Teams &rarr;</Link>
-      </p>
+      <div className="page-hero">
+        <h1>stats.omit.gg</h1>
+        <p className="note">Call of Duty Challengers stats hub — early build.</p>
+        <div className="page-hero-links">
+          <Link href="/standings">Team Standings &rarr;</Link>
+          <Link href="/players">Player Points &rarr;</Link>
+          <Link href="/teams">Browse Teams &rarr;</Link>
+        </div>
+      </div>
 
       <h2>Top 5 — Black Ops 7 (BO7)</h2>
       <p className="note">

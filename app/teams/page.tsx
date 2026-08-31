@@ -27,12 +27,14 @@ export default async function TeamsDirectoryPage() {
 
   return (
     <main className="container">
-      <h1>Teams</h1>
-      <p className="note">
-        Top {TOP_N} teams by current season points (see <Link href="/standings">full standings</Link>{' '}
-        for the rest) — a team&apos;s points are the sum of its current roster&apos;s individual point
-        totals, see PROJECT.md §8d.
-      </p>
+      <div className="page-hero">
+        <h1>Teams</h1>
+        <p className="note">
+          Top {TOP_N} teams by current season points (see <Link href="/standings">full standings</Link>
+          {' '}for the rest) — a team&apos;s points are the sum of its current roster&apos;s individual
+          point totals, see PROJECT.md §8d.
+        </p>
+      </div>
       <div className="team-grid">
         {topTeams.map((team, i) => (
           <Link key={team.name} href={`/teams/${encodeURIComponent(team.name)}`}>

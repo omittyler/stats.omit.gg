@@ -74,38 +74,47 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
       <Link className="back-link" href="/standings">
         &larr; Back to standings
       </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-        {teamRow && (
-          // eslint-disable-next-line @next/next/no-img-element
+      <div className="entity-hero">
+        <div className="team-hero-logo-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/teams/${teamRow.logo_filename}`}
+            className="team-hero-logo"
+            src={`/teams/${teamRow?.logo_filename ?? 'Default.png'}`}
             alt={teamName}
-            width={112}
-            height={112}
-            style={{ objectFit: 'contain' }}
           />
-        )}
-        <h1 style={{ margin: 0 }}>{teamName}</h1>
+        </div>
+        <div className="entity-hero-body">
+          <h1>{teamName}</h1>
+          <p className="entity-hero-meta">
+            Competed in {history.length} event{history.length === 1 ? '' : 's'} this season
+          </p>
+        </div>
       </div>
 
-      <p className="note">
-        Current season points (sum of current roster):{' '}
-        <strong style={{ color: 'var(--text)' }}>{(standing?.points ?? 0).toLocaleString()}</strong>
-        {' — '}Season prize earnings:{' '}
-        <strong style={{ color: 'var(--text)' }}>{formatUsd(totalPrize)}</strong>
-      </p>
-      <p className="note">
-        Competed in {history.length} event{history.length === 1 ? '' : 's'} this season.
-        {bestFinish && (
-          <>
-            {' '}Best finish:{' '}
-            <strong style={{ color: 'var(--text)' }}>
-              {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
-            </strong>{' '}
-            at {bestFinish.eventName}.
-          </>
-        )}
-      </p>
+      <div className="stat-card-row">
+        <div className="stat-card">
+          <div className="stat-card-label">Season Points</div>
+          <div className="stat-card-value">{(standing?.points ?? 0).toLocaleString()}</div>
+          <div className="stat-card-sub">Sum of current roster</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Season Prize Earnings</div>
+          <div className="stat-card-value">{formatUsd(totalPrize)}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Best Finish</div>
+          {bestFinish ? (
+            <>
+              <div className="stat-card-value">
+                {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
+              </div>
+              <div className="stat-card-sub">{bestFinish.eventName}</div>
+            </>
+          ) : (
+            <div className="stat-card-value">—</div>
+          )}
+        </div>
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Current Roster</h2>

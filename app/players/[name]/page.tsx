@@ -55,29 +55,29 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
       <Link className="back-link" href="/players">
         &larr; Back to player points
       </Link>
-      <div className="player-hero">
+      <div className="entity-hero">
         <div className="player-hero-photo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="player-hero-photo"
             src={`/players/${details?.photoFilename || 'DefaultPlayer.png'}`}
             alt={playerName}
-            width={148}
-            height={148}
+            width={220}
+            height={220}
           />
         </div>
-        <div className="player-hero-body">
+        <div className="entity-hero-body">
           <h1>{playerName}</h1>
           {(details?.fullName || details?.origin) && (
-            <p className="player-hero-meta">
+            <p className="entity-hero-meta">
               {[details?.fullName, details?.origin].filter(Boolean).join(' — ')}
             </p>
           )}
-          <div className="player-hero-team">
+          <div className="entity-hero-team">
             <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
           </div>
           {(details?.twitterUrl || details?.twitchUrl) && (
-            <div className="player-hero-links">
+            <div className="entity-hero-links">
               {details?.twitterUrl && (
                 <a href={details.twitterUrl} target="_blank" rel="noopener noreferrer">
                   𝕏 Twitter
@@ -93,28 +93,28 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         </div>
       </div>
 
-      <div className="player-stat-row">
-        <div className="player-stat-card">
-          <div className="player-stat-label">Season Points</div>
-          <div className="player-stat-value">{standing.points.toLocaleString()}</div>
+      <div className="stat-card-row">
+        <div className="stat-card">
+          <div className="stat-card-label">Season Points</div>
+          <div className="stat-card-value">{standing.points.toLocaleString()}</div>
         </div>
-        <div className="player-stat-card">
-          <div className="player-stat-label">Season Earnings</div>
-          <div className="player-stat-value">{formatUsd(totalEarnings)}</div>
+        <div className="stat-card">
+          <div className="stat-card-label">Season Earnings</div>
+          <div className="stat-card-value">{formatUsd(totalEarnings)}</div>
         </div>
-        <div className="player-stat-card">
-          <div className="player-stat-label">Best Finish</div>
+        <div className="stat-card">
+          <div className="stat-card-label">Best Finish</div>
           {bestFinish ? (
             <>
-              <div className="player-stat-value">
+              <div className="stat-card-value">
                 {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
               </div>
-              <div className="player-stat-sub">
+              <div className="stat-card-sub">
                 {bestFinish.eventName} ({bestFinish.teamName})
               </div>
             </>
           ) : (
-            <div className="player-stat-value">—</div>
+            <div className="stat-card-value">—</div>
           )}
         </div>
       </div>

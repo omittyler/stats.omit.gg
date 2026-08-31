@@ -318,9 +318,19 @@ User dropped `data/incoming/player_details.csv` (142 players: `gamertag`, `full 
 ## 8k. Player Page Visual Redesign (added 2026-08-31)
 
 User felt player pages were "a bit bland" and asked for larger photos plus more visual polish. Reworked the top of `app/players/[name]/page.tsx`:
-- **Hero card** (`.player-hero` in `globals.css`): 148px circular photo with an accent-color gradient ring, on a card with a subtle radial-gradient tint, replacing the old plain 112px square + inline text line. Full name/origin as a subtitle, current team badge, and Twitter/Twitch as pill-shaped link buttons (previously bare text links).
-- **Stat row** (`.player-stat-row`/`.player-stat-card`): Season Points / Season Earnings / Best Finish, each its own card with a large bold value — replacing the single dense sentence that crammed all three together.
-- Verified in the browser (desktop + mobile widths) against a player with a real photo (vikrzm) and one without (Peel, falls back to `DefaultPlayer.png`) — both render cleanly, no console errors. Added `.claude/launch.json` (`npm run dev`, port 3000) to support this.
+- **Hero card** (originally `.player-hero`, later generalized to `.entity-hero` in §8l): a circular photo with an accent-color gradient ring, on a card with a subtle radial-gradient tint, replacing the old plain 112px square + inline text line. Full name/origin as a subtitle, current team badge, and Twitter/Twitch as pill-shaped link buttons (previously bare text links).
+- **Stat row** (originally `.player-stat-row`/`.player-stat-card`, later generalized to `.stat-card-row`/`.stat-card` in §8l): Season Points / Season Earnings / Best Finish, each its own card with a large bold value — replacing the single dense sentence that crammed all three together.
+- Verified in the browser (desktop + mobile widths) against a player with a real photo (vikrzm) and one without (Peel, falls back to `DefaultPlayer.png`) — both render cleanly, no console errors. Added `.claude/launch.json` (`npm run dev`, port 3000) to support this — reused by §8l.
+
+## 8l. Site-Wide Visual Pass (added 2026-08-31)
+
+Same day, user asked to bump the player photo further (200-250px) and extend the same visual treatment to the rest of the site. Generalized the player-page classes so Team pages could reuse them, then applied a consistent "hero card" header to every page:
+- **Photo size:** 148px → 220px circular photo, ring padding scaled up to match.
+- **Class rename for reuse:** `.player-hero`→`.entity-hero`, `.player-hero-body/-meta/-team/-links`→`.entity-hero-*`, `.player-stat-row/-card/-label/-value/-sub`→`.stat-card-row`/`.stat-card`/`.stat-card-*` (photo-specific classes `.player-hero-photo-wrap`/`.player-hero-photo` stayed player-specific; a parallel `.team-hero-logo-wrap`/`.team-hero-logo` was added for the team page's rounded-square logo treatment instead of a circular crop, since team logos aren't headshots).
+- **Team page** (`app/teams/[name]/page.tsx`): now uses the same `.entity-hero` + `.stat-card-row` pattern as the player page — logo, name, and event count in the hero; Season Points / Season Prize Earnings / Best Finish as stat cards. Replaces the old plain flex header + two paragraph lines.
+- **New `.page-hero`** (title + subtitle + optional pill nav links, no photo): applied to the home page, `/standings`, `/players`, `/teams`, and `/leaderboards/[category]` for a consistent branded header across every page, instead of a bare `<h1>`. Home page's plain "·"-separated nav links became pill buttons inside the hero.
+- **Hover polish:** home page's stat-box cards and the Teams grid cards now lift slightly with a stronger shadow on hover (`.stat-box:hover, .team-grid a:hover`).
+- Verified in the browser across all of: home, standings, players list, player detail, teams grid, team detail, leaderboard detail — desktop and mobile widths, no console errors (aside from an unrelated benign HMR websocket warning from the browser-preview proxy).
 - Scoped to the player detail page only, per the request. The `/players` list page and Team page still use the older plain styling — worth extending this treatment there later if wanted.
 
 ## 9. Immediate Next Steps

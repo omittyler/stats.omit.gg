@@ -28,11 +28,13 @@ export default async function LeaderboardPage({
       <Link className="back-link" href="/">
         &larr; Back to home
       </Link>
-      <h1>{title} — Full Leaderboard</h1>
-      <p className="note">
-        Sourced from the stats provider&apos;s full-season totals per player. Players must have at
-        least 15 matches played to be eligible.
-      </p>
+      <div className="page-hero">
+        <h1>{title} — Full Leaderboard</h1>
+        <p className="note">
+          Sourced from the stats provider&apos;s full-season totals per player. Players must have at
+          least 15 matches played to be eligible.
+        </p>
+      </div>
       <div className="card">
         <LeaderboardTable rows={rows} valueLabel={title} />
       </div>
