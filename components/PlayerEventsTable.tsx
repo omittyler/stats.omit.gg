@@ -23,45 +23,83 @@ function formatKd(k: number | null, d: number | null, kd: number | null) {
   return '-';
 }
 
-function StatDetail({ stats }: { stats: EventStatsSummary }) {
+type Tile = { label: string; value: string };
+
+function StatTile({ label, value }: Tile) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, padding: '12px 4px' }}>
-      <div>
-        <strong>Overall</strong>
-        <div className="note">
-          K: {stats.overallK ?? '-'} · D: {stats.overallD ?? '-'} · K/D:{' '}
-          {formatKd(stats.overallK, stats.overallD, stats.overallKd)} · DMG:{' '}
-          {stats.overallDmg?.toLocaleString() ?? '-'} · Slayer Rating:{' '}
-          {stats.overallSlayerRating?.toFixed(2) ?? '-'}
-        </div>
+    <div className="stat-tile">
+      <span className="stat-tile-label">{label}</span>
+      <span className="stat-tile-value">{value}</span>
+    </div>
+  );
+}
+
+function StatSection({ title, tiles }: { title: string; tiles: Tile[] }) {
+  return (
+    <div className="stat-detail-section">
+      <h4>{title}</h4>
+      <div className="stat-tile-grid">
+        {tiles.map((t) => (
+          <StatTile key={t.label} {...t} />
+        ))}
       </div>
-      {(stats.hpMaps ?? 0) > 0 && (
-        <div>
-          <strong>Hardpoint</strong>
-          <div className="note">
-            Maps: {stats.hpMaps} · K: {stats.hpK ?? '-'} · D: {stats.hpD ?? '-'} · K/D:{' '}
-            {formatKd(stats.hpK, stats.hpD, stats.hpKd)}
-          </div>
-        </div>
-      )}
-      {(stats.sndMaps ?? 0) > 0 && (
-        <div>
-          <strong>Search &amp; Destroy</strong>
-          <div className="note">
-            Maps: {stats.sndMaps} · K: {stats.sndK ?? '-'} · D: {stats.sndD ?? '-'} · K/D:{' '}
-            {formatKd(stats.sndK, stats.sndD, stats.sndKd)}
-          </div>
-        </div>
-      )}
-      {(stats.ovlMaps ?? 0) > 0 && (
-        <div>
-          <strong>Overload</strong>
-          <div className="note">
-            Maps: {stats.ovlMaps} · K: {stats.ovlK ?? '-'} · D: {stats.ovlD ?? '-'} · K/D:{' '}
-            {formatKd(stats.ovlK, stats.ovlD, stats.ovlKd)}
-          </div>
-        </div>
-      )}
+    </div>
+  );
+}
+
+function StatDetail({ stats }: { stats: EventStatsSummary }) {
+  const sections: { title: string; tiles: Tile[] }[] = [
+    {
+      title: 'Overall',
+      tiles: [
+        { label: 'Kills', value: String(stats.overallK ?? '-') },
+        { label: 'Deaths', value: String(stats.overallD ?? '-') },
+        { label: 'K/D', value: formatKd(stats.overallK, stats.overallD, stats.overallKd) },
+        { label: 'Damage', value: stats.overallDmg?.toLocaleString() ?? '-' },
+        { label: 'Slayer Rating', value: stats.overallSlayerRating?.toFixed(2) ?? '-' },
+      ],
+    },
+  ];
+
+  if ((stats.hpMaps ?? 0) > 0) {
+    sections.push({
+      title: 'Hardpoint',
+      tiles: [
+        { label: 'Maps', value: String(stats.hpMaps) },
+        { label: 'Kills', value: String(stats.hpK ?? '-') },
+        { label: 'Deaths', value: String(stats.hpD ?? '-') },
+        { label: 'K/D', value: formatKd(stats.hpK, stats.hpD, stats.hpKd) },
+      ],
+    });
+  }
+  if ((stats.sndMaps ?? 0) > 0) {
+    sections.push({
+      title: 'Search & Destroy',
+      tiles: [
+        { label: 'Maps', value: String(stats.sndMaps) },
+        { label: 'Kills', value: String(stats.sndK ?? '-') },
+        { label: 'Deaths', value: String(stats.sndD ?? '-') },
+        { label: 'K/D', value: formatKd(stats.sndK, stats.sndD, stats.sndKd) },
+      ],
+    });
+  }
+  if ((stats.ovlMaps ?? 0) > 0) {
+    sections.push({
+      title: 'Overload',
+      tiles: [
+        { label: 'Maps', value: String(stats.ovlMaps) },
+        { label: 'Kills', value: String(stats.ovlK ?? '-') },
+        { label: 'Deaths', value: String(stats.ovlD ?? '-') },
+        { label: 'K/D', value: formatKd(stats.ovlK, stats.ovlD, stats.ovlKd) },
+      ],
+    });
+  }
+
+  return (
+    <div className="stat-detail">
+      {sections.map((s) => (
+        <StatSection key={s.title} title={s.title} tiles={s.tiles} />
+      ))}
     </div>
   );
 }
@@ -111,7 +149,7 @@ export default function PlayerEventsTable({
                     {stats ? (
                       <StatDetail stats={stats} />
                     ) : (
-                      <p className="note" style={{ padding: '8px 4px' }}>
+                      <p className="note" style={{ padding: '16px 4px' }}>
                         Currently no player statistics available.
                       </p>
                     )}
