@@ -30,12 +30,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const seasonStats = await getPlayerSeasonStats(playerName);
   const logos = await getTeamLogos();
 
-  // Personal share of team prize money is always a fixed quarter of the
-  // team's prize for that placement (PROJECT.md §3 "Prize money"), regardless
-  // of how many of the 4 roster slots actually have a name recorded - not
-  // 1/(number of names present), which would overstate each player's share
-  // whenever a roster is incompletely recorded.
-  const totalEarnings = history.reduce((sum, h) => sum + h.prizeUsd / 4, 0);
+  // Player page shows the full team prize for each event the player was on,
+  // not their 25% split share - confirmed by user 2026-08-31, specifically
+  // for player pages (talent-showcase framing: show the full amount they
+  // were part of winning, not a divided personal cut). The underlying 25%
+  // split rule (PROJECT.md §3 "Prize money") still applies wherever a
+  // per-player payout actually needs computing - this display is separate.
+  const totalEarnings = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
 
   if (!standing) {
@@ -57,7 +58,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         Current team: <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
         {' — '}Season points:{' '}
         <strong style={{ color: 'var(--text)' }}>{standing.points.toLocaleString()}</strong>
-        {' — '}Season earnings (25% share of team prize):{' '}
+        {' — '}Season earnings:{' '}
         <strong style={{ color: 'var(--text)' }}>{formatUsd(totalEarnings)}</strong>
       </p>
       {bestFinish && (

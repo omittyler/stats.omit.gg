@@ -296,7 +296,7 @@ User asked for ideas to make the site more navigable; picked all three suggested
 ## 8i. Profile Enrichment Pass (added 2026-08-31)
 
 User asked for ideas to add to player/team profile pages; picked all of the buildable-now ones:
-- **Player page:** season earnings (their 25% share of team prize per event they played, per the already-established split rule, §3 "Prize money" — always a fixed quarter regardless of how many of the 4 roster slots are actually recorded, so an incomplete roster doesn't inflate each known player's share) and a "Best finish" highlight (lowest `placementMin` in their history).
+- **Player page:** season earnings and a "Best finish" highlight (lowest `placementMin` in their history). Earnings were initially the player's 25% split share of team prize (§3 "Prize money") — **changed same day per user: player pages show the full team prize for each event instead**, not a divided personal cut (talent-showcase framing — show the full amount they were part of winning). Scoped to player pages only; the underlying 25%-split rule in §3 still applies wherever an actual per-player payout needs computing, this is just a different display choice.
 - **Team page:** total season prize earnings (full, undivided sum) and a summary line (events competed in + best finish).
 - New `lib/format.ts`: `ordinal()`, `formatPlacementOrdinal()` (e.g. "5th-6th", for the new highlight text — distinct from the plain numeric "5-6" already used in table cells), `formatUsd()`, and `findBestFinish()` (shared by both pages).
 - Bigger ideas from the same conversation — real photos, bios, country, real names — are still blocked on `players.csv` (deprioritized, §7), not attempted here.
