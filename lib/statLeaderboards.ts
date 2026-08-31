@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
 import { STAT_FIELDS } from './statFields';
+import type { EventStatsSummary, RankedStat } from './standings';
 
 export type StatLeaderboardEntry = { playerName: string; value: number; qualifyingEvents: number };
 
@@ -167,4 +168,83 @@ export async function getStatLeaderboards(limit?: number) {
   );
 
   return { kd, slayerRating, damage, hpKd, sndKd, ovlKd };
+}
+
+// Same 16 stats ranked in getPlayerEventStatsSummaries (lib/standings.ts),
+// but read from the raw Full Season CSV field names used in this file.
+const SEASON_RANKED_FIELDS = [
+  'overall_kd',
+  'overall_kad',
+  'overall_slayer_rating',
+  'overall_damage_rating',
+  'hp_kd',
+  'hp_hill_time_per_10',
+  'hp_k_per_10',
+  'hp_dmg_per_10',
+  'snd_kd',
+  'snd_opening_duel_win_pct',
+  'snd_k_per_r',
+  'snd_dmg_per_r',
+  'ovl_kd',
+  'ovl_goals_per_10',
+  'ovl_k_per_10',
+  'ovl_dmg_per_10',
+] as const;
+
+/**
+ * One player's whole-season stat block, in the same shape as a single
+ * event's (EventStatsSummary) - so the player page can render it with the
+ * same <StatDetail> component, just ranked against every OTHER player in
+ * the Full Season data instead of one event's field.
+ */
+export async function getPlayerSeasonStats(playerName: string): Promise<EventStatsSummary | null> {
+  const canonicalNames = buildCanonicalNameMap();
+  const rows = FULL_SEASON_FILES.flatMap((file) =>
+    parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
+  ).map((r) => ({ ...r, player_name: canonicalNames.get(r.player_name.toLowerCase()) ?? r.player_name }));
+
+  const target = rows.find((r) => r.player_name === playerName);
+  if (!target) return null;
+
+  function rankOf(field: (typeof SEASON_RANKED_FIELDS)[number]): RankedStat {
+    const value = target![field];
+    if (value === null) return { value: null, rank: null };
+    const sorted = rows
+      .map((r) => r[field])
+      .filter((v): v is number => v !== null)
+      .sort((a, b) => b - a);
+    return { value, rank: sorted.indexOf(value) + 1 };
+  }
+
+  return {
+    matchesTotal: target.matches_total,
+    matchesW: target.matches_w,
+    matchesL: target.matches_l,
+    mapsTotal: target.maps_total,
+    mapsW: target.maps_w,
+    mapsL: target.maps_l,
+
+    overallKd: rankOf('overall_kd'),
+    overallKad: rankOf('overall_kad'),
+    overallSlayerRating: rankOf('overall_slayer_rating'),
+    overallDamageRating: rankOf('overall_damage_rating'),
+
+    hpMaps: target.hp_maps,
+    hpKd: rankOf('hp_kd'),
+    hpHillTimePer10: rankOf('hp_hill_time_per_10'),
+    hpKPer10: rankOf('hp_k_per_10'),
+    hpDmgPer10: rankOf('hp_dmg_per_10'),
+
+    sndMaps: target.snd_maps,
+    sndKd: rankOf('snd_kd'),
+    sndOpeningDuelWinPct: rankOf('snd_opening_duel_win_pct'),
+    sndKPerR: rankOf('snd_k_per_r'),
+    sndDmgPerR: rankOf('snd_dmg_per_r'),
+
+    ovlMaps: target.ovl_maps,
+    ovlKd: rankOf('ovl_kd'),
+    ovlGoalsPer10: rankOf('ovl_goals_per_10'),
+    ovlKPer10: rankOf('ovl_k_per_10'),
+    ovlDmgPer10: rankOf('ovl_dmg_per_10'),
+  };
 }

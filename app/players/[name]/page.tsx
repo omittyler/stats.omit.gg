@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getEnrichedPlacements, computeStandings, getPlayerEventStatsSummaries } from '@/lib/standings';
+import { getPlayerSeasonStats } from '@/lib/statLeaderboards';
 import PlayerEventsTable from '@/components/PlayerEventsTable';
+import { StatDetail } from '@/components/StatDetail';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +20,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
 
   const statsMap = await getPlayerEventStatsSummaries(playerName);
   const statsByEvent = Object.fromEntries(statsMap);
+  const seasonStats = await getPlayerSeasonStats(playerName);
 
   if (!standing) {
     return (
@@ -40,6 +43,18 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         {' — '}Season points:{' '}
         <strong style={{ color: 'var(--text)' }}>{standing.points.toLocaleString()}</strong>
       </p>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Season Stats</h2>
+        <p className="note">
+          Ranked against every other player&apos;s Black Ops 7 (BO7) full-season totals.
+        </p>
+        {seasonStats ? (
+          <StatDetail stats={seasonStats} />
+        ) : (
+          <p className="note">Currently no player statistics available.</p>
+        )}
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Events</h2>
