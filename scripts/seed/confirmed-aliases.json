@@ -32,19 +32,18 @@
 
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Synes" },
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Synes" },
-  { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "RaZeSouL", "canonical_name": "RaZeSouLx", "team_name": "Night Vibes" },
   { "file": "BO7 Elite 1 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Elite 2 - NA Player Stats.csv", "bo7_stats_name": "Vik", "canonical_name": "vikrzm", "team_name": "Death By CABAL" },
 
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
-  { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "RazeSoul", "canonical_name": "RaZeSouLx", "team_name": "Avently" },
+  { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "RazeSoul", "canonical_name": "RaZeSouL", "team_name": "Avently" },
   { "file": "BO7 Elite 2 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "NeRo", "canonical_name": "NeRoWoLFz", "team_name": "The Vicious" },
-  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Razesoul", "canonical_name": "RaZeSouLx", "team_name": "NOA" },
+  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Razesoul", "canonical_name": "RaZeSouL", "team_name": "NOA" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" }
 ]
