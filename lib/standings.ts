@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { EXCLUDED_TEAM_NAMES } from './excludedTeams';
 
 type PointsScaleRow = {
   event_type: string;
@@ -82,6 +83,8 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
 
   return rows
     .filter((row) => row.events && row.teams)
+    .filter((row) => row.events!.region !== 'AP' && row.events!.region !== 'LATAM') // AP/LATAM scoped out of the site, per user 2026-08-31
+    .filter((row) => !EXCLUDED_TEAM_NAMES.has(row.teams!.name)) // ad-hoc "Team <handle>" pickup squads, per user 2026-08-31
     .map((row) => {
       const eventType = row.events!.type;
       const region = row.events!.region;

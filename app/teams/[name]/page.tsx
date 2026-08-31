@@ -16,12 +16,6 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   const { name: rawName } = await params;
   const teamName = decodeURIComponent(rawName);
 
-  const { data: teamRow } = await supabase
-    .from('teams')
-    .select('name, logo_filename')
-    .eq('name', teamName)
-    .maybeSingle();
-
   const placements = await getEnrichedPlacements();
   const { teamStandings } = await computeStandings(placements);
   const standing = teamStandings.find((t) => t.name === teamName);
@@ -30,7 +24,12 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
     .filter((p) => p.teamName === teamName)
     .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? ''));
 
-  if (!teamRow && !standing && !history.length) {
+  // Rely on the already-filtered `history` (AP/LATAM and ad-hoc "Team <handle>"
+  // squads excluded in getEnrichedPlacements) rather than a raw `teams` table
+  // lookup - otherwise someone navigating straight to an excluded team's URL
+  // would still find a DB row and see a page with an empty roster/events
+  // instead of "not found".
+  if (!history.length) {
     return (
       <main className="container">
         <p>Team &ldquo;{teamName}&rdquo; not found.</p>
@@ -38,6 +37,12 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
       </main>
     );
   }
+
+  const { data: teamRow } = await supabase
+    .from('teams')
+    .select('name, logo_filename')
+    .eq('name', teamName)
+    .maybeSingle();
 
   // "Current roster" is specifically THIS team's own most recent event's roster -
   // not just "whoever's own most-recent event happened to be with this team"
