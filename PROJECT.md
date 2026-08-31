@@ -315,6 +315,14 @@ User dropped `data/incoming/player_details.csv` (142 players: `gamertag`, `full 
 - **App:** `lib/standings.ts`'s new `getPlayerDetails(name)` fetches the (small) `players` table and matches case-insensitively in JS (not an `ilike` filter, since gamertags could contain `%`/`_`, which `ilike` treats as wildcards). Player page now shows a photo (`DefaultPlayer.png` fallback), full name + origin under the gamertag, and Twitter/Twitch links when present. Not yet added to the `/players` list page or Team page rosters — worth doing later if wanted, not attempted here to keep this change scoped to the detail page.
 - Not yet run through `npm run seed` — new table needs the migration applied first.
 
+## 8k. Player Page Visual Redesign (added 2026-08-31)
+
+User felt player pages were "a bit bland" and asked for larger photos plus more visual polish. Reworked the top of `app/players/[name]/page.tsx`:
+- **Hero card** (`.player-hero` in `globals.css`): 148px circular photo with an accent-color gradient ring, on a card with a subtle radial-gradient tint, replacing the old plain 112px square + inline text line. Full name/origin as a subtitle, current team badge, and Twitter/Twitch as pill-shaped link buttons (previously bare text links).
+- **Stat row** (`.player-stat-row`/`.player-stat-card`): Season Points / Season Earnings / Best Finish, each its own card with a large bold value — replacing the single dense sentence that crammed all three together.
+- Verified in the browser (desktop + mobile widths) against a player with a real photo (vikrzm) and one without (Peel, falls back to `DefaultPlayer.png`) — both render cleanly, no console errors. Added `.claude/launch.json` (`npm run dev`, port 3000) to support this.
+- Scoped to the player detail page only, per the request. The `/players` list page and Team page still use the older plain styling — worth extending this treatment there later if wanted.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.

@@ -16,6 +16,7 @@ out/
 scripts/seed/unresolved-*.json
 scripts/seed/duplicate-*.json
 scripts/seed/candidate-*.json
+scripts/seed/skipped-*.json
 
 # misc
 .DS_Store

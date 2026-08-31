@@ -55,51 +55,69 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
       <Link className="back-link" href="/players">
         &larr; Back to player points
       </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/players/${details?.photoFilename || 'DefaultPlayer.png'}`}
-          alt={playerName}
-          width={112}
-          height={112}
-          style={{ objectFit: 'contain', borderRadius: 8 }}
-        />
-        <div>
-          <h1 style={{ margin: 0 }}>{playerName}</h1>
+      <div className="player-hero">
+        <div className="player-hero-photo-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="player-hero-photo"
+            src={`/players/${details?.photoFilename || 'DefaultPlayer.png'}`}
+            alt={playerName}
+            width={148}
+            height={148}
+          />
+        </div>
+        <div className="player-hero-body">
+          <h1>{playerName}</h1>
           {(details?.fullName || details?.origin) && (
-            <p className="note" style={{ margin: '4px 0 0' }}>
+            <p className="player-hero-meta">
               {[details?.fullName, details?.origin].filter(Boolean).join(' — ')}
             </p>
           )}
+          <div className="player-hero-team">
+            <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
+          </div>
+          {(details?.twitterUrl || details?.twitchUrl) && (
+            <div className="player-hero-links">
+              {details?.twitterUrl && (
+                <a href={details.twitterUrl} target="_blank" rel="noopener noreferrer">
+                  𝕏 Twitter
+                </a>
+              )}
+              {details?.twitchUrl && (
+                <a href={details.twitchUrl} target="_blank" rel="noopener noreferrer">
+                  ▶ Twitch
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
-      <p className="note" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        Current team: <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
-        {' — '}Season points:{' '}
-        <strong style={{ color: 'var(--text)' }}>{standing.points.toLocaleString()}</strong>
-        {' — '}Season earnings:{' '}
-        <strong style={{ color: 'var(--text)' }}>{formatUsd(totalEarnings)}</strong>
-      </p>
-      {bestFinish && (
-        <p className="note">
-          Best finish: <strong style={{ color: 'var(--text)' }}>{formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}</strong>{' '}
-          at {bestFinish.eventName} ({bestFinish.teamName})
-        </p>
-      )}
-      {(details?.twitterUrl || details?.twitchUrl) && (
-        <p className="note" style={{ display: 'flex', gap: 12 }}>
-          {details?.twitterUrl && (
-            <a href={details.twitterUrl} target="_blank" rel="noopener noreferrer">
-              Twitter/X
-            </a>
+
+      <div className="player-stat-row">
+        <div className="player-stat-card">
+          <div className="player-stat-label">Season Points</div>
+          <div className="player-stat-value">{standing.points.toLocaleString()}</div>
+        </div>
+        <div className="player-stat-card">
+          <div className="player-stat-label">Season Earnings</div>
+          <div className="player-stat-value">{formatUsd(totalEarnings)}</div>
+        </div>
+        <div className="player-stat-card">
+          <div className="player-stat-label">Best Finish</div>
+          {bestFinish ? (
+            <>
+              <div className="player-stat-value">
+                {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
+              </div>
+              <div className="player-stat-sub">
+                {bestFinish.eventName} ({bestFinish.teamName})
+              </div>
+            </>
+          ) : (
+            <div className="player-stat-value">—</div>
           )}
-          {details?.twitchUrl && (
-            <a href={details.twitchUrl} target="_blank" rel="noopener noreferrer">
-              Twitch
-            </a>
-          )}
-        </p>
-      )}
+        </div>
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Season Stats</h2>
