@@ -37,6 +37,8 @@ const EVENT_FILES = [
   { file: 'BO7 Elite 2 - EU Player Stats.csv', name: '2026 EU Elite Stage 2', region: 'EU' },
   { file: 'BO7 Elite 3 - NA Player Stats.csv', name: '2026 NA Elite Stage 3', region: 'NA' },
   { file: 'BO7 Elite 3 - EU Player Stats.csv', name: '2026 EU Elite Stage 3', region: 'EU' },
+  { file: 'BO7 Paris Open - Players Stats.csv', name: '2026 Major 4 - Paris Open', region: null },
+  { file: 'BO7 Champs - Player Stats.csv', name: '2026 Champs - Challengers Finals', region: null },
 ];
 
 function eventKey(name, region) {
