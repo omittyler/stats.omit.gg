@@ -692,7 +692,10 @@ th.sortable:hover {
 
 .roster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  /* auto-fit (not auto-fill) collapses empty tracks, so a roster of 4 fills
+     the card's full width evenly instead of sitting in narrow fixed columns
+     with wasted space alongside them. */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 }
 
@@ -701,7 +704,7 @@ th.sortable:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 16px 12px;
+  padding: 24px 16px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -723,41 +726,41 @@ th.sortable:hover {
 }
 
 .roster-card-photo {
-  width: 72px;
-  height: 72px;
+  width: 108px;
+  height: 108px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--bg-elevated);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .roster-card-gamertag {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
 }
 
 .roster-card-name {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  margin-top: 4px;
+  font-size: 0.9rem;
+  margin-top: 5px;
 }
 
 .roster-card-origin {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  margin-top: 2px;
+  font-size: 0.9rem;
+  margin-top: 3px;
 }
 
 .roster-card-links {
   display: flex;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 14px;
+  margin-top: 12px;
 }
 
 .roster-card-links a {
   display: inline-flex;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .roster-card-links a:hover {
