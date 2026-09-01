@@ -366,6 +366,10 @@ User confirmed the §8o flags were rendering as literal two-letter text (e.g. "U
 - `flag-icons/css/flag-icons.min.css` imported once in `app/layout.tsx`. Needed a real `npm install` (new dependency) before the dev server would resolve it - hit a "Module not found" once and a stale-`node_modules` situation once, both resolved by running `npm install` then restarting `npm run dev`.
 - Verified in the browser post-install: real flag images now render on all three surfaces (US, Belgium, France, Saudi Arabia, and the England/Wales subdivision flags all confirmed visually distinct).
 
+## 8q. Added Censor to player_details.csv (added 2026-09-01)
+
+User supplied a new player: `Censor` (Doug Martin, United States, born 1994-08-21, `censor.png`, real Twitter/Twitch links). Checked before appending: gamertag already matches `placings.csv` exactly (7 rows - NexT Threat, OMiT Noir, Team Mohak, across several Cups and Major 1), and `censor.png` already exists in `public/players/`, so no alias or missing-photo follow-up needed. Appended as the last row.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
