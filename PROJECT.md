@@ -402,6 +402,10 @@ Same pattern as §8s: user dropped `teams_v2.csv` (14 CDL franchise teams: OpTic
 - Deleted `teams_v2.csv` once merged, same as `Player_Details_v2.csv` in §8s.
 - **Same gap as §8s applies here too**: these 14 CDL teams have zero `placings.csv` history, so `/teams/[name]` 404s for all of them via the same `history.length === 0` guard noted as a known limitation in §8r. Their logos exist and their name is in the `teams` table, but nothing makes them visible anywhere on the site yet.
 
+## 8u. Uli/Ulisses merged (added 2026-09-01)
+
+User confirmed "Uli" and "Ulisses" are the same person (full name already on file: "Ulisses Rios"). Checked all 9 seeded bo7_stats files first: every single one spells this player "Uli" - never "Ulisses" - and `player_details.csv` already used "Uli" too. `placings.csv` was the only inconsistent source (4 rows "Uli", 4 rows "Ulisses"), so canonicalized all 4 "Ulisses" rows to "Uli" to match everything else, and **deleted a stale `confirmed-aliases.json` entry that had it backwards** (`Uli` (bo7_stats) → `Ulisses` (canonical) for Elite 1 NA) - it was clearly written back when `placings.csv` still had "Ulisses" for that event; left in place, it would have actively undone this fix on the next seed.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
