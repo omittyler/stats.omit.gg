@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { supabase } from './supabase';
 import { EXCLUDED_TEAM_NAMES } from './excludedTeams';
+import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
 
 type PointsScaleRow = {
   event_type: string;
@@ -209,15 +210,27 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
 
   const teamTotals = new Map<string, { points: number; players: string[]; regionCounts: Map<string, number> }>();
   for (const { name, points, currentTeam, region } of playerStandings) {
+    // CDL runs its own separate points system - a player's Challengers CDC
+    // points don't roll into an official CDL team's standing while that's
+    // their current team (confirmed 2026-09-01, PROJECT.md §8x). Points stay
+    // frozen at 0 rather than removing the team from teamStandings entirely -
+    // it still needs to exist (searchable, listed on /teams) since it's a
+    // real, viewable team, just with no CDC points contribution. If a player
+    // moves back to a real Challengers org later this season, the normal
+    // most-recent-event-wins logic above already re-attributes their points
+    // there - nothing extra needed for that case. The player's own point
+    // total (on their own page) is untouched either way; only this
+    // team-level rollup is skipped.
+    const contributesPoints = !OFFICIAL_CDL_TEAMS.has(currentTeam);
     const existing = teamTotals.get(currentTeam);
     if (existing) {
-      existing.points += points;
+      if (contributesPoints) existing.points += points;
       existing.players.push(name);
       if (region) existing.regionCounts.set(region, (existing.regionCounts.get(region) ?? 0) + 1);
     } else {
       const regionCounts = new Map<string, number>();
       if (region) regionCounts.set(region, 1);
-      teamTotals.set(currentTeam, { points, players: [name], regionCounts });
+      teamTotals.set(currentTeam, { points: contributesPoints ? points : 0, players: [name], regionCounts });
     }
   }
 
