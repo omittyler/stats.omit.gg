@@ -48,5 +48,8 @@
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Decimate Gaming" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "NeRo", "canonical_name": "NeRoWoLFz", "team_name": "The Vicious" },
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "Razesoul", "canonical_name": "RaZeSouL", "team_name": "NOA" },
-  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" }
+  { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
+
+  { "file": "BO7 Full Season - NA Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Full Season - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" }
 ]

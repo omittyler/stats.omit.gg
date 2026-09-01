@@ -40,6 +40,17 @@ function parseFullSeasonFile(filePath: string): StatRow[] {
  * name, so leaderboard entries link to an existing /players/[name] page even
  * when bo7_stats capitalizes the handle differently (a recurring mismatch
  * throughout this project - see PROJECT.md §8b/§8d).
+ *
+ * Also folds in scripts/seed/confirmed-aliases.json's bo7_stats_name ->
+ * canonical_name mappings, regardless of which file each entry was
+ * originally confirmed for - these are global identity facts (e.g. bo7_stats
+ * "Vik" is always the placings.csv "vikrzm"), not something that varies by
+ * file. That alias file was originally written only for the seed script's
+ * per-event files, so a name that's ONLY ever abbreviated in the "Full
+ * Season" files (which the seed script deliberately never reads) had no
+ * resolution path here and 404'd when clicked - confirmed by the user
+ * 2026-09-01 for "Johnny" and "Vik" (also caught "D7oomx", already aliased
+ * elsewhere). See PROJECT.md §8z.
  */
 function buildCanonicalNameMap(): Map<string, string> {
   const raw = readFileSync('data/incoming/placings.csv', 'utf8');
@@ -55,6 +66,13 @@ function buildCanonicalNameMap(): Map<string, string> {
       if (name && !map.has(name.toLowerCase())) map.set(name.toLowerCase(), name);
     }
   }
+
+  const aliasesRaw = readFileSync('scripts/seed/confirmed-aliases.json', 'utf8');
+  const aliases: { bo7_stats_name: string; canonical_name: string }[] = JSON.parse(aliasesRaw);
+  for (const { bo7_stats_name, canonical_name } of aliases) {
+    if (!map.has(bo7_stats_name.toLowerCase())) map.set(bo7_stats_name.toLowerCase(), canonical_name);
+  }
+
   return map;
 }
 
