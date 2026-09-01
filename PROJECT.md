@@ -504,6 +504,19 @@ Follow-up to the K/D/Slayer Rating/Non-Traded Kill %/Matches Played columns adde
 - **Current CDL players now excluded from `/players` entirely** (not just the K/D-style leaderboards) - confirmed explicitly by the user, since this is a bigger change than the existing rule: `/players` previously intentionally kept CDL players visible with real points (unlike the ratio leaderboards, which exist to highlight Challengers players specifically - §8y). `app/players/page.tsx` now filters `playerStandings` by `!OFFICIAL_CDL_TEAMS.has(currentTeam)` before computing rank, so ranks stay contiguous. Same live, most-recent-event-wins logic as everywhere else - a player who returns to Challengers later in the season reappears automatically.
 - New `getPlayerQuickStats()` in `lib/statLeaderboards.ts` - one-pass Full Season lookup (K/D, Slayer Rating, Non-Traded Kill %, Matches Played) for every player, keyed by canonical name; uses the stats provider's own precomputed `overall_kd` field (not recomputed from `overall_k`/`overall_d` like `getStatLeaderboards`' ratio leaderboards) so it matches what a player already sees in their own page's Season Stats panel.
 
+## 8af. placings.csv Casing/Typo Collisions: DK, Henry, Virsuh, Mcoof, Zyrro, Pengu (added 2026-09-02)
+
+User flagged three collisions on the leaderboards (`dk`/`DK`, `virsuh`/`Virsuh`/`Virsuhh`, `Henry`/`HenRy`) plus a fourth found mid-fix (`Mcoof`/`mcoof`/`mc00f`) - all pure capitalization/typo inconsistencies within `placings.csv` itself (unlike §8aa/§8ab's alias-scoping bugs), confirmed via team continuity (same real roster/team across events) rather than guessed. Auditing the same rosters turned up two more not explicitly reported: `Zyroo` (should be `Zyrro`, confirmed against bo7_stats' `Zyrro,ATS,...` row) and `pengu` (should be `Pengu`).
+
+- **DK**: 3 lowercase `dk` rows (Cup 2/4/5, team "Clutch24s"/"UGT Esports") normalized to `DK` - same person as the `DK` on OMiT/OMiT Noir/ABLE x Stallions for Majors/Elite/Champs/EWC.
+- **Henry**: 3 `HenRy` rows (stray capital R - Atlanta Open, Paris Open, Cup 13, all "Project 7"/"ABLE x BTD") normalized to `Henry`.
+- **Virsuh**: `virsuh` (2x) and `Virsuhh` (1x) normalized to `Virsuh` - all on "The Atlas Lions" with Eleven/Mcoof/Zyrro.
+- **Mcoof**: `mcoof`/`mc00f` (7x, across "The Atlas Lions" and several Cup pickup-squad names: "Team mc00f", "Annex Esports" x2, "CuteMeth4829") normalized to `Mcoof`. The team name "Team mc00f" itself was deliberately left untouched - team names aren't in scope here, and "Team <handle>" pickup squads are an established naming convention elsewhere in this project.
+- **Zyrro**: 1 `Zyroo` row (Paris Open) normalized to `Zyrro`.
+- **Pengu**: 1 `pengu` row (Cup 5) normalized to `Pengu`.
+- Explicitly did NOT touch `Idk` (a real, different player - a broad case-insensitive `dk` search coincidentally matches inside it, and inside team name "JedKilEzUnk") - checked and confirmed unrelated.
+- Pure `placings.csv` casing fixes - no `confirmed-aliases.json` or seed-script change needed (bo7_stats per-event/Full-Season name resolution already matches case-insensitively against `placings.csv`, so once placings.csv itself is internally consistent, resolution just works). Needs `npm run seed` to take effect.
+
 ## 9. Immediate Next Steps
 
 1. Supabase is set up and seeded (§8b) — teams/points_scale/events/event_placements/player_event_stats all populated. Optional cleanup: `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly genuine gaps — blank team codes in the source, or players below Elite's top-12 cutoff that placings.csv never recorded) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies (e.g. Birmingham's "Team Gx" roster appears twice in that file). Neither blocks anything; revisit only if it matters for a specific page later.
