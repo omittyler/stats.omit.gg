@@ -12,6 +12,7 @@ import PlayerEventsTable from '@/components/PlayerEventsTable';
 import { StatDetail } from '@/components/StatDetail';
 import { TeamBadge } from '@/components/TeamBadge';
 import { TrendChart } from '@/components/TrendChart';
+import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,11 +89,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
     );
   }
 
+  const isCdlPlayer = OFFICIAL_CDL_TEAMS.has(standing.currentTeam);
+
   return (
     <main className="container">
       <Link className="back-link" href="/players">
         &larr; Back to player points
       </Link>
+      {isCdlPlayer && <div className="cdl-banner">CDL Player</div>}
       <div className="entity-hero">
         <div className="player-hero-photo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}

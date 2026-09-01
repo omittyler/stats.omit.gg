@@ -399,6 +399,22 @@ th.sortable:hover {
   color: var(--accent);
 }
 
+.cdl-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f7e299, #d4af37);
+  color: #3a2e00;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .entity-hero {
   display: flex;
   align-items: center;

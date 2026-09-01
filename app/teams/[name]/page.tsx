@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
 import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
+import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
       <Link className="back-link" href="/standings">
         &larr; Back to standings
       </Link>
+      {OFFICIAL_CDL_TEAMS.has(teamName) && <div className="cdl-banner">CDL Team</div>}
       <div className="entity-hero">
         <div className="team-hero-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}

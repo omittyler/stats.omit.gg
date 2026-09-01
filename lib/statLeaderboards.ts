@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
 import { STAT_FIELDS } from './statFields';
-import type { EventStatsSummary, RankedStat } from './standings';
+import { computeStandings, type EventStatsSummary, type RankedStat } from './standings';
+import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
 
 export type StatLeaderboardEntry = { playerName: string; value: number; qualifyingEvents: number };
 
@@ -145,6 +146,18 @@ export async function getStatLeaderboards(limit?: number) {
     return canonicalNames.get(name.toLowerCase()) ?? name;
   }
 
+  // These leaderboards exist to highlight Challengers players specifically -
+  // a player currently on an official CDL team (even one with real
+  // Challengers-earned stats in the Full Season files, e.g. picked up
+  // mid-season) is excluded, confirmed by user 2026-09-01. "Currently" is
+  // the same live, most-recent-event-wins concept as everywhere else in the
+  // app - someone who returns to a real Challengers org later in the season
+  // reappears automatically, no extra bookkeeping needed here.
+  const { playerStandings } = await computeStandings();
+  const currentCdlPlayers = new Set(
+    playerStandings.filter((p) => OFFICIAL_CDL_TEAMS.has(p.currentTeam)).map((p) => p.name.toLowerCase())
+  );
+
   // Eligibility bar for every leaderboard category, confirmed by user
   // 2026-08-31 (supersedes an earlier, unconfirmed 2-match placeholder that
   // only applied to the ratio-based categories, and didn't apply to Damage
@@ -152,7 +165,8 @@ export async function getStatLeaderboards(limit?: number) {
   const MIN_MATCHES = 15;
 
   function isEligible(r: StatRow): boolean {
-    return (r.matches_total ?? 0) >= MIN_MATCHES;
+    if ((r.matches_total ?? 0) < MIN_MATCHES) return false;
+    return !currentCdlPlayers.has(canonicalize(r.player_name).toLowerCase());
   }
 
   function cap(list: StatLeaderboardEntry[]): StatLeaderboardEntry[] {
