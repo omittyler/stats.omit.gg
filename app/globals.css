@@ -48,6 +48,32 @@ a:hover {
   background: var(--bg-elevated);
 }
 
+.attribution-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.attribution-bar img {
+  opacity: 0.7;
+}
+
+.attribution-bar a {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.attribution-bar a:hover {
+  color: var(--accent);
+}
+
 .site-header .container {
   display: flex;
   align-items: center;

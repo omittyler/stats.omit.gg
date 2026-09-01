@@ -28,6 +28,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <SiteNav />
           </div>
         </header>
+        <div className="attribution-bar">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/x.svg" alt="" width={14} height={14} />
+          <span>
+            Statistical Data Provided By{' '}
+            <a href="https://x.com/ChallengerStats" target="_blank" rel="noopener noreferrer">
+              @ChallengerStats
+            </a>
+          </span>
+        </div>
         {children}
       </body>
     </html>
