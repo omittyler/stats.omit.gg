@@ -118,12 +118,16 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
             <div className="entity-hero-links">
               {details?.twitterUrl && (
                 <a href={details.twitterUrl} target="_blank" rel="noopener noreferrer">
-                  𝕏 Twitter
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/x.svg" alt="" width={16} height={16} />
+                  Twitter
                 </a>
               )}
               {details?.twitchUrl && (
                 <a href={details.twitchUrl} target="_blank" rel="noopener noreferrer">
-                  ▶ Twitch
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/twitch.svg" alt="" width={16} height={16} />
+                  Twitch
                 </a>
               )}
             </div>

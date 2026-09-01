@@ -179,13 +179,15 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
                   {(d?.twitterUrl || d?.twitchUrl) && (
                     <div className="roster-card-links">
                       {d?.twitterUrl && (
-                        <a href={d.twitterUrl} target="_blank" rel="noopener noreferrer">
-                          𝕏
+                        <a href={d.twitterUrl} target="_blank" rel="noopener noreferrer" aria-label="Twitter/X">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/icons/x.svg" alt="" width={18} height={18} />
                         </a>
                       )}
                       {d?.twitchUrl && (
-                        <a href={d.twitchUrl} target="_blank" rel="noopener noreferrer">
-                          ▶
+                        <a href={d.twitchUrl} target="_blank" rel="noopener noreferrer" aria-label="Twitch">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/icons/twitch.svg" alt="" width={18} height={18} />
                         </a>
                       )}
                     </div>
