@@ -27,7 +27,7 @@ create table if not exists players (
 create table if not exists events (
   id bigint generated always as identity primary key,
   name text not null,
-  type text not null check (type in ('Cup', 'Elite', 'Major', 'Champs')),
+  type text not null check (type in ('Cup', 'Elite', 'Major', 'Champs', 'Exhibition')), -- 'Exhibition' (added 2026-09-01, PROJECT.md §8v) is for non-CDC events like the Esports World Cup - always 0 cdc_points in points_scale, real prize_usd still tracked
   game text not null default 'Black Ops 7',
   season int not null,
   stage int,
@@ -40,7 +40,7 @@ create table if not exists events (
 -- Points/prize are never stored on a placement row; always looked up here by (event_type, placement).
 create table if not exists points_scale (
   id bigint generated always as identity primary key,
-  event_type text not null check (event_type in ('Cup', 'Elite', 'Major', 'Champs')),
+  event_type text not null check (event_type in ('Cup', 'Elite', 'Major', 'Champs', 'Exhibition')),
   placement_min int not null,
   placement_max int not null,
   cdc_points int not null,

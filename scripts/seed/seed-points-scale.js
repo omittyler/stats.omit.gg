@@ -48,6 +48,16 @@ const ROWS = [
   { event_type: 'Champs', placement_min: 7, placement_max: 8, cdc_points: 0, prize_usd: 3000, prize_usd_ap_la: null },
   { event_type: 'Champs', placement_min: 9, placement_max: 12, cdc_points: 0, prize_usd: null, prize_usd_ap_la: null },
   { event_type: 'Champs', placement_min: 13, placement_max: 16, cdc_points: 0, prize_usd: null, prize_usd_ap_la: null },
+
+  // Exhibition (e.g. Esports World Cup) — real prize money, but NEVER any
+  // CDC points; this is not a Challengers-sanctioned event. See PROJECT.md §8v.
+  { event_type: 'Exhibition', placement_min: 1, placement_max: 1, cdc_points: 0, prize_usd: 600000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 2, placement_max: 2, cdc_points: 0, prize_usd: 320000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 3, placement_max: 3, cdc_points: 0, prize_usd: 200000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 4, placement_max: 4, cdc_points: 0, prize_usd: 120000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 5, placement_max: 8, cdc_points: 0, prize_usd: 80000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 9, placement_max: 12, cdc_points: 0, prize_usd: 40000, prize_usd_ap_la: null },
+  { event_type: 'Exhibition', placement_min: 13, placement_max: 16, cdc_points: 0, prize_usd: 20000, prize_usd_ap_la: null },
 ];
 
 export async function seedPointsScale() {

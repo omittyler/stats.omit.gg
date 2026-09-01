@@ -22,6 +22,7 @@ const NAMED_EVENT_DATES = {
   '2026 Major 3 - Atlanta Open': '2026-05-17',
   '2026 Major 4 - Paris Open': '2026-06-28',
   '2026 Champs - Challengers Finals': '2026-07-19',
+  '2026 Esports World Cup': '2026-08-05', // Exhibition - see PROJECT.md §8v
 };
 
 export function getEventDate({ event_type, event_name, stage }) {
