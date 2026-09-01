@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { getSearchIndex } from '@/lib/standings';
 import SiteSearch from '@/components/SiteSearch';
+import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });

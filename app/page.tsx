@@ -7,7 +7,7 @@ import {
 } from '@/lib/statLeaderboards';
 import { getRecentEvents, getAllPlayerDetails } from '@/lib/standings';
 import { formatPlacementOrdinal } from '@/lib/format';
-import { flagForOrigin } from '@/lib/countryFlags';
+import { FlagIcon } from '@/components/FlagIcon';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,18 +29,15 @@ function StatBox({
       <h3>{title}</h3>
       {entries.length ? (
         <ol>
-          {entries.map((entry) => {
-            const flag = flagForOrigin(origins[entry.playerName.toLowerCase()]);
-            return (
-              <li key={entry.playerName}>
-                <Link href={`/players/${encodeURIComponent(entry.playerName)}`}>
-                  {flag && <span style={{ marginRight: 6 }}>{flag}</span>}
-                  {entry.playerName}
-                </Link>
-                <span className="stat-value">{formatValue(entry.value)}</span>
-              </li>
-            );
-          })}
+          {entries.map((entry) => (
+            <li key={entry.playerName}>
+              <Link href={`/players/${encodeURIComponent(entry.playerName)}`}>
+                <FlagIcon origin={origins[entry.playerName.toLowerCase()]} />
+                {entry.playerName}
+              </Link>
+              <span className="stat-value">{formatValue(entry.value)}</span>
+            </li>
+          ))}
         </ol>
       ) : (
         <p className="note">Not enough data yet.</p>

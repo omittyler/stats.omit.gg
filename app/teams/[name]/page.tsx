@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getEnrichedPlacements, computeStandings, getAllPlayerDetails } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
-import { flagForOrigin } from '@/lib/countryFlags';
+import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 
 export const dynamic = 'force-dynamic';
@@ -173,7 +173,8 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
                   {d?.fullName && <div className="roster-card-name">{d.fullName}</div>}
                   {d?.origin && (
                     <div className="roster-card-origin">
-                      {flagForOrigin(d.origin)} {d.origin}
+                      <FlagIcon origin={d.origin} />
+                      {d.origin}
                     </div>
                   )}
                   {(d?.twitterUrl || d?.twitchUrl) && (
