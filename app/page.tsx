@@ -5,7 +5,7 @@ import {
   type StatCategorySlug,
   type StatLeaderboardEntry,
 } from '@/lib/statLeaderboards';
-import { getRecentEvents, getAllPlayerDetails } from '@/lib/standings';
+import { getRecentEvents, getLanResults, getAllPlayerDetails } from '@/lib/standings';
 import { formatPlacementOrdinal } from '@/lib/format';
 import { FlagIcon } from '@/components/FlagIcon';
 
@@ -52,6 +52,7 @@ function StatBox({
 export default async function HomePage() {
   const results = await getStatLeaderboards(5);
   const recentEvents = await getRecentEvents();
+  const lanResults = await getLanResults();
   const playerDetails = await getAllPlayerDetails();
   const origins = Object.fromEntries([...playerDetails].map(([name, d]) => [name, d.origin ?? '']));
 
@@ -62,19 +63,43 @@ export default async function HomePage() {
         <p className="note">Call of Duty Challengers stats hub — early build.</p>
         <div className="page-hero-links">
           <Link href="/standings">Team Standings &rarr;</Link>
-          <Link href="/players">Player Points &rarr;</Link>
-          <Link href="/teams">Browse Teams &rarr;</Link>
+          <Link href="/players">Players &rarr;</Link>
+          <Link href="/teams">Browse Top Teams &rarr;</Link>
         </div>
       </div>
 
       {recentEvents.length > 0 && (
         <>
-          <h2>Recent Results</h2>
+          <h2>Black Ops 7 Recent Results</h2>
           <div className="recent-events-grid">
             {recentEvents.map((group) => (
               <div className="recent-event-card" key={`${group.eventName}|${group.region}`}>
-                <h3>{group.eventName}</h3>
+                <h3>{group.eventName.replace(/^2026 /, '')}</h3>
                 {group.region && <span className="region-tag">{group.region}</span>}
+                <ol>
+                  {group.topPlacements.map((p, i) => (
+                    <li key={i}>
+                      <span className="placement">
+                        {formatPlacementOrdinal(p.placementMin, p.placementMax)}
+                      </span>
+                      <Link href={`/teams/${encodeURIComponent(p.teamName)}`}>{p.teamName}</Link>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {lanResults.length > 0 && (
+        <>
+          <h2>Black Ops 7 LAN Results</h2>
+          <p className="note">Top 3 for every Major/Open and Champs Finals this season.</p>
+          <div className="recent-events-grid">
+            {lanResults.map((group) => (
+              <div className="recent-event-card" key={group.eventName}>
+                <h3>{group.eventName.replace(/^2026 /, '')}</h3>
                 <ol>
                   {group.topPlacements.map((p, i) => (
                     <li key={i}>

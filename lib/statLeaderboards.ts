@@ -246,6 +246,47 @@ export async function getStatLeaderboards(limit?: number) {
   };
 }
 
+export type PlayerQuickStats = {
+  kd: number | null;
+  slayerRating: number | null;
+  nonTradedKillPct: number | null;
+  matchesTotal: number | null;
+};
+
+/**
+ * One-pass lookup of the 4 season-total columns shown on the /players table
+ * (K/D, Slayer Rating, Non-Traded Kill %, Matches Played) for every player at
+ * once, keyed by lowercased canonical name - built from the same Full Season
+ * files/alias resolution as getStatLeaderboards, just without the per-category
+ * ranking/eligibility filtering (this is a plain data table, not a ranked
+ * leaderboard, so every player who has Full Season data shows up here
+ * regardless of the 15-match leaderboard bar or current-CDL-team exclusion).
+ * Uses the raw `overall_kd`/`overall_non_traded_kills_pct` columns the stats
+ * provider already computes, same as getPlayerSeasonStats's panel on a
+ * player's own page - not recomputed from overall_k/overall_d like
+ * getStatLeaderboards' ratio leaderboards do, so this matches what a player
+ * already sees on their own page rather than introducing a second, slightly
+ * different K/D number for the same player.
+ */
+export async function getPlayerQuickStats(): Promise<Map<string, PlayerQuickStats>> {
+  const canonicalNames = buildCanonicalNameMap();
+  const rows = FULL_SEASON_FILES.flatMap((file) =>
+    parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
+  );
+
+  const map = new Map<string, PlayerQuickStats>();
+  for (const r of rows) {
+    const name = canonicalNames.get(r.player_name.toLowerCase()) ?? r.player_name;
+    map.set(name.toLowerCase(), {
+      kd: r.overall_kd,
+      slayerRating: r.overall_slayer_rating,
+      nonTradedKillPct: r.overall_non_traded_kills_pct,
+      matchesTotal: r.matches_total,
+    });
+  }
+  return map;
+}
+
 // Same 16 stats ranked in getPlayerEventStatsSummaries (lib/standings.ts),
 // but read from the raw Full Season CSV field names used in this file.
 const SEASON_RANKED_FIELDS = [

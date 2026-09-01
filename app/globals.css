@@ -36,6 +36,13 @@ a:hover {
   padding: 32px 20px 64px;
 }
 
+/* Wider variant for data-dense tables (e.g. /players' K/D/Slayer Rating/
+   Non-Traded Kill %/Matches Played columns) that don't fit the standard
+   860px container without horizontal scrolling. */
+.container-wide {
+  max-width: 1180px;
+}
+
 .site-header {
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -49,8 +56,12 @@ a:hover {
   padding-bottom: 16px;
 }
 
-.site-header nav {
+.site-nav {
   margin-left: auto;
+}
+
+.nav-toggle {
+  display: none;
 }
 
 .site-search {
@@ -68,6 +79,56 @@ a:hover {
     order: 3;
     flex-basis: 100%;
     max-width: none;
+  }
+
+  .nav-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    order: 2;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+  }
+
+  .site-header nav.site-nav {
+    order: 4;
+    margin-left: 0;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+  }
+
+  .site-header nav.site-nav.open {
+    max-height: 260px;
+    opacity: 1;
+    margin-top: 10px;
+  }
+
+  .site-header nav.site-nav a {
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .site-header nav.site-nav a.active {
+    border-bottom-color: var(--accent);
   }
 }
 
@@ -148,20 +209,28 @@ a:hover {
   font-size: 1.1rem;
 }
 
-.site-header nav {
+.site-header nav.site-nav {
   display: flex;
   gap: 24px;
 }
 
-.site-header nav a {
+.site-nav a {
   color: var(--text-muted);
   font-weight: 600;
   font-size: 0.9rem;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.site-header nav a:hover {
+.site-nav a:hover {
   color: var(--text);
   text-decoration: none;
+}
+
+.site-nav a.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
 }
 
 .card {
@@ -205,7 +274,7 @@ tbody tr:hover {
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
@@ -413,6 +482,59 @@ th.sortable:hover {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.cdl-team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cdl-team-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cdl-team-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.cdl-team-header:hover {
+  background: var(--bg);
+}
+
+.cdl-team-header img {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cdl-team-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.cdl-team-chevron {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.cdl-team-roster {
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
 }
 
 .entity-hero {

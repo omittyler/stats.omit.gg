@@ -7,7 +7,13 @@ import { FlagIcon } from './FlagIcon';
 import SortableTable, { type Column } from './SortableTable';
 import { TeamBadge } from './TeamBadge';
 
-type Row = PlayerStanding & { rank: number };
+type Row = PlayerStanding & {
+  rank: number;
+  kd: number | null;
+  slayerRating: number | null;
+  nonTradedKillPct: number | null;
+  matchesTotal: number | null;
+};
 
 export default function PlayersTable({
   rows,
@@ -47,6 +53,34 @@ export default function PlayersTable({
       label: 'Points',
       sortValue: (r) => r.points,
       render: (r) => r.points.toLocaleString(),
+      align: 'right',
+    },
+    {
+      key: 'kd',
+      label: 'K/D',
+      sortValue: (r) => r.kd ?? -1,
+      render: (r) => (r.kd != null ? r.kd.toFixed(2) : '—'),
+      align: 'right',
+    },
+    {
+      key: 'slayerRating',
+      label: 'Slayer Rating',
+      sortValue: (r) => r.slayerRating ?? -1,
+      render: (r) => (r.slayerRating != null ? r.slayerRating.toFixed(2) : '—'),
+      align: 'right',
+    },
+    {
+      key: 'nonTradedKillPct',
+      label: 'Non-Traded Kill %',
+      sortValue: (r) => r.nonTradedKillPct ?? -1,
+      render: (r) => (r.nonTradedKillPct != null ? `${r.nonTradedKillPct.toFixed(0)}%` : '—'),
+      align: 'right',
+    },
+    {
+      key: 'matchesTotal',
+      label: 'Matches Played',
+      sortValue: (r) => r.matchesTotal ?? -1,
+      render: (r) => r.matchesTotal ?? '—',
       align: 'right',
     },
   ];

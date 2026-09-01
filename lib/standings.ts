@@ -484,6 +484,42 @@ export async function getRecentEvents(placements?: EnrichedPlacement[]): Promise
     .sort((a, b) => a.eventName.localeCompare(b.eventName));
 }
 
+export type LanResultGroup = {
+  eventName: string;
+  eventDate: string | null;
+  topPlacements: { teamName: string; placementMin: number; placementMax: number }[];
+};
+
+/**
+ * Top 3 for every LAN this season - the four Major/Opens (Dallas/Birmingham/
+ * Atlanta/Paris) plus Champs Finals - one group per event, most recent first
+ * (Champs, Major 4, Major 3, Major 2, Major 1 - confirmed 2026-09-01; Champs'
+ * real event date is later than Paris/Major 4, so this is also just
+ * chronological-descending, not a special-cased order). Unlike
+ * getRecentEvents above, this isn't scoped to the single latest date; it's a
+ * season-long recap. Powers the home page's "LAN Results" box.
+ */
+export async function getLanResults(placements?: EnrichedPlacement[]): Promise<LanResultGroup[]> {
+  const rows = placements ?? (await getEnrichedPlacements());
+  const majors = rows.filter((r) => r.eventType === 'Major' || r.eventType === 'Champs');
+
+  const groups = new Map<string, LanResultGroup>();
+  for (const row of majors) {
+    if (!groups.has(row.eventName)) {
+      groups.set(row.eventName, { eventName: row.eventName, eventDate: row.eventDate, topPlacements: [] });
+    }
+    groups.get(row.eventName)!.topPlacements.push({
+      teamName: row.teamName,
+      placementMin: row.placementMin,
+      placementMax: row.placementMax,
+    });
+  }
+
+  return [...groups.values()]
+    .map((g) => ({ ...g, topPlacements: g.topPlacements.sort((a, b) => a.placementMin - b.placementMin).slice(0, 3) }))
+    .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? ''));
+}
+
 /** Team name -> logo filename, for rendering a small badge next to a team name in a table. */
 export async function getTeamLogos(): Promise<Record<string, string>> {
   const { data, error } = await supabase.from('teams').select('name, logo_filename');

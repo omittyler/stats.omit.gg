@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { getSearchIndex } from '@/lib/standings';
 import SiteSearch from '@/components/SiteSearch';
+import SiteNav from '@/components/SiteNav';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
@@ -24,11 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               stats.omit.gg
             </Link>
             <SiteSearch teams={teams} players={players} />
-            <nav>
-              <Link href="/standings">Standings</Link>
-              <Link href="/players">Players</Link>
-              <Link href="/teams">Teams</Link>
-            </nav>
+            <SiteNav />
           </div>
         </header>
         {children}

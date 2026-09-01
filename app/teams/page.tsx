@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-const TOP_N = 15;
+const TOP_N = 16;
 
 export default async function TeamsDirectoryPage() {
   const { teamStandings } = await computeStandings();
@@ -28,12 +28,7 @@ export default async function TeamsDirectoryPage() {
   return (
     <main className="container">
       <div className="page-hero">
-        <h1>Teams</h1>
-        <p className="note">
-          Top {TOP_N} teams by current season points (see <Link href="/standings">full standings</Link>
-          {' '}for the rest) — a team&apos;s points are the sum of its current roster&apos;s individual
-          point totals, see PROJECT.md §8d.
-        </p>
+        <h1>Top 16 Teams</h1>
       </div>
       <div className="team-grid">
         {topTeams.map((team, i) => (
