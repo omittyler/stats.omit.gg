@@ -54,16 +54,30 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const totalEarnings = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
 
-  // Cumulative points across the season, chronological order - this is
-  // exactly how standing.points itself is built (sum of every event's
-  // points), just exposed as a running total per event for the trend chart.
+  // Three switchable trend series. Points is cumulative (matches how
+  // standing.points itself is built - sum of every event's points, exposed
+  // as a running total). K/D and Slayer Rating are each event's raw value,
+  // not cumulative - a running sum of a ratio stat wouldn't mean anything -
+  // and only include events that actually have player_event_stats data
+  // (partial coverage, see PROJECT.md §7), so these two series are often
+  // shorter than the full event history.
+  const chronological = [...history].sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''));
+
   let cumulative = 0;
-  const trendData = [...history]
-    .sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''))
-    .map((h) => {
-      cumulative += h.points;
-      return { label: h.eventName, value: cumulative };
-    });
+  const pointsSeries = chronological.map((h) => {
+    cumulative += h.points;
+    return { label: h.eventName, value: cumulative, formatted: cumulative.toLocaleString() };
+  });
+
+  const kdSeries = chronological
+    .map((h) => statsByEvent[`${h.eventName}|${h.region}`]?.overallKd.value)
+    .map((v, i) => (v != null ? { label: chronological[i].eventName, value: v, formatted: v.toFixed(2) } : null))
+    .filter((p): p is { label: string; value: number; formatted: string } => p !== null);
+
+  const slayerSeries = chronological
+    .map((h) => statsByEvent[`${h.eventName}|${h.region}`]?.overallSlayerRating.value)
+    .map((v, i) => (v != null ? { label: chronological[i].eventName, value: v, formatted: v.toFixed(2) } : null))
+    .filter((p): p is { label: string; value: number; formatted: string } => p !== null);
 
   if (!standing) {
     return (
@@ -145,14 +159,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Season Trend</h2>
-        <p className="note">Cumulative CDC points across the season, in event order. Hover a point for details.</p>
-        <TrendChart data={trendData} />
-        {trendData.length > 1 && (
-          <div className="trend-summary">
-            <span>{trendData[0].label}</span>
-            <span>{trendData[trendData.length - 1].label}</span>
-          </div>
-        )}
+        <p className="note">Hover a point for details. K/D and Slayer Rating only cover events with stats data.</p>
+        <TrendChart
+          series={[
+            { key: 'points', label: 'CDC Points', data: pointsSeries },
+            { key: 'kd', label: 'K/D', data: kdSeries },
+            { key: 'slayer', label: 'Slayer Rating', data: slayerSeries },
+          ]}
+        />
       </div>
 
       <div className="card">

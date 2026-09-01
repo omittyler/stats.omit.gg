@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { PlayerStanding } from '@/lib/standings';
+import { flagForOrigin } from '@/lib/countryFlags';
 import SortableTable, { type Column } from './SortableTable';
 import { TeamBadge } from './TeamBadge';
 
@@ -11,9 +12,11 @@ type Row = PlayerStanding & { rank: number };
 export default function PlayersTable({
   rows,
   logos,
+  origins,
 }: {
   rows: Row[];
   logos: Record<string, string>;
+  origins?: Record<string, string>;
 }) {
   const [regionFilter, setRegionFilter] = useState('all');
   const regions = [...new Set(rows.map((r) => r.region || 'Other'))].sort();
@@ -26,7 +29,15 @@ export default function PlayersTable({
       key: 'player',
       label: 'Player',
       sortValue: (r) => r.name,
-      render: (r) => <Link href={`/players/${encodeURIComponent(r.name)}`}>{r.name}</Link>,
+      render: (r) => {
+        const flag = flagForOrigin(origins?.[r.name.toLowerCase()]);
+        return (
+          <Link href={`/players/${encodeURIComponent(r.name)}`}>
+            {flag && <span style={{ marginRight: 6 }}>{flag}</span>}
+            {r.name}
+          </Link>
+        );
+      },
     },
     {
       key: 'currentTeam',

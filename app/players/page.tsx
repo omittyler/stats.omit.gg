@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { computeStandings, getTeamLogos } from '@/lib/standings';
+import { computeStandings, getTeamLogos, getAllPlayerDetails } from '@/lib/standings';
 import PlayersTable from '@/components/PlayersTable';
 
 // See app/standings/page.tsx - same reason: avoid Next.js caching this fetch
@@ -7,9 +7,14 @@ import PlayersTable from '@/components/PlayersTable';
 export const dynamic = 'force-dynamic';
 
 export default async function PlayersPage() {
-  const [{ playerStandings }, logos] = await Promise.all([computeStandings(), getTeamLogos()]);
+  const [{ playerStandings }, logos, playerDetails] = await Promise.all([
+    computeStandings(),
+    getTeamLogos(),
+    getAllPlayerDetails(),
+  ]);
 
   const rows = playerStandings.map((p, i) => ({ ...p, rank: i + 1 }));
+  const origins = Object.fromEntries([...playerDetails].map(([name, d]) => [name, d.origin ?? '']));
 
   return (
     <main className="container">
@@ -23,7 +28,7 @@ export default async function PlayersPage() {
         </p>
       </div>
       <div className="card">
-        <PlayersTable rows={rows} logos={logos} />
+        <PlayersTable rows={rows} logos={logos} origins={origins} />
       </div>
     </main>
   );

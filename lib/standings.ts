@@ -406,29 +406,37 @@ export type PlayerDetails = {
 };
 
 /**
- * Player bio/photo details for one player, or null if they're not in
- * data/incoming/player_details.csv yet. Looked up case-insensitively since a
- * handful of gamertags differ in case from their placings.csv spelling (e.g.
- * "Knox" vs "KnoX") - see PROJECT.md §8j. Fetches the whole (small, ~150-row)
- * table and matches in JS rather than an `ilike` filter, since `ilike`
- * treats `%`/`_` in the search value as wildcards and a gamertag could
- * contain either.
+ * Every player's bio/photo details, keyed by lowercased gamertag for
+ * case-insensitive lookup (a handful of gamertags differ in case from their
+ * placings.csv spelling, e.g. "Knox" vs "KnoX" - see PROJECT.md §8j). The
+ * `players` table is small (~150 rows) so this is fetched in full - shared by
+ * every page that needs to look up more than one player's details (team
+ * rosters, flags on a leaderboard) instead of each doing its own filtered
+ * query.
  */
-export async function getPlayerDetails(playerName: string): Promise<PlayerDetails | null> {
+export async function getAllPlayerDetails(): Promise<Map<string, PlayerDetails>> {
   const { data, error } = await supabase
     .from('players')
     .select('gamertag, full_name, origin, birthday, photo_filename, twitter_url, twitch_url');
   if (error) throw error;
-  const row = (data ?? []).find((p) => p.gamertag.toLowerCase() === playerName.toLowerCase());
-  if (!row) return null;
-  return {
-    fullName: row.full_name,
-    origin: row.origin,
-    birthday: row.birthday,
-    photoFilename: row.photo_filename,
-    twitterUrl: row.twitter_url,
-    twitchUrl: row.twitch_url,
-  };
+  const map = new Map<string, PlayerDetails>();
+  for (const row of data ?? []) {
+    map.set(row.gamertag.toLowerCase(), {
+      fullName: row.full_name,
+      origin: row.origin,
+      birthday: row.birthday,
+      photoFilename: row.photo_filename,
+      twitterUrl: row.twitter_url,
+      twitchUrl: row.twitch_url,
+    });
+  }
+  return map;
+}
+
+/** Single-player convenience wrapper around getAllPlayerDetails() - see there for lookup details. */
+export async function getPlayerDetails(playerName: string): Promise<PlayerDetails | null> {
+  const all = await getAllPlayerDetails();
+  return all.get(playerName.toLowerCase()) ?? null;
 }
 
 /**

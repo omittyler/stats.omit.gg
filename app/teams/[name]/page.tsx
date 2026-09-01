@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { getEnrichedPlacements, computeStandings } from '@/lib/standings';
+import { getEnrichedPlacements, computeStandings, getAllPlayerDetails } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
+import { flagForOrigin } from '@/lib/countryFlags';
 import { TrendChart } from '@/components/TrendChart';
 
 export const dynamic = 'force-dynamic';
@@ -81,16 +82,17 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
 
   const totalPrize = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
+  const playerDetails = await getAllPlayerDetails();
 
   // This org's own points at each of its own results, not the "sum of
   // current roster" headline stat above (those two numbers can genuinely
   // differ when the roster has changed - see the Current Roster note below).
   let cumulative = 0;
-  const trendData = [...history]
+  const pointsSeries = [...history]
     .sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''))
     .map((h) => {
       cumulative += h.points;
-      return { label: h.eventName, value: cumulative };
+      return { label: h.eventName, value: cumulative, formatted: cumulative.toLocaleString() };
     });
 
   return (
@@ -146,25 +148,52 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
           Cumulative CDC points earned by this org&apos;s own results across the season (not the
           current-roster sum above). Hover a point for details.
         </p>
-        <TrendChart data={trendData} />
-        {trendData.length > 1 && (
-          <div className="trend-summary">
-            <span>{trendData[0].label}</span>
-            <span>{trendData[trendData.length - 1].label}</span>
-          </div>
-        )}
+        <TrendChart series={[{ key: 'points', label: 'CDC Points', data: pointsSeries }]} />
       </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Current Roster</h2>
         {currentRoster.length ? (
-          <ul>
-            {currentRoster.map((p) => (
-              <li key={p}>
-                <Link href={`/players/${encodeURIComponent(p)}`}>{p}</Link>
-              </li>
-            ))}
-          </ul>
+          <div className="roster-grid">
+            {currentRoster.map((p) => {
+              const d = playerDetails.get(p.toLowerCase());
+              return (
+                <div key={p} className="roster-card">
+                  <Link href={`/players/${encodeURIComponent(p)}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/players/${d?.photoFilename || 'DefaultPlayer.png'}`}
+                      alt={p}
+                      width={72}
+                      height={72}
+                      className="roster-card-photo"
+                    />
+                    <div className="roster-card-gamertag">{p}</div>
+                  </Link>
+                  {d?.fullName && <div className="roster-card-name">{d.fullName}</div>}
+                  {d?.origin && (
+                    <div className="roster-card-origin">
+                      {flagForOrigin(d.origin)} {d.origin}
+                    </div>
+                  )}
+                  {(d?.twitterUrl || d?.twitchUrl) && (
+                    <div className="roster-card-links">
+                      {d?.twitterUrl && (
+                        <a href={d.twitterUrl} target="_blank" rel="noopener noreferrer">
+                          𝕏
+                        </a>
+                      )}
+                      {d?.twitchUrl && (
+                        <a href={d.twitchUrl} target="_blank" rel="noopener noreferrer">
+                          ▶
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <p className="note">No current roster on record.</p>
         )}

@@ -5,8 +5,9 @@ import {
   type StatCategorySlug,
   type StatLeaderboardEntry,
 } from '@/lib/statLeaderboards';
-import { getRecentEvents } from '@/lib/standings';
+import { getRecentEvents, getAllPlayerDetails } from '@/lib/standings';
 import { formatPlacementOrdinal } from '@/lib/format';
+import { flagForOrigin } from '@/lib/countryFlags';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,25 +16,31 @@ function StatBox({
   title,
   entries,
   formatValue,
+  origins,
 }: {
   slug: StatCategorySlug;
   title: string;
   entries: StatLeaderboardEntry[];
   formatValue: (value: number) => string;
+  origins: Record<string, string>;
 }) {
   return (
     <div className="card stat-box">
       <h3>{title}</h3>
       {entries.length ? (
         <ol>
-          {entries.map((entry) => (
-            <li key={entry.playerName}>
-              <Link href={`/players/${encodeURIComponent(entry.playerName)}`}>
-                {entry.playerName}
-              </Link>
-              <span className="stat-value">{formatValue(entry.value)}</span>
-            </li>
-          ))}
+          {entries.map((entry) => {
+            const flag = flagForOrigin(origins[entry.playerName.toLowerCase()]);
+            return (
+              <li key={entry.playerName}>
+                <Link href={`/players/${encodeURIComponent(entry.playerName)}`}>
+                  {flag && <span style={{ marginRight: 6 }}>{flag}</span>}
+                  {entry.playerName}
+                </Link>
+                <span className="stat-value">{formatValue(entry.value)}</span>
+              </li>
+            );
+          })}
         </ol>
       ) : (
         <p className="note">Not enough data yet.</p>
@@ -48,6 +55,8 @@ function StatBox({
 export default async function HomePage() {
   const results = await getStatLeaderboards(5);
   const recentEvents = await getRecentEvents();
+  const playerDetails = await getAllPlayerDetails();
+  const origins = Object.fromEntries([...playerDetails].map(([name, d]) => [name, d.origin ?? '']));
 
   return (
     <main className="container">
@@ -100,6 +109,7 @@ export default async function HomePage() {
               title={title}
               entries={results[resultKey]}
               formatValue={formatValue}
+              origins={origins}
             />
           )
         )}

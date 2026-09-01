@@ -71,21 +71,55 @@ export const STAT_CATEGORIES = {
     resultKey: 'slayerRating',
     formatValue: (v: number) => v.toFixed(2),
   },
-  damage: { title: 'Damage', resultKey: 'damage', formatValue: (v: number) => v.toLocaleString() },
+  'damage-rating': {
+    title: 'Damage Rating',
+    resultKey: 'damageRating',
+    formatValue: (v: number) => v.toLocaleString(),
+  },
   'hardpoint-kd': {
     title: 'Hardpoint K/D',
     resultKey: 'hpKd',
     formatValue: (v: number) => v.toFixed(2),
+  },
+  'hardpoint-k-per-10': {
+    title: 'Hardpoint K/10M',
+    resultKey: 'hpKPer10',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  'hardpoint-dmg-per-10': {
+    title: 'Hardpoint DMG/10M',
+    resultKey: 'hpDmgPer10',
+    formatValue: (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 }),
   },
   'search-and-destroy-kd': {
     title: 'Search & Destroy K/D',
     resultKey: 'sndKd',
     formatValue: (v: number) => v.toFixed(2),
   },
+  'search-and-destroy-kpr': {
+    title: 'Search & Destroy KPR',
+    resultKey: 'sndKPerR',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  'search-and-destroy-opening-duel-win-pct': {
+    title: 'Search & Destroy Opening Duel Win %',
+    resultKey: 'sndOpeningDuelWinPct',
+    formatValue: (v: number) => `${v.toFixed(0)}%`,
+  },
   'overload-kd': {
     title: 'Overload K/D',
     resultKey: 'ovlKd',
     formatValue: (v: number) => v.toFixed(2),
+  },
+  'overload-k-per-10': {
+    title: 'Overload K/10M',
+    resultKey: 'ovlKPer10',
+    formatValue: (v: number) => v.toFixed(2),
+  },
+  'overload-dmg-per-10': {
+    title: 'Overload DMG/10M',
+    resultKey: 'ovlDmgPer10',
+    formatValue: (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 }),
   },
 } as const;
 
@@ -155,19 +189,29 @@ export async function getStatLeaderboards(limit?: number) {
   const hpKd = topByRatio('hp_k', 'hp_d');
   const sndKd = topByRatio('snd_k', 'snd_d');
   const ovlKd = topByRatio('ovl_k', 'ovl_d');
-  const damage = topByValue('overall_dmg');
-  const slayerRating = cap(
-    rows
-      .filter((r) => isEligible(r) && r.overall_slayer_rating !== null)
-      .map((r) => ({
-        playerName: canonicalize(r.player_name),
-        value: r.overall_slayer_rating as number,
-        qualifyingEvents: r.matches_total ?? 0,
-      }))
-      .sort((a, b) => b.value - a.value)
-  );
+  const damageRating = topByValue('overall_damage_rating');
+  const slayerRating = topByValue('overall_slayer_rating');
+  const hpKPer10 = topByValue('hp_k_per_10');
+  const hpDmgPer10 = topByValue('hp_dmg_per_10');
+  const sndKPerR = topByValue('snd_k_per_r');
+  const sndOpeningDuelWinPct = topByValue('snd_opening_duel_win_pct');
+  const ovlKPer10 = topByValue('ovl_k_per_10');
+  const ovlDmgPer10 = topByValue('ovl_dmg_per_10');
 
-  return { kd, slayerRating, damage, hpKd, sndKd, ovlKd };
+  return {
+    kd,
+    slayerRating,
+    damageRating,
+    hpKd,
+    hpKPer10,
+    hpDmgPer10,
+    sndKd,
+    sndKPerR,
+    sndOpeningDuelWinPct,
+    ovlKd,
+    ovlKPer10,
+    ovlDmgPer10,
+  };
 }
 
 // Same 16 stats ranked in getPlayerEventStatsSummaries (lib/standings.ts),
