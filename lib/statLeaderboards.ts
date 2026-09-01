@@ -31,7 +31,7 @@ function parseFullSeasonFile(filePath: string): StatRow[] {
     STAT_FIELDS.forEach((field, i) => {
       stats[field] = toNumber(cols[i + 2]);
     });
-    return { player_name: cols[0], ...stats };
+    return { player_name: cols[0], ...stats } as StatRow;
   });
 }
 
@@ -318,7 +318,7 @@ export async function getPlayerSeasonStats(playerName: string): Promise<EventSta
   const canonicalNames = buildCanonicalNameMap();
   const rows = FULL_SEASON_FILES.flatMap((file) =>
     parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
-  ).map((r) => ({ ...r, player_name: canonicalNames.get(r.player_name.toLowerCase()) ?? r.player_name }));
+  ).map((r) => ({ ...r, player_name: canonicalNames.get(r.player_name.toLowerCase()) ?? r.player_name } as StatRow));
 
   const target = rows.find((r) => r.player_name === playerName);
   if (!target) return null;
