@@ -13,10 +13,10 @@ export function readCsvRows(path) {
   return parse(raw, { columns: false, skip_empty_lines: true, trim: true });
 }
 
-/** "1,735.15" / "65%" / "" / "-153" -> number | null */
+/** "1,735.15" / "65%" / "" / "-153" / "−153" (U+2212 minus, seen in the EWC bo7_stats export) -> number | null */
 export function toNumber(value) {
   if (value === undefined || value === null) return null;
-  const cleaned = String(value).trim().replace(/,/g, '').replace(/%$/, '');
+  const cleaned = String(value).trim().replace(/,/g, '').replace(/%$/, '').replace(/−/g, '-');
   if (cleaned === '' || cleaned === '#DIV/0!') return null;
   const n = Number(cleaned);
   return Number.isNaN(n) ? null : n;

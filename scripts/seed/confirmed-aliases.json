@@ -51,5 +51,22 @@
   { "file": "BO7 Elite 3 - EU Player Stats.csv", "bo7_stats_name": "D7oomx", "canonical_name": "d7oom", "team_name": "ROC Esports" },
 
   { "file": "BO7 Full Season - NA Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
-  { "file": "BO7 Full Season - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" }
+  { "file": "BO7 Full Season - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+
+  { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "NexT Threat" },
+  { "file": "BO7 Dallas Open - Players Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "NexT Threat" },
+  { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Birmingham Open - Players Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+  { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Atlanta Open - Players Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+  { "file": "BO7 Elite 1 - NA Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "NexT Threat Black" },
+  { "file": "BO7 Elite 1 - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "NexT Threat Black" },
+  { "file": "BO7 Elite 2 - NA Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Elite 2 - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+  { "file": "BO7 Elite 3 - NA Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Elite 3 - NA Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+  { "file": "BO7 Paris Open - Players Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
+  { "file": "BO7 Paris Open - Players Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
+  { "file": "BO7 Champs - Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Project Notorious" },
+  { "file": "BO7 Champs - Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "OMiT Brooklyn" }
 ]

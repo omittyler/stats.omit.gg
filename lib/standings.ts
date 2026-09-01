@@ -38,7 +38,21 @@ export type EnrichedPlacement = {
   players: string[];
 };
 
-export type PlayerStanding = { name: string; points: number; currentTeam: string; region: string };
+export type PlayerStanding = {
+  name: string;
+  points: number;
+  currentTeam: string;
+  region: string;
+  /**
+   * True when `currentTeam` is stale: it's this player's own most recent
+   * event/roster-move, but that team has since played a LATER event without
+   * them (see the `teamLatestEventDate` note in computeStandings). Excluded
+   * from that team's current roster/points rollup, but the player's own page
+   * still shows `currentTeam` as their last known team - it's the best
+   * information on record, just not "current" from the team's side.
+   */
+  rosterStale: boolean;
+};
 export type TeamStanding = { name: string; points: number; players: string[]; region: string };
 
 /**
@@ -150,6 +164,21 @@ function getRosterMoves(): RosterMove[] {
 export async function computeStandings(placements?: EnrichedPlacement[]) {
   const rows = placements ?? (await getEnrichedPlacements());
 
+  // A team's own most recent event date, independent of any one player's
+  // roster - used below to catch a player whose personal last event predates
+  // a LATER event their old team went on to play without them (e.g. OMiT
+  // Brooklyn fielded Wrecks/Standy through Cup 13, then Diamondcon/Gwinn at
+  // the later Champs Finals - Wrecks/Standy's own last appearance is real,
+  // but stale, since their old team has since moved on without them).
+  // Confirmed 2026-09-01 after this exact case was reported.
+  const teamLatestEventDate = new Map<string, string>();
+  for (const row of rows) {
+    const date = row.eventDate ?? '';
+    if (date > (teamLatestEventDate.get(row.teamName) ?? '')) {
+      teamLatestEventDate.set(row.teamName, date);
+    }
+  }
+
   const players = new Map<
     string,
     { total: number; lastDate: string; lastTeam: string; lastRegionDate: string; region: string }
@@ -205,11 +234,18 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
   }
 
   const playerStandings: PlayerStanding[] = [...players.entries()]
-    .map(([name, agg]) => ({ name, points: agg.total, currentTeam: agg.lastTeam, region: agg.region }))
+    .map(([name, agg]) => ({
+      name,
+      points: agg.total,
+      currentTeam: agg.lastTeam,
+      region: agg.region,
+      rosterStale: agg.lastDate < (teamLatestEventDate.get(agg.lastTeam) ?? ''),
+    }))
     .sort((a, b) => b.points - a.points);
 
   const teamTotals = new Map<string, { points: number; players: string[]; regionCounts: Map<string, number> }>();
-  for (const { name, points, currentTeam, region } of playerStandings) {
+  for (const { name, points, currentTeam, region, rosterStale } of playerStandings) {
+    if (rosterStale) continue; // not part of this team's current roster/points - see PlayerStanding.rosterStale
     // CDL runs its own separate points system - a player's Challengers CDC
     // points don't roll into an official CDL team's standing while that's
     // their current team (confirmed 2026-09-01, PROJECT.md §8x). Points stay

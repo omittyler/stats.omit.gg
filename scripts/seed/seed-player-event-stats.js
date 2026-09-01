@@ -39,6 +39,9 @@ const EVENT_FILES = [
   { file: 'BO7 Elite 3 - EU Player Stats.csv', name: '2026 EU Elite Stage 3', region: 'EU' },
   { file: 'BO7 Paris Open - Players Stats.csv', name: '2026 Major 4 - Paris Open', region: null },
   { file: 'BO7 Champs - Player Stats.csv', name: '2026 Champs - Challengers Finals', region: null },
+  // Custom parser: this file's shape doesn't match STAT_FIELDS' column order at
+  // all (reversed Team/Player columns, far fewer stat columns) - see parseEwcStatsFile.
+  { file: 'BO7 Esports World Cup - Player Stats.csv', name: '2026 Esports World Cup', region: null, parser: parseEwcStatsFile },
 ];
 
 function eventKey(name, region) {
@@ -57,6 +60,44 @@ function parseStatsFile(filePath) {
   });
 }
 
+// The EWC export is a different shape from every other bo7_stats file: columns
+// are Team,Player (reversed - everywhere else is Player,Team-code), player
+// names carry two leading U+2060 word-joiner characters (invisible - an
+// artifact of whatever tool exported this sheet), and it only has a handful
+// of columns per mode (no damage/HS%/non-traded-kills/etc. at all - just
+// K, D, K/D, +/-, a per-map rate, and Maps Played, plus Time for Hardpoint,
+// Goals for Overload, and FK - "first kill" - for S&D). Confirmed by reading
+// the raw file directly (data/reference doesn't cover this one). Everything
+// STAT_FIELDS defines that this file has no analog for (matches_total, all
+// the DMG/HS/non-traded fields, slayer/damage rating, the per-mode K/M rate
+// columns) is left null rather than guessed - PlayerEventsTable/StatDetail
+// already handle partial coverage (see PROJECT.md §7).
+const INVISIBLE_CHARS_RE = new RegExp('[\\u2060\\u200B\\uFEFF]', 'g');
+
+const EWC_FIELD_MAP = [
+  null, null, // cols 0-1: Team, Player - handled separately, not a stat
+  'overall_k', 'overall_d', 'overall_kd', 'overall_plusminus', 'maps_total',
+  'snd_k', 'snd_d', 'snd_kd', 'snd_plusminus', null /* K/M */, 'snd_first_bloods', 'snd_maps',
+  'hp_k', 'hp_d', 'hp_kd', 'hp_plusminus', null /* K/M */, 'hp_time', 'hp_maps',
+  'ovl_k', 'ovl_d', 'ovl_kd', 'ovl_plusminus', null /* K/M */, 'ovl_goals', 'ovl_maps',
+];
+
+function parseEwcStatsFile(filePath) {
+  const rows = readCsvRows(filePath);
+  const dataRows = rows.slice(2);
+  return dataRows.map((cols) => {
+    const stats = {};
+    STAT_FIELDS.forEach((field) => {
+      stats[field] = null;
+    });
+    EWC_FIELD_MAP.forEach((field, i) => {
+      if (field) stats[field] = toNumber(cols[i]);
+    });
+    const player_name = (cols[1] || '').replace(INVISIBLE_CHARS_RE, '').trim();
+    return { player_name, team_code: null, stats };
+  });
+}
+
 export async function seedPlayerEventStats() {
   const placingsRows = readCsvObjects('data/incoming/placings.csv');
   const playerTeamIndex = buildPlayerTeamIndex(placingsRows);
@@ -70,7 +111,7 @@ export async function seedPlayerEventStats() {
   const unresolved = [];
   const candidates = []; // exact match missed, but exactly one fuzzy (prefix) candidate found — needs manual confirmation
 
-  for (const { file, name, region } of EVENT_FILES) {
+  for (const { file, name, region, parser } of EVENT_FILES) {
     const key = eventKey(name, region);
     const eventId = eventCache.get(key);
     if (!eventId) {
@@ -78,7 +119,7 @@ export async function seedPlayerEventStats() {
       continue;
     }
 
-    const parsed = parseStatsFile(path.join(STATS_DIR, file));
+    const parsed = (parser || parseStatsFile)(path.join(STATS_DIR, file));
 
     // Pass 1: exact/alias matches only. Also records, per team_code, which real
     // team that code corroborates - a code with zero exact matches (e.g. every

@@ -71,7 +71,14 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   // directly handles both cases at once. previousPlayers stays anchored to
   // this team's real event history, since "previously on this roster" is
   // inherently about events that actually happened.
-  const currentRoster = playerStandings.filter((ps) => ps.currentTeam === teamName).map((ps) => ps.name);
+  // rosterStale excludes a player whose own last event/roster-move predates a
+  // LATER event this team went on to play without them - see PlayerStanding.
+  // rosterStale and the computeStandings note it points to (added 2026-09-01
+  // after OMiT Brooklyn kept showing Wrecks/Standy as current despite Champs'
+  // later roster being Diamondcon/Gwinn instead).
+  const currentRoster = playerStandings
+    .filter((ps) => ps.currentTeam === teamName && !ps.rosterStale)
+    .map((ps) => ps.name);
   const previousPlayers = [...new Set(history.flatMap((h) => h.players))].filter(
     (p) => !currentRoster.includes(p)
   );
