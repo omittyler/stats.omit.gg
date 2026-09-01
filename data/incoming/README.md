@@ -52,6 +52,18 @@ Updated 2026-08-26 to match the resolved points-formula and Elite stage/region d
 
 **Disambiguate generic/placeholder team names — never write them verbatim.** Labels like "Orgless" (meaning "no org/sponsor," not a brand name) get reused across unrelated squads that each happen to lack a sponsor at the time. Confirmed case: "Orgless" in EU Elite Stage 2 was one roster; "Orgless" in EU Elite Stage 4 was a totally different one. Writing `team_name = Orgless` for both would silently merge two unrelated teams' points/placements in aggregated standings. Suffix every occurrence with region+stage, e.g. `Orgless (EU S4)` — including the first time you see it, since a later collision may not be caught if the earlier row wasn't already disambiguated.
 
+## `roster_moves.csv` — off-season team changes (added 2026-09-01)
+For team changes that happen with **no event to anchor them to** (off-season signings/releases while waiting on the next game/season) — `placings.csv` can't represent these since every row there is a real placement result. This file is read directly (not seeded into Supabase) and only affects each player's *current team* — it never awards points or shows up in a team's event history/trend chart, since nothing was actually played.
+
+| column | notes |
+|---|---|
+| `date` | `YYYY-MM-DD`, so it sorts correctly against real `event_date` values — this is what "more recent than their last event" is compared against |
+| `player` | must match their existing canonical spelling in `placings.csv` (or `player_details.csv`'s `gamertag` for a brand new signing with no event history yet) |
+| `new_team` | must match a `Team Name` in `teams.csv` to get a logo; an unlisted name still works, just renders with `Default.png` |
+| `note` | optional, free text (e.g. "Released", "Signed as free agent", a source link) — not currently shown anywhere on the site, just a paper trail for whoever edits this file |
+
+A player's most recent team is always whichever is later by date: their last real event, or their last row here. Only add a row when a move is confirmed — this is hand-maintained, nothing cross-checks it against outside sources.
+
 ## `player_map_stats.csv` / `player_weapon_stats.csv` (future — full player statistics)
 Not part of the wiki pull — this is the historical 2026-season player statistics the user will drop in separately. Recommended shape below is a **long/tidy layout** (one row per player per map, not one wide row per match with every player's columns side by side) — much easier to import reliably than a pivoted spreadsheet. If the actual source data isn't naturally in this shape, export what you've got as-is rather than forcing it; the import gets adapted to match reality, same as every other file here.
 

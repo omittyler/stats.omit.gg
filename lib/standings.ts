@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { parse } from 'csv-parse/sync';
 import { supabase } from './supabase';
 import { EXCLUDED_TEAM_NAMES } from './excludedTeams';
 
@@ -105,6 +107,31 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
     });
 }
 
+export type RosterMove = { date: string; player: string; newTeam: string; note?: string };
+
+/**
+ * Off-season (or otherwise event-less) team changes, from a small manually-
+ * maintained log - NOT a Supabase table, since it isn't tied to any event
+ * and there's nothing to join it against; read straight off disk like the
+ * bo7_stats Full Season CSVs in lib/statLeaderboards.ts. Returns [] if the
+ * file doesn't exist or is empty (e.g. no moves logged yet) rather than
+ * throwing - this is optional, additive data. See PROJECT.md §8r and
+ * data/incoming/README.md for the format and why a real event date can't
+ * substitute for this.
+ */
+function getRosterMoves(): RosterMove[] {
+  let raw: string;
+  try {
+    raw = readFileSync('data/incoming/roster_moves.csv', 'utf8');
+  } catch {
+    return [];
+  }
+  const rows: Record<string, string>[] = parse(raw, { columns: true, skip_empty_lines: true, trim: true });
+  return rows
+    .filter((r) => r.date && r.player && r.new_team)
+    .map((r) => ({ date: r.date, player: r.player, newTeam: r.new_team, note: r.note || undefined }));
+}
+
 /**
  * CDC points are earned by, and travel with, the PLAYER - not the team
  * (confirmed 2026-08-30). A team's standing is the sum of its CURRENT
@@ -154,6 +181,25 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
           region: row.region || '',
         });
       }
+    }
+  }
+
+  // Off-season/event-less roster moves override "current team" if they're
+  // more recent than the player's last real event - same "most recent by
+  // date" rule as events themselves, just from a different source. Doesn't
+  // touch `region` (a move has no Cup/Elite region of its own) or `total`
+  // (no points are earned by being signed). A move for a player with no
+  // prior event at all (a brand new signing) still creates an entry, so they
+  // show up on their new team's roster immediately.
+  for (const move of getRosterMoves()) {
+    const existing = players.get(move.player);
+    if (existing) {
+      if (move.date > existing.lastDate) {
+        existing.lastDate = move.date;
+        existing.lastTeam = move.newTeam;
+      }
+    } else {
+      players.set(move.player, { total: 0, lastDate: move.date, lastTeam: move.newTeam, lastRegionDate: '', region: '' });
     }
   }
 

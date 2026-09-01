@@ -59,26 +59,21 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
     .eq('name', teamName)
     .maybeSingle();
 
-  // "Current roster" starts from THIS team's own most recent event's roster -
-  // not just "whoever's own most-recent event happened to be with this team"
-  // (that grouping, used for the team's points total, can include a player who
-  // hasn't actually played the team's latest event if their own last appearance
-  // predates it - confirmed 2026-08-30). But that alone isn't enough either: if
-  // this org simply hasn't submitted a roster in a while, its "latest" roster
-  // can be stale - a player on it may have since moved to a genuinely newer
-  // team elsewhere. So each candidate is cross-checked against their OWN
-  // individually-computed current team (playerStandings, which already
-  // reflects their truly most recent appearance anywhere); anyone who's moved
-  // on drops into Previous Players instead. Confirmed 2026-08-31. An org whose
-  // entire last roster has since moved elsewhere correctly ends up with no
-  // current roster at all.
-  const latestRosterCandidates = history[0]?.players ?? [];
-  const currentRoster = latestRosterCandidates.filter(
-    (p) => playerStandings.find((ps) => ps.name === p)?.currentTeam === teamName
+  // "Current roster" is every player whose OWN individually-computed current
+  // team (playerStandings - most recent event OR roster move, see §8r) is
+  // this team, full stop - not anchored to this team's own last event
+  // roster. That anchor used to be necessary to catch stale rosters (an org
+  // that stopped submitting while its players moved on), but it also had a
+  // blind spot: a player signed here purely via an off-season roster move
+  // (no shared event yet) would never appear, since they were never on any
+  // roster this team's own history recorded. Filtering playerStandings
+  // directly handles both cases at once. previousPlayers stays anchored to
+  // this team's real event history, since "previously on this roster" is
+  // inherently about events that actually happened.
+  const currentRoster = playerStandings.filter((ps) => ps.currentTeam === teamName).map((ps) => ps.name);
+  const previousPlayers = [...new Set(history.flatMap((h) => h.players))].filter(
+    (p) => !currentRoster.includes(p)
   );
-  const previousPlayers = [
-    ...new Set([...history.slice(1).flatMap((h) => h.players), ...latestRosterCandidates]),
-  ].filter((p) => !currentRoster.includes(p));
 
   const totalPrize = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
