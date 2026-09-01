@@ -32,6 +32,7 @@ export async function seedPlayers() {
       photo_filename: r.photo || null,
       twitter_url: r.twitter || null,
       twitch_url: r.twitch || null,
+      cdl_player: (r['CDL Player'] || '').trim().toLowerCase() === 'yes',
     };
   });
 

@@ -449,6 +449,7 @@ export type PlayerDetails = {
   photoFilename: string | null;
   twitterUrl: string | null;
   twitchUrl: string | null;
+  cdlPlayer: boolean;
 };
 
 /**
@@ -463,7 +464,7 @@ export type PlayerDetails = {
 export async function getAllPlayerDetails(): Promise<Map<string, PlayerDetails>> {
   const { data, error } = await supabase
     .from('players')
-    .select('gamertag, full_name, origin, birthday, photo_filename, twitter_url, twitch_url');
+    .select('gamertag, full_name, origin, birthday, photo_filename, twitter_url, twitch_url, cdl_player');
   if (error) throw error;
   const map = new Map<string, PlayerDetails>();
   for (const row of data ?? []) {
@@ -474,6 +475,7 @@ export async function getAllPlayerDetails(): Promise<Map<string, PlayerDetails>>
       photoFilename: row.photo_filename,
       twitterUrl: row.twitter_url,
       twitchUrl: row.twitch_url,
+      cdlPlayer: row.cdl_player ?? false,
     });
   }
   return map;

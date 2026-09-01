@@ -20,7 +20,8 @@ create table if not exists players (
   birthday date,
   photo_filename text,
   twitter_url text,
-  twitch_url text
+  twitch_url text,
+  cdl_player boolean not null default false -- known Call of Duty League pro, per player_details.csv's "CDL Player" column (added 2026-09-01, PROJECT.md §8s)
 );
 
 create table if not exists events (
