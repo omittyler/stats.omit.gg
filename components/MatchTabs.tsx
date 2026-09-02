@@ -13,32 +13,42 @@ export type OverviewPlayerRow = {
   damage: number;
 };
 
+function kdRatio(k: number, d: number) {
+  return d > 0 ? k / d : k;
+}
+
 function kd(k: number, d: number) {
-  return d > 0 ? (k / d).toFixed(2) : k.toFixed(2);
+  return kdRatio(k, d).toFixed(2);
+}
+
+function plusMinusValue(k: number, d: number) {
+  return k - d;
 }
 
 function plusMinus(k: number, d: number) {
-  const v = k - d;
+  const v = plusMinusValue(k, d);
   return v > 0 ? `+${v}` : `${v}`;
+}
+
+function statClass(value: number, goodThreshold: number) {
+  return value >= goodThreshold ? 'stat-good' : 'stat-bad';
 }
 
 // Mode-specific extra columns shown only on a per-map tab, never Overview -
 // mixing e.g. Hardpoint hill time with a Search and Destroy map's plants
 // wouldn't mean anything summed together. See PROJECT.md §8ag.
 function modeColumns(mode: string) {
-  if (mode === 'Hardpoint') return ['Hill Time', 'Obj K', 'Contest'] as const;
-  if (mode === 'Search and Destroy') return ['Plants', 'Defuses', 'First Bloods', 'First Deaths'] as const;
+  if (mode === 'Hardpoint') return ['Hill Time', 'Obj K'] as const;
+  if (mode === 'Search and Destroy') return ['Plants', 'Defuses', 'First Bloods'] as const;
   return ['Goals']; // Overload
 }
 
 function modeValue(mode: string, col: string, p: MatchMapDetail['players'][number]) {
   if (col === 'Hill Time') return p.hillTime;
   if (col === 'Obj K') return p.objectiveKills;
-  if (col === 'Contest') return p.contest;
   if (col === 'Plants') return p.plants;
   if (col === 'Defuses') return p.defuses;
   if (col === 'First Bloods') return p.firstBloods;
-  if (col === 'First Deaths') return p.firstDeaths;
   if (col === 'Goals') return p.goals;
   return null;
 }
@@ -73,8 +83,18 @@ function TeamRows<T extends { playerName: string; teamName: string; k: number | 
               </td>
               <td style={{ textAlign: 'right' }}>{p.k ?? '—'}</td>
               <td style={{ textAlign: 'right' }}>{p.d ?? '—'}</td>
-              <td style={{ textAlign: 'right' }}>{p.k != null && p.d != null ? kd(p.k, p.d) : '—'}</td>
-              <td style={{ textAlign: 'right' }}>{p.k != null && p.d != null ? plusMinus(p.k, p.d) : '—'}</td>
+              <td
+                style={{ textAlign: 'right' }}
+                className={p.k != null && p.d != null ? statClass(kdRatio(p.k, p.d), 1) : undefined}
+              >
+                {p.k != null && p.d != null ? kd(p.k, p.d) : '—'}
+              </td>
+              <td
+                style={{ textAlign: 'right' }}
+                className={p.k != null && p.d != null ? statClass(plusMinusValue(p.k, p.d), 0) : undefined}
+              >
+                {p.k != null && p.d != null ? plusMinus(p.k, p.d) : '—'}
+              </td>
               {extraColumns &&
                 extraColumns(p).map((v, i) => (
                   <td key={i} style={{ textAlign: 'right' }}>
@@ -105,7 +125,7 @@ export default function MatchTabs({
 
   return (
     <div>
-      <div className="table-filter-row">
+      <div className="table-filter-row match-tabs-row">
         <button className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>
           Overview
         </button>
@@ -116,7 +136,17 @@ export default function MatchTabs({
         ))}
       </div>
 
-      <table>
+      <table className="match-stats-table">
+        <colgroup>
+          <col className="match-stats-col-player" />
+          <col className="match-stats-col-stat" />
+          <col className="match-stats-col-stat" />
+          <col className="match-stats-col-stat" />
+          <col className="match-stats-col-stat" />
+          {(activeMap ? modeColumns(activeMap.mode) : ['Damage']).map((c) => (
+            <col key={c} className="match-stats-col-stat" />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             <th>Player</th>

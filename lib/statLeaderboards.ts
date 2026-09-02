@@ -7,6 +7,13 @@ import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
 
 export type StatLeaderboardEntry = { playerName: string; value: number; qualifyingEvents: number };
 
+// Eligibility bar for every leaderboard category, confirmed by user
+// 2026-08-31 (supersedes an earlier, unconfirmed 2-match placeholder that
+// only applied to the ratio-based categories, and didn't apply to Damage
+// at all). Also used by /players (PROJECT.md) to hide players below the bar
+// from the player list entirely, not just from ranked leaderboards.
+export const MIN_MATCHES = 15;
+
 const FULL_SEASON_FILES = [
   'BO7 Full Season - NA Player Stats.csv',
   'BO7 Full Season - EU Player Stats.csv',
@@ -175,12 +182,6 @@ export async function getStatLeaderboards(limit?: number) {
   const currentCdlPlayers = new Set(
     playerStandings.filter((p) => OFFICIAL_CDL_TEAMS.has(p.currentTeam)).map((p) => p.name.toLowerCase())
   );
-
-  // Eligibility bar for every leaderboard category, confirmed by user
-  // 2026-08-31 (supersedes an earlier, unconfirmed 2-match placeholder that
-  // only applied to the ratio-based categories, and didn't apply to Damage
-  // at all).
-  const MIN_MATCHES = 15;
 
   function isEligible(r: StatRow): boolean {
     if ((r.matches_total ?? 0) < MIN_MATCHES) return false;

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getEnrichedPlacements, computeStandings, getAllPlayerDetails, getTeamLogos } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
-import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
+import { formatPlacementOrdinal, formatUsd, findBestFinish, formatEventNameForEventsList } from '@/lib/format';
 import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
@@ -246,7 +246,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
           <tbody>
             {history.map((h, i) => (
               <tr key={i}>
-                <td>{h.eventName}</td>
+                <td>{formatEventNameForEventsList(h.eventName)}</td>
                 <td>{formatPlacement(h.placementMin, h.placementMax)}</td>
                 <td>{formatPrize(h.prizeUsd)}</td>
               </tr>
@@ -270,11 +270,15 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
                   eventName
                 )}
               </h3>
-              <table>
+              <table className="team-matches-table">
+                <colgroup>
+                  <col className="team-matches-col-opponent" />
+                  <col />
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Opponent</th>
-                    <th>Result</th>
+                    <th style={{ textAlign: 'right' }}>Result</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,7 +291,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
                           {m.opponent}
                         </Link>
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'right' }}>
                         <Link href={`/matches/${encodeURIComponent(m.seriesLabel)}`} className={m.mapsWon > m.mapsLost ? 'match-result-win' : 'match-result-loss'}>
                           {m.mapsWon > m.mapsLost ? 'W' : 'L'} {m.mapsWon} - {m.mapsLost}
                         </Link>

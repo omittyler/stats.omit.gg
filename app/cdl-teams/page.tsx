@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { computeStandings, getTeamLogos, getAllPlayerDetails } from '@/lib/standings';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
 import CdlTeamsList, { type CdlTeamEntry } from '@/components/CdlTeamsList';
@@ -43,12 +42,6 @@ export default async function CdlTeamsPage() {
     <main className="container">
       <div className="page-hero">
         <h1>CDL Teams</h1>
-        <p className="note">
-          The 12 official Call of Duty League franchises. Click a team to see which Challengers
-          players are currently on their roster. CDL runs its own separate points system, so this
-          roster is informational only - see <Link href="/standings">Standings</Link> for
-          Challengers-only team points.
-        </p>
       </div>
       <CdlTeamsList teams={teams} />
     </main>

@@ -7,9 +7,9 @@ import {
   getPlayerDetails,
 } from '@/lib/standings';
 import { getPlayerSeasonStats } from '@/lib/statLeaderboards';
+import { getPlayerMatches } from '@/lib/matches';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
-import PlayerEventsTable from '@/components/PlayerEventsTable';
-import { StatDetail } from '@/components/StatDetail';
+import PlayerStatsEventsTabs from '@/components/PlayerStatsEventsTabs';
 import { TeamBadge } from '@/components/TeamBadge';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
@@ -45,6 +45,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
   const seasonStats = await getPlayerSeasonStats(playerName);
   const logos = await getTeamLogos();
   const details = await getPlayerDetails(playerName);
+  const recentMatches = await getPlayerMatches(playerName, 10);
 
   // Player page shows the full team prize for each event the player was on,
   // not their 25% split share - confirmed by user 2026-08-31, specifically
@@ -178,21 +179,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
       </div>
 
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Season Stats</h2>
-        <p className="note">
-          Ranked against every other player&apos;s Black Ops 7 (BO7) full-season totals.
-        </p>
-        {seasonStats ? (
-          <StatDetail stats={seasonStats} />
-        ) : (
-          <p className="note">Currently no player statistics available.</p>
-        )}
-      </div>
-
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Events</h2>
-        <p className="note">Click an event to see this player&apos;s stats from it, if available.</p>
-        <PlayerEventsTable history={history} statsByEvent={statsByEvent} logos={logos} />
+        <PlayerStatsEventsTabs
+          seasonStats={seasonStats}
+          history={history}
+          statsByEvent={statsByEvent}
+          logos={logos}
+          recentMatches={recentMatches}
+        />
       </div>
     </main>
   );

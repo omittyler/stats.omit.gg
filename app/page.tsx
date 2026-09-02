@@ -11,6 +11,13 @@ import { FlagIcon } from '@/components/FlagIcon';
 
 export const dynamic = 'force-dynamic';
 
+// Home-page-only shorthand - the full leaderboard page (app/leaderboards/[category]/page.tsx)
+// shares the same STAT_CATEGORIES.title and keeps the full "Search & Destroy" name there,
+// so this abbreviates just for the compact Top 5 card heading rather than changing the shared title.
+function homeCardTitle(title: string) {
+  return title.replace('Search & Destroy', 'S&D');
+}
+
 function StatBox({
   slug,
   title,
@@ -128,7 +135,7 @@ export default async function HomePage() {
             <StatBox
               key={slug}
               slug={slug}
-              title={title}
+              title={homeCardTitle(title)}
               entries={results[resultKey]}
               formatValue={formatValue}
               origins={origins}

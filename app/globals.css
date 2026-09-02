@@ -74,6 +74,99 @@ a:hover {
   color: var(--accent);
 }
 
+/* Sitewide recent-matches banner (app/layout.tsx, every page) */
+.recent-matches-banner {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+}
+
+.recent-matches-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 20px 4px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.recent-match-card {
+  flex: 0 0 auto;
+  width: 250px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.recent-match-card:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.recent-match-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recent-match-event-logo {
+  height: 16px;
+  width: auto;
+  max-width: 100px;
+  object-fit: contain;
+}
+
+.recent-match-event-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 175px;
+}
+
+.recent-match-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.recent-match-team img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.recent-match-team-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.recent-match-team-score {
+  font-weight: 700;
+}
+
+.recent-match-team-win {
+  font-weight: 700;
+}
+
+.recent-match-team-loss {
+  opacity: 0.55;
+}
+
 .site-header .container {
   display: flex;
   align-items: center;
@@ -228,11 +321,20 @@ a:hover {
   font-size: 0.85rem;
 }
 
-.site-header .brand {
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--text);
-  font-size: 1.1rem;
+.site-omit-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-omit-logo img {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  /* The source asset (public/teams/OMiT.png) is the team-branding blue
+     colorway - a single flat color on a transparent background, so
+     brightness(0) cleanly recolors it to black for the site nav without
+     any white fill/anti-aliasing artifacts. */
+  filter: brightness(0);
 }
 
 .site-header nav.site-nav {
@@ -242,8 +344,10 @@ a:hover {
 
 .site-nav a {
   color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
   transition: color 0.15s ease, border-color 0.15s ease;
@@ -944,6 +1048,10 @@ th.sortable:hover {
   flex-wrap: wrap;
 }
 
+.match-tabs-row {
+  justify-content: center;
+}
+
 .table-filter-row button {
   padding: 6px 14px;
   border-radius: 999px;
@@ -987,6 +1095,19 @@ th.sortable:hover {
   margin-bottom: 8px;
 }
 
+/* Fixed Opponent column width so the Result column lands at the same x
+   position in every event's table - each event group renders its own
+   separate <table>, so without this the Opponent column (and therefore
+   Result) auto-sizes independently per event based on that event's longest
+   opponent name, leaving Result misaligned from one event to the next. */
+.team-matches-table {
+  table-layout: fixed;
+}
+
+.team-matches-col-opponent {
+  width: 260px;
+}
+
 .match-event-group-title {
   display: flex;
   align-items: center;
@@ -997,9 +1118,8 @@ th.sortable:hover {
    across both. Falls back to plain text where no logo exists (only the 4
    Majors have one - see lib/matches.ts getEventLogo). */
 .event-logo {
-  height: 32px;
-  width: auto;
-  max-width: 220px;
+  width: 150px;
+  height: auto;
   object-fit: contain;
 }
 
@@ -1041,6 +1161,24 @@ th.sortable:hover {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  /* Fixed, equal width on both sides so the score in the middle sits at
+     true center regardless of how long either team's name is - without
+     this, justify-content: center on .match-header centers the group as a
+     whole, but an asymmetric team1/team2 width still visibly pushes the
+     score off-center. */
+  width: 220px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .match-header-team {
+    /* The fixed 220px width above shrinks the whole row (including the
+       score) to fit a narrow viewport, wrapping the score itself onto
+       multiple lines - fall back to auto-width here and accept a slightly
+       less perfectly centered score in exchange for a readable layout. */
+    width: auto;
+    flex-shrink: 1;
+  }
 }
 
 .match-header-team img {
@@ -1055,6 +1193,8 @@ th.sortable:hover {
 .match-header-score {
   font-size: 2rem;
   font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .match-map-chips {
@@ -1073,7 +1213,7 @@ th.sortable:hover {
   padding: 10px 12px;
   text-align: center;
   flex: 1 1 0;
-  min-width: 120px;
+  min-width: 145px;
 }
 
 .match-map-chip-thumb {
@@ -1089,16 +1229,38 @@ th.sortable:hover {
   border: 1px dashed var(--border);
 }
 
+.match-map-chip-mode {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
 .match-map-chip-name {
   font-weight: 700;
   margin: 2px 0 8px;
 }
 
 .match-map-chip-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 4px 5px;
   font-weight: 700;
   border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.match-map-chip-score img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.match-map-chip-logo-lost {
+  opacity: 0.35;
 }
 
 .match-map-chip-team1 {
@@ -1109,6 +1271,32 @@ th.sortable:hover {
 .match-map-chip-team2 {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* Fixed layout so the shared columns (Player/Kills/Deaths/K-D/+-) land at the
+   same pixel width on every tab - without this, the browser auto-sizes each
+   tab's table independently and the columns visibly shift when switching
+   between maps with a different number/width of mode-specific columns. */
+.match-stats-table {
+  table-layout: fixed;
+  width: auto;
+  margin: 0 auto;
+}
+
+.match-stats-col-player {
+  width: 300px;
+}
+
+.match-stats-col-stat {
+  width: 105px;
+}
+
+.stat-good {
+  color: #16a34a;
+}
+
+.stat-bad {
+  color: #dc2626;
 }
 
 .match-team-divider td {

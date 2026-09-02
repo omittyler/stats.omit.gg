@@ -8,16 +8,34 @@ export function isLanEvent(eventType: string): boolean {
   return LAN_EVENT_TYPES.has(eventType);
 }
 
-// Event logos supplied 2026-08-26 (public/events/) only ever covered the 4
-// Majors - no Cup/Elite/Champs logos exist. getEventLogo returns null for
-// anything else so callers can fall back to the plain event-name text,
-// same "don't fabricate a missing asset" pattern as team/player fallbacks.
+// Event logos supplied 2026-08-26 (public/events/) originally only covered
+// the 4 Majors; a Champs logo landed 2026-09-02 (2026Champs.png), followed
+// same day by logos for every Cup and Elite stage. getEventLogo returns null
+// for anything not in this map so callers fall back to the plain event-name
+// text, same "don't fabricate a missing asset" pattern as team/player
+// fallbacks - e.g. the supplied Cup14/EliteStage5 files have no matching
+// event in the DB (only Cup 1-13 and Elite Stage 1-4 exist) and are simply
+// unused, not force-mapped to something.
 const EVENT_LOGOS: Record<string, string> = {
   '2026 Major 1 - Dallas Open': '2026DallasMajor1.png',
   '2026 Major 2 - Birmingham Open': '2026BirminghamMajor2.png',
   '2026 Major 3 - Atlanta Open': '2026AtlantaMajor3.png',
   '2026 Major 4 - Paris Open': '2026ParisMajor4.png',
+  '2026 Champs - Challengers Finals': '2026Champs.png',
 };
+
+for (let cup = 1; cup <= 13; cup++) {
+  EVENT_LOGOS[`2026 Cup ${cup}`] = `Cup${cup}.png`;
+}
+
+// Elite embeds region in the event name itself (unlike Cup, which stays one
+// name across regions with a separate region column - see
+// scripts/seed/lib/matchSeriesRanges.js) - both region rows for a given
+// stage share the same stage logo, there's no separate NA/EU artwork.
+for (let stage = 1; stage <= 4; stage++) {
+  EVENT_LOGOS[`2026 NA Elite Stage ${stage}`] = `EliteStage${stage}.png`;
+  EVENT_LOGOS[`2026 EU Elite Stage ${stage}`] = `EliteStage${stage}.png`;
+}
 
 export function getEventLogo(eventName: string): string | null {
   return EVENT_LOGOS[eventName] ?? null;
@@ -43,6 +61,53 @@ const MAP_THUMBNAILS = new Set([
 export function getMapThumbnail(mapName: string): string | null {
   const key = mapName.toLowerCase();
   return MAP_THUMBNAILS.has(key) ? `${key}.webp` : null;
+}
+
+export type RecentMatch = {
+  seriesLabel: string;
+  eventName: string;
+  eventDate: string | null;
+  team1Name: string;
+  team2Name: string;
+  team1Score: number;
+  team2Score: number;
+};
+
+type RecentMatchRow = {
+  series_label: string;
+  team1_name: string;
+  team2_name: string;
+  events: { name: string; event_date: string | null } | null;
+  match_maps: { team1_score: number; team2_score: number }[];
+};
+
+/**
+ * Most recent matches sitewide, for the banner shown on every page. This is
+ * fixed historical season data, not a live feed, so "most recent" means
+ * latest event (by event_date) then highest series number within that event
+ * - series labels are zero-padded (e.g. "SR001"/"SR573") so a plain
+ * descending text sort on series_label already matches numeric order.
+ */
+export async function getRecentMatches(limit: number): Promise<RecentMatch[]> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('series_label, team1_name, team2_name, events(name, event_date), match_maps(team1_score, team2_score)')
+    .order('event_date', { referencedTable: 'events', ascending: false })
+    .order('series_label', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as RecentMatchRow[];
+
+  return rows.map((m) => ({
+    seriesLabel: m.series_label,
+    eventName: m.events?.name ?? '',
+    eventDate: m.events?.event_date ?? null,
+    team1Name: m.team1_name,
+    team2Name: m.team2_name,
+    team1Score: m.match_maps.filter((mm) => mm.team1_score > mm.team2_score).length,
+    team2Score: m.match_maps.filter((mm) => mm.team2_score > mm.team1_score).length,
+  }));
 }
 
 export type TeamMatchSummary = {
@@ -98,6 +163,78 @@ export async function getTeamMatches(teamName: string): Promise<TeamMatchSummary
       };
     })
     .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? '') || b.seriesLabel.localeCompare(a.seriesLabel));
+}
+
+type PlayerMatchMapRow = {
+  team_name: string;
+  match_maps: {
+    match_id: number;
+    team1_score: number;
+    team2_score: number;
+    matches: {
+      series_label: string;
+      team1_name: string;
+      team2_name: string;
+      events: { name: string; event_date: string | null } | null;
+    } | null;
+  } | null;
+};
+
+/**
+ * A single player's most recent matches, for the "Latest Matches" tab on
+ * their player page (PROJECT.md §9 - deliberately not built with the rest of
+ * the Match page since matches are a team-vs-team concept; built now on
+ * request). Driven from match_map_player_stats rather than `matches` (unlike
+ * getTeamMatches above) since that's the only table that knows which
+ * specific matches THIS player appears in - one row per map they played, so
+ * grouping those by match_id also gives an accurate per-series maps-won
+ * count without a second query. Same newest-event-then-highest-series
+ * ordering convention as getRecentMatches.
+ */
+export async function getPlayerMatches(playerName: string, limit: number): Promise<TeamMatchSummary[]> {
+  const { data, error } = await supabase
+    .from('match_map_player_stats')
+    .select(
+      'team_name, match_maps(match_id, team1_score, team2_score, matches(series_label, team1_name, team2_name, events(name, event_date)))'
+    )
+    .eq('player_name', playerName);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as PlayerMatchMapRow[];
+
+  const byMatch = new Map<
+    number,
+    { seriesLabel: string; eventName: string; eventDate: string | null; opponent: string; mapsWon: number; mapsLost: number }
+  >();
+
+  for (const row of rows) {
+    const mm = row.match_maps;
+    const match = mm?.matches;
+    if (!mm || !match) continue;
+
+    const isTeam1 = row.team_name === match.team1_name;
+    const won = isTeam1 ? mm.team1_score > mm.team2_score : mm.team2_score > mm.team1_score;
+    const lost = isTeam1 ? mm.team2_score > mm.team1_score : mm.team1_score > mm.team2_score;
+
+    const existing = byMatch.get(mm.match_id);
+    if (existing) {
+      existing.mapsWon += won ? 1 : 0;
+      existing.mapsLost += lost ? 1 : 0;
+    } else {
+      byMatch.set(mm.match_id, {
+        seriesLabel: match.series_label,
+        eventName: match.events?.name ?? '',
+        eventDate: match.events?.event_date ?? null,
+        opponent: isTeam1 ? match.team2_name : match.team1_name,
+        mapsWon: won ? 1 : 0,
+        mapsLost: lost ? 1 : 0,
+      });
+    }
+  }
+
+  return [...byMatch.values()]
+    .sort((a, b) => (b.eventDate ?? '').localeCompare(a.eventDate ?? '') || b.seriesLabel.localeCompare(a.seriesLabel))
+    .slice(0, limit);
 }
 
 export type MatchMapPlayerStat = {

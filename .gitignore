@@ -4,6 +4,7 @@ node_modules/
 # next.js build output
 .next/
 out/
+tsconfig.tsbuildinfo
 
 # env files — never commit secrets (Supabase keys, admin auth, etc.)
 .env

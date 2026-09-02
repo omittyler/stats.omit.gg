@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getMatchDetail, isLanEvent, getEventLogo, getMapThumbnail } from '@/lib/matches';
+import { getMatchDetail, getEventLogo, getMapThumbnail } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
 import MatchTabs, { type OverviewPlayerRow } from '@/components/MatchTabs';
 
@@ -18,7 +18,7 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
 
   if (!match) {
     return (
-      <main className="container">
+      <main className="container container-wide">
         <p>Match &ldquo;{series}&rdquo; not found.</p>
         <Link href="/">&larr; Back home</Link>
       </main>
@@ -57,7 +57,7 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
   }
 
   return (
-    <main className="container">
+    <main className="container container-wide">
       <Link className="back-link" href={`/teams/${encodeURIComponent(match.team1Name)}`}>
         &larr; Back to {match.team1Name}
       </Link>
@@ -70,7 +70,6 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
           ) : (
             <span>{match.eventName}</span>
           )}
-          <span>· {isLanEvent(match.eventType) ? 'LAN' : 'Online'} Match</span>
         </div>
         <div className="match-header">
           <div className="match-header-team">
@@ -101,10 +100,22 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
               ) : (
                 <div className="match-map-chip-thumb match-map-chip-thumb-empty" />
               )}
-              <div className="note">{m.mode}</div>
+              <div className="match-map-chip-mode">{m.mode}</div>
               <div className="match-map-chip-name">{m.mapName}</div>
               <div className={`match-map-chip-score ${team1Won ? 'match-map-chip-team1' : 'match-map-chip-team2'}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={team1Won ? '' : 'match-map-chip-logo-lost'}
+                  src={`/teams/${logos[match.team1Name] ?? 'Default.png'}`}
+                  alt=""
+                />
                 {m.team1Score} - {m.team2Score}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={team1Won ? 'match-map-chip-logo-lost' : ''}
+                  src={`/teams/${logos[match.team2Name] ?? 'Default.png'}`}
+                  alt=""
+                />
               </div>
             </div>
           );

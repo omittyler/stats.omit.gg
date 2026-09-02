@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import type { EventStatsSummary } from '@/lib/standings';
+import { formatEventNameForEventsList } from '@/lib/format';
 import { StatDetail } from './StatDetail';
 import { TeamBadge } from './TeamBadge';
 
@@ -47,7 +48,7 @@ export default function PlayerEventsTable({
           return (
             <Fragment key={i}>
               <tr onClick={() => setExpanded(isOpen ? null : i)} style={{ cursor: 'pointer' }}>
-                <td>{h.eventName}</td>
+                <td>{formatEventNameForEventsList(h.eventName)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <TeamBadge name={h.teamName} logoFilename={logos[h.teamName]} />
                 </td>

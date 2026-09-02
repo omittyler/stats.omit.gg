@@ -1,8 +1,9 @@
-import Link from 'next/link';
 import { Inter } from 'next/font/google';
-import { getSearchIndex } from '@/lib/standings';
+import { getSearchIndex, getTeamLogos } from '@/lib/standings';
+import { getRecentMatches } from '@/lib/matches';
 import SiteSearch from '@/components/SiteSearch';
 import SiteNav from '@/components/SiteNav';
+import RecentMatchesBanner from '@/components/RecentMatchesBanner';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
@@ -15,19 +16,22 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { teams, players } = await getSearchIndex();
+  const [recentMatches, teamLogos] = await Promise.all([getRecentMatches(12), getTeamLogos()]);
 
   return (
     <html lang="en" className={inter.variable}>
       <body>
         <header className="site-header">
           <div className="container">
-            <Link href="/" className="brand">
-              stats.omit.gg
-            </Link>
+            <a href="https://omit.gg" target="_blank" rel="noopener noreferrer" className="site-omit-logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/teams/OMiT.png" alt="OMiT" />
+            </a>
             <SiteSearch teams={teams} players={players} />
             <SiteNav />
           </div>
         </header>
+        <RecentMatchesBanner matches={recentMatches} logos={teamLogos} />
         <div className="attribution-bar">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/x.svg" alt="" width={14} height={14} />
