@@ -2,7 +2,7 @@
 
 Living source of truth for this project. Update this file as decisions are made, scope changes, or work progresses — it should always be enough on its own for a new session (or a different Claude Code account) to pick up the work with no other context.
 
-Last updated: 2026-08-30
+Last updated: 2026-09-02
 
 ---
 
@@ -553,10 +553,10 @@ The Match page cut from v1 (§4.1) for lack of data is now live, using the match
 
 ## 9. Immediate Next Steps
 
-**Handoff note (2026-09-02):** this session is being transferred to a different Claude account/session. Everything below is the real, current state as of the handoff - read this section first, before anything else in this file, since it's the part most likely to drift out of date.
+**Handoff note (2026-09-02, updated same day by the receiving session):** items 1 and 2 below were resolved immediately at the start of the new session, before any other work — see the fresh changelog entry in §8. Items 3-9 are unchanged from the original handoff and still reflect real open items.
 
-1. **Working directory is on branch `fix/vercel-build-type-errors`, not `main`.** It's 1 commit ahead of `origin/main` (`ab0a075`, "Change team page trend to placement, finish match-map alias chasing") with a PR not yet opened - `gh` CLI is unavailable in the Claude Code sandbox environment for this project, so PR creation has been done throughout this session by generating a pre-filled `github.com/.../pull/new/...` link for the user to click themselves. If asked to open a PR, try `gh pr create` first in case it's available now; if not, fall back to the same pre-filled-link approach (see any recent `<create-pr-command>` turn in the transcript for the exact URL-encoding pattern used).
-2. **`npm run seed` needs a re-run** to pick up the 7 alias entries added in the branch tip commit (Vik/Depa/Clox/Fire - see §8ag's final-pass note). Last known real seed run predates these.
+1. ~~Working directory is on branch `fix/vercel-build-type-errors`, not `main`, with a PR not yet opened.~~ **Resolved:** by the time this session picked up the branch, PR #5 (containing `ab0a075` + the final `6a0db79` PROJECT.md-update commit) had already been merged into `main` (merge commit `1db2925`) — apparently done directly via GitHub between sessions, not through this tool. Local `main` was stale (`a9ac729`) and has been fast-forwarded to `origin/main`. Working directory is now on `main`, up to date, nothing pending.
+2. ~~`npm run seed` needs a re-run.~~ **Done** — ran clean against the merged `main`. Confirms the alias fixes took effect: unresolved counts shifted slightly from the last known numbers (378 `player_event_stats` rows unmatched, was 377; 143 unresolved match-map player rows, was ~150+) — a small improvement, consistent with a few more names now resolving via `confirmed-aliases.json`.
 3. **Map thumbnail images landed but aren't wired up.** User dropped `data/incoming/bo7_maps/{colossus,den,exposure,fringe,gridlock,hacienda,raid,sake,scar}.webp` (committed in `ab0a075`) - these match the map pool in `data/reference/match_format_rules.md` and are clearly meant for the Match page's map-chip row (`app/matches/[series]/page.tsx`'s `.match-map-chip` divs currently show mode/name/score text only, no image). Not yet asked-for as a task, but a very likely next request.
 4. **DNS for the `stats.omit.gg` subdomain** - Vercel project is live and deploying from GitHub, but pointing the actual subdomain's DNS at it (a CNAME record wherever omit.gg's DNS is managed, likely Webflow) was not confirmed complete before handoff. See §10.
 5. Real branding pull from omit.gg is still blocked (Browser tool policy-blocked the domain, WebFetch can't return raw CSS/hex/fonts, see §8c-styling entry) — current colors/fonts are an approximation. Revisit if/when exact brand assets (hex codes, font files, logo SVG) can be provided directly rather than scraped.
@@ -564,6 +564,8 @@ The Match page cut from v1 (§4.1) for lack of data is now live, using the match
 7. Similarly, `scripts/seed/unresolved-player-event-stats.json` still lists ~377 bo7_stats rows with no confident team match (mostly the same kind of genuine gap) and `duplicate-player-event-stats.json` lists a few same-player-twice source anomalies. Neither blocks anything; revisit only if it matters for a specific page later.
 8. Modern Warfare 4 season: `data/incoming/mw4_stats/` exists but is empty — revisit once that season starts and data is dropped in.
 9. Player-page integration for matches was deliberately not done (§8ah) - matches are a team-vs-team concept, so a player's own page doesn't currently link out to the matches they played. Possible future step, not asked for yet.
+
+- **2026-09-02** — New session picked up the 2026-09-02 handoff. Found PR #5 (the `fix/vercel-build-type-errors` branch, `ab0a075`+`6a0db79`) had already been merged into `main` between sessions (merge commit `1db2925`) — no PR needed, local `main` was just stale and fast-forwarded to `origin/main`. Re-ran `npm run seed` against the merged `main`, confirming the branch-tip alias fixes (Vik/Depa/Clox/Fire) took effect: unresolved `player_event_stats` rows 377→378 (net neutral, expected — new alias matches shift which rows land in which bucket, not a straight count-down), unresolved match-map player rows ~150+→143 (improved). Map-thumbnail wiring (§9 item 3) intentionally not started yet, pending user confirmation.
 
 ## 10. Version Control
 
