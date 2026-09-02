@@ -68,5 +68,12 @@
   { "file": "BO7 Paris Open - Players Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Huntsmen" },
   { "file": "BO7 Paris Open - Players Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "Project Notorious" },
   { "file": "BO7 Champs - Player Stats.csv", "bo7_stats_name": "Johnny", "canonical_name": "oJohnny", "team_name": "Project Notorious" },
-  { "file": "BO7 Champs - Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "OMiT Brooklyn" }
+  { "file": "BO7 Champs - Player Stats.csv", "bo7_stats_name": "DC", "canonical_name": "Diamondcon", "team_name": "OMiT Brooklyn" },
+
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Vik", "canonical_name": "vikrzm", "team_name": "CABAL Gaming" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Traix", "canonical_name": "Traixx", "team_name": "Telluride Bush Gaming" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Clox", "canonical_name": "Clox-2", "team_name": "R8 Esports" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Fatal", "canonical_name": "PipeFatal", "team_name": "Los Lentejas" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Team D3L1V3R" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Team D3L1V3R" }
 ]

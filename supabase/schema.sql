@@ -103,3 +103,43 @@ create table if not exists player_event_stats (
 
   unique (player_name, event_id)
 );
+
+-- Per-match, per-map, per-player granularity from data/incoming/bo7_match_stats/
+-- (added 2026-09-02, PROJECT.md §8ag) - what finally makes the Match page
+-- (§4.1) buildable. One "match" = one Series (best-of set between two teams
+-- within one known event); one "match_map" = one game within that series.
+create table if not exists matches (
+  id bigint generated always as identity primary key,
+  event_id bigint not null references events(id),
+  series_label text not null unique,
+  team1_name text not null,
+  team2_name text not null
+);
+
+create table if not exists match_maps (
+  id bigint generated always as identity primary key,
+  match_id bigint not null references matches(id),
+  mode text not null check (mode in ('Hardpoint', 'Search and Destroy', 'Overload')),
+  map_name text not null,
+  map_number int not null,
+  team1_score int not null,
+  team2_score int not null,
+
+  unique (match_id, map_number)
+);
+
+create table if not exists match_map_player_stats (
+  id bigint generated always as identity primary key,
+  match_map_id bigint not null references match_maps(id),
+  player_name text not null,
+  team_name text not null,
+
+  k int, d int, a int, non_traded_kills int, headshots int, damage int,
+
+  hill_time numeric, objective_kills int, contest numeric, -- Hardpoint only
+  plants int, defuses int, first_bloods int, first_deaths int, rounds int, -- Search and Destroy only
+  goals int, -- Overload only
+  time numeric, -- Hardpoint and Overload
+
+  unique (match_map_id, player_name)
+);
