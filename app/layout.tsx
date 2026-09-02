@@ -4,6 +4,7 @@ import { getRecentMatches } from '@/lib/matches';
 import SiteSearch from '@/components/SiteSearch';
 import SiteNav from '@/components/SiteNav';
 import RecentMatchesBanner from '@/components/RecentMatchesBanner';
+import LoadingScreen from '@/components/LoadingScreen';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
@@ -21,6 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={inter.variable}>
       <body>
+        <LoadingScreen />
         <header className="site-header">
           <div className="container">
             <a href="https://omit.gg" target="_blank" rel="noopener noreferrer" className="site-omit-logo">
