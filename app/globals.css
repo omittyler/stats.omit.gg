@@ -970,3 +970,112 @@ th.sortable:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
+
+/* Team page: Matches section */
+.match-event-group {
+  margin-bottom: 24px;
+}
+
+.match-event-group h3 {
+  margin-bottom: 8px;
+}
+
+.match-opponent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.match-opponent img {
+  object-fit: contain;
+}
+
+.match-result-win,
+.match-result-loss {
+  font-weight: 700;
+}
+
+.match-result-win {
+  color: #16a34a;
+}
+
+.match-result-loss {
+  color: #dc2626;
+}
+
+/* Match detail page */
+.match-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 12px;
+}
+
+.match-header-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.match-header-team img {
+  object-fit: contain;
+}
+
+.match-header-team a {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.match-header-score {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.match-map-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.match-map-chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.match-map-chip-name {
+  font-weight: 700;
+  margin: 2px 0 8px;
+}
+
+.match-map-chip-score {
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.match-map-chip-team1 {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.match-map-chip-team2 {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.match-team-divider td {
+  background: var(--bg);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}

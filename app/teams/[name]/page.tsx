@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { getEnrichedPlacements, computeStandings, getAllPlayerDetails } from '@/lib/standings';
+import { getEnrichedPlacements, computeStandings, getAllPlayerDetails, getTeamLogos } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
 import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format';
 import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
+import { getTeamMatches } from '@/lib/matches';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +87,18 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   const totalPrize = history.reduce((sum, h) => sum + h.prizeUsd, 0);
   const bestFinish = findBestFinish(history);
   const playerDetails = await getAllPlayerDetails();
+  const teamLogos = await getTeamLogos();
+
+  // Grouped by event, newest event first, matching the reference layout the
+  // user provided 2026-09-02 - only events with real match-map data show up
+  // here at all (a strict subset of `history` above, see PROJECT.md §8ag for
+  // why coverage is partial).
+  const matches = await getTeamMatches(teamName);
+  const matchesByEvent = new Map<string, typeof matches>();
+  for (const m of matches) {
+    if (!matchesByEvent.has(m.eventName)) matchesByEvent.set(m.eventName, []);
+    matchesByEvent.get(m.eventName)!.push(m);
+  }
 
   // This org's own points at each of its own results, not the "sum of
   // current roster" headline stat above (those two numbers can genuinely
@@ -240,6 +253,43 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
           </tbody>
         </table>
       </div>
+
+      {matchesByEvent.size > 0 && (
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>Matches</h2>
+          {[...matchesByEvent.entries()].map(([eventName, eventMatches]) => (
+            <div key={eventName} className="match-event-group">
+              <h3>{eventName}</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Opponent</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventMatches.map((m) => (
+                    <tr key={m.seriesLabel}>
+                      <td>
+                        <Link href={`/teams/${encodeURIComponent(m.opponent)}`} className="match-opponent">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`/teams/${teamLogos[m.opponent] ?? 'Default.png'}`} alt="" width={20} height={20} />
+                          {m.opponent}
+                        </Link>
+                      </td>
+                      <td>
+                        <Link href={`/matches/${encodeURIComponent(m.seriesLabel)}`} className={m.mapsWon > m.mapsLost ? 'match-result-win' : 'match-result-loss'}>
+                          {m.mapsWon > m.mapsLost ? 'W' : 'L'} {m.mapsWon} - {m.mapsLost}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
