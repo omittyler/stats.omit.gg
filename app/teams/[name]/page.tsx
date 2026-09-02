@@ -100,16 +100,20 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
     matchesByEvent.get(m.eventName)!.push(m);
   }
 
-  // This org's own points at each of its own results, not the "sum of
-  // current roster" headline stat above (those two numbers can genuinely
-  // differ when the roster has changed - see the Current Roster note below).
-  let cumulative = 0;
-  const pointsSeries = [...history]
-    .sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''))
-    .map((h) => {
-      cumulative += h.points;
-      return { label: h.eventName, value: cumulative, formatted: cumulative.toLocaleString() };
-    });
+  // Placement per event, chronological - NOT cumulative (a placement isn't
+  // something that accumulates). TrendChart always plots higher value as
+  // higher on the chart, but a lower placement number is the better result,
+  // so this inverts against the worst placement actually seen (1st place
+  // becomes the highest plotted value, worst becomes 1) - the real placement
+  // text (e.g. "5th-6th") still shows via `formatted`, this inverted number
+  // is display-only.
+  const chronologicalHistory = [...history].sort((a, b) => (a.eventDate ?? '').localeCompare(b.eventDate ?? ''));
+  const worstPlacement = Math.max(...chronologicalHistory.map((h) => h.placementMin), 1);
+  const placementSeries = chronologicalHistory.map((h) => ({
+    label: h.eventName,
+    value: worstPlacement + 1 - h.placementMin,
+    formatted: formatPlacementOrdinal(h.placementMin, h.placementMax),
+  }));
 
   return (
     <main className="container">
@@ -161,11 +165,8 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Season Trend</h2>
-        <p className="note">
-          Cumulative CDC points earned by this org&apos;s own results across the season (not the
-          current-roster sum above). Hover a point for details.
-        </p>
-        <TrendChart series={[{ key: 'points', label: 'CDC Points', data: pointsSeries }]} />
+        <p className="note">This org&apos;s placement at each event this season. Hover a point for details.</p>
+        <TrendChart series={[{ key: 'placement', label: 'Placement', data: placementSeries }]} />
       </div>
 
       <div className="card">

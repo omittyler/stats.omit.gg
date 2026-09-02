@@ -75,5 +75,12 @@
   { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Clox", "canonical_name": "Clox-2", "team_name": "R8 Esports" },
   { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Fatal", "canonical_name": "PipeFatal", "team_name": "Los Lentejas" },
   { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "D3", "canonical_name": "D3L1V3R", "team_name": "Team D3L1V3R" },
-  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Team D3L1V3R" }
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Team D3L1V3R" },
+
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Vik", "canonical_name": "vikrzm", "team_name": "Team WaR" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Treaty 1 Gaming" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "Team LegendZer" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Depa", "canonical_name": "Depaa", "team_name": "ASK Esport" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Clox", "canonical_name": "Clox-2", "team_name": "Falcons x R8" },
+  { "file": "BO7 Season Match Map Data.csv", "bo7_stats_name": "Fire", "canonical_name": "Fear", "team_name": "FiveFears" }
 ]
