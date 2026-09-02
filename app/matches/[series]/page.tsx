@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getMatchDetail, isLanEvent } from '@/lib/matches';
+import { getMatchDetail, isLanEvent, getEventLogo, getMapThumbnail } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
 import MatchTabs, { type OverviewPlayerRow } from '@/components/MatchTabs';
 
@@ -26,6 +26,7 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
   }
 
   const logos = await getTeamLogos();
+  const eventLogo = getEventLogo(match.eventName);
 
   const mapsWonTeam1 = match.maps.filter((m) => m.team1Score > m.team2Score).length;
   const mapsWonTeam2 = match.maps.filter((m) => m.team2Score > m.team1Score).length;
@@ -62,9 +63,15 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
       </Link>
 
       <div className="page-hero">
-        <p className="entity-hero-meta">
-          {match.eventName} · {isLanEvent(match.eventType) ? 'LAN' : 'Online'} Match
-        </p>
+        <div className="entity-hero-meta match-event-meta">
+          {eventLogo ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img className="event-logo" src={`/events/${eventLogo}`} alt={match.eventName} />
+          ) : (
+            <span>{match.eventName}</span>
+          )}
+          <span>· {isLanEvent(match.eventType) ? 'LAN' : 'Online'} Match</span>
+        </div>
         <div className="match-header">
           <div className="match-header-team">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -85,8 +92,15 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
       <div className="match-map-chips">
         {match.maps.map((m, i) => {
           const team1Won = m.team1Score > m.team2Score;
+          const thumbnail = getMapThumbnail(m.mapName);
           return (
             <div key={i} className="match-map-chip">
+              {thumbnail ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img className="match-map-chip-thumb" src={`/maps/${thumbnail}`} alt="" />
+              ) : (
+                <div className="match-map-chip-thumb match-map-chip-thumb-empty" />
+              )}
               <div className="note">{m.mode}</div>
               <div className="match-map-chip-name">{m.mapName}</div>
               <div className={`match-map-chip-score ${team1Won ? 'match-map-chip-team1' : 'match-map-chip-team2'}`}>

@@ -8,6 +8,43 @@ export function isLanEvent(eventType: string): boolean {
   return LAN_EVENT_TYPES.has(eventType);
 }
 
+// Event logos supplied 2026-08-26 (public/events/) only ever covered the 4
+// Majors - no Cup/Elite/Champs logos exist. getEventLogo returns null for
+// anything else so callers can fall back to the plain event-name text,
+// same "don't fabricate a missing asset" pattern as team/player fallbacks.
+const EVENT_LOGOS: Record<string, string> = {
+  '2026 Major 1 - Dallas Open': '2026DallasMajor1.png',
+  '2026 Major 2 - Birmingham Open': '2026BirminghamMajor2.png',
+  '2026 Major 3 - Atlanta Open': '2026AtlantaMajor3.png',
+  '2026 Major 4 - Paris Open': '2026ParisMajor4.png',
+};
+
+export function getEventLogo(eventName: string): string | null {
+  return EVENT_LOGOS[eventName] ?? null;
+}
+
+// Map thumbnails supplied 2026-09-02 (public/maps/) cover the 9 maps in the
+// official pool (data/reference/match_format_rules.md). "Blackheart" and
+// "Plaza" appear in the seeded match_maps data but aren't in that pool and
+// have no thumbnail - getMapThumbnail returns null for those, same
+// no-fabricated-asset fallback as getEventLogo above.
+const MAP_THUMBNAILS = new Set([
+  'colossus',
+  'den',
+  'exposure',
+  'fringe',
+  'gridlock',
+  'hacienda',
+  'raid',
+  'sake',
+  'scar',
+]);
+
+export function getMapThumbnail(mapName: string): string | null {
+  const key = mapName.toLowerCase();
+  return MAP_THUMBNAILS.has(key) ? `${key}.webp` : null;
+}
+
 export type TeamMatchSummary = {
   seriesLabel: string;
   eventName: string;

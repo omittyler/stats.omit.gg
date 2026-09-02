@@ -631,6 +631,13 @@ th.sortable:hover {
   font-size: 0.95rem;
 }
 
+.match-event-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .entity-hero-team {
   margin-top: 12px;
   display: flex;
@@ -980,6 +987,22 @@ th.sortable:hover {
   margin-bottom: 8px;
 }
 
+.match-event-group-title {
+  display: flex;
+  align-items: center;
+}
+
+/* Event logo - shared sizing between the Team page's Matches section
+   headers and the Match page's hero meta line, so branding reads uniformly
+   across both. Falls back to plain text where no logo exists (only the 4
+   Majors have one - see lib/matches.ts getEventLogo). */
+.event-logo {
+  height: 32px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+}
+
 .match-opponent {
   display: inline-flex;
   align-items: center;
@@ -1035,10 +1058,12 @@ th.sortable:hover {
 }
 
 .match-map-chips {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 12px;
   margin-bottom: 20px;
+  padding-bottom: 4px;
 }
 
 .match-map-chip {
@@ -1047,6 +1072,21 @@ th.sortable:hover {
   border-radius: 10px;
   padding: 10px 12px;
   text-align: center;
+  flex: 1 1 0;
+  min-width: 120px;
+}
+
+.match-map-chip-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.match-map-chip-thumb-empty {
+  background: var(--bg);
+  border: 1px dashed var(--border);
 }
 
 .match-map-chip-name {

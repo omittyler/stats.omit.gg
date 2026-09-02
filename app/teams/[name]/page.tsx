@@ -5,7 +5,7 @@ import { formatPlacementOrdinal, formatUsd, findBestFinish } from '@/lib/format'
 import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
-import { getTeamMatches } from '@/lib/matches';
+import { getTeamMatches, getEventLogo } from '@/lib/matches';
 
 export const dynamic = 'force-dynamic';
 
@@ -258,9 +258,18 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
       {matchesByEvent.size > 0 && (
         <div className="card">
           <h2 style={{ marginTop: 0 }}>Matches</h2>
-          {[...matchesByEvent.entries()].map(([eventName, eventMatches]) => (
+          {[...matchesByEvent.entries()].map(([eventName, eventMatches]) => {
+            const eventLogo = getEventLogo(eventName);
+            return (
             <div key={eventName} className="match-event-group">
-              <h3>{eventName}</h3>
+              <h3 className="match-event-group-title">
+                {eventLogo ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img className="event-logo" src={`/events/${eventLogo}`} alt={eventName} />
+                ) : (
+                  eventName
+                )}
+              </h3>
               <table>
                 <thead>
                   <tr>
@@ -288,7 +297,8 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
                 </tbody>
               </table>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>
