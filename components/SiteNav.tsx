@@ -8,6 +8,7 @@ const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/standings', label: 'Standings' },
   { href: '/players', label: 'Players' },
+  { href: '/matches', label: 'Matches' },
   { href: '/teams', label: 'Top Teams' },
   { href: '/cdl-teams', label: 'CDL Teams' },
 ];

@@ -110,6 +110,54 @@ export async function getRecentMatches(limit: number): Promise<RecentMatch[]> {
   }));
 }
 
+export type MatchListEntry = RecentMatch & { game: string; region: string };
+
+type MatchListRow = {
+  series_label: string;
+  team1_name: string;
+  team2_name: string;
+  events: { name: string; event_date: string | null; game: string; region: string } | null;
+  match_maps: { team1_score: number; team2_score: number }[];
+};
+
+/**
+ * Every match sitewide (not capped, unlike getRecentMatches above), for the
+ * full /matches list page - newest event first, then highest series number
+ * within it, same convention as getRecentMatches. Includes `game` so the
+ * page can filter by season (Black Ops 7 today; Modern Warfare 4 has no
+ * data yet - PROJECT.md §2 - so filtering to it correctly shows nothing
+ * rather than needing separate handling). Includes `region` because
+ * `eventName` alone is NOT a unique event key: Cup events share one name
+ * across regions with region as a separate column (unlike Elite, which
+ * embeds region in the name itself) - callers must group by
+ * `eventName + region` together, same pattern already used in
+ * PlayerEventsTable.tsx's `${eventName}|${region}` stats lookup key.
+ */
+export async function getAllMatches(): Promise<MatchListEntry[]> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select(
+      'series_label, team1_name, team2_name, events(name, event_date, game, region), match_maps(team1_score, team2_score)'
+    )
+    .order('event_date', { referencedTable: 'events', ascending: false })
+    .order('series_label', { ascending: false });
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as MatchListRow[];
+
+  return rows.map((m) => ({
+    seriesLabel: m.series_label,
+    eventName: m.events?.name ?? '',
+    eventDate: m.events?.event_date ?? null,
+    game: m.events?.game ?? 'Black Ops 7',
+    region: m.events?.region ?? '',
+    team1Name: m.team1_name,
+    team2Name: m.team2_name,
+    team1Score: m.match_maps.filter((mm) => mm.team1_score > mm.team2_score).length,
+    team2Score: m.match_maps.filter((mm) => mm.team2_score > mm.team1_score).length,
+  }));
+}
+
 export type TeamMatchSummary = {
   seriesLabel: string;
   eventName: string;

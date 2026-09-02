@@ -58,8 +58,8 @@ export default async function MatchPage({ params }: { params: Promise<{ series: 
 
   return (
     <main className="container container-wide">
-      <Link className="back-link" href={`/teams/${encodeURIComponent(match.team1Name)}`}>
-        &larr; Back to {match.team1Name}
+      <Link className="back-link" href="/matches">
+        &larr; Back to Matches
       </Link>
 
       <div className="page-hero">

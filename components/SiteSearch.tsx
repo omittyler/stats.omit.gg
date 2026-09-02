@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { SearchIndexPlayer } from '@/lib/standings';
 
 const MAX_RESULTS_PER_GROUP = 6;
 
-export default function SiteSearch({ teams, players }: { teams: string[]; players: string[] }) {
+export default function SiteSearch({ teams, players }: { teams: string[]; players: SearchIndexPlayer[] }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [regionFilter, setRegionFilter] = useState('all');
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -21,10 +23,15 @@ export default function SiteSearch({ teams, players }: { teams: string[]; player
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const regions = [...new Set(players.map((p) => p.region || 'Other'))].sort();
+
   const q = query.trim().toLowerCase();
   const matchedTeams = q ? teams.filter((t) => t.toLowerCase().includes(q)).slice(0, MAX_RESULTS_PER_GROUP) : [];
   const matchedPlayers = q
-    ? players.filter((p) => p.toLowerCase().includes(q)).slice(0, MAX_RESULTS_PER_GROUP)
+    ? players
+        .filter((p) => p.name.toLowerCase().includes(q))
+        .filter((p) => regionFilter === 'all' || (p.region || 'Other') === regionFilter)
+        .slice(0, MAX_RESULTS_PER_GROUP)
     : [];
   const hasResults = matchedTeams.length > 0 || matchedPlayers.length > 0;
 
@@ -48,6 +55,27 @@ export default function SiteSearch({ teams, players }: { teams: string[]; player
       />
       {open && q && (
         <div className="site-search-results">
+          {regions.length > 1 && (
+            <div className="site-search-region-row">
+              <button
+                className={regionFilter === 'all' ? 'active' : ''}
+                onClick={() => setRegionFilter('all')}
+                type="button"
+              >
+                All
+              </button>
+              {regions.map((r) => (
+                <button
+                  key={r}
+                  className={regionFilter === r ? 'active' : ''}
+                  onClick={() => setRegionFilter(r)}
+                  type="button"
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          )}
           {hasResults ? (
             <>
               {matchedTeams.length > 0 && (
@@ -64,8 +92,8 @@ export default function SiteSearch({ teams, players }: { teams: string[]; player
                 <div className="site-search-group">
                   <div className="site-search-group-label">Players</div>
                   {matchedPlayers.map((p) => (
-                    <button key={p} onClick={() => goTo('players', p)}>
-                      {p}
+                    <button key={p.name} onClick={() => goTo('players', p.name)}>
+                      {p.name}
                     </button>
                   ))}
                 </div>

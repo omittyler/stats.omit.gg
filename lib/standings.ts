@@ -578,10 +578,12 @@ export async function getPlayerDetails(playerName: string): Promise<PlayerDetail
  * search box. Small dataset (a few hundred entries at most) - fetched once
  * per page load and filtered client-side rather than querying per keystroke.
  */
-export async function getSearchIndex(): Promise<{ teams: string[]; players: string[] }> {
+export type SearchIndexPlayer = { name: string; region: string };
+
+export async function getSearchIndex(): Promise<{ teams: string[]; players: SearchIndexPlayer[] }> {
   const { teamStandings, playerStandings } = await computeStandings();
   return {
     teams: teamStandings.map((t) => t.name),
-    players: playerStandings.map((p) => p.name),
+    players: playerStandings.map((p) => ({ name: p.name, region: p.region })),
   };
 }

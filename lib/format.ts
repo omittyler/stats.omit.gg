@@ -27,6 +27,24 @@ export function formatShortDate(dateStr: string): string {
   return `${Number(month)}/${Number(day)}`;
 }
 
+/** "2026-07-19" -> "Sunday, July 19, 2026" - date-group headers on the full
+ *  /matches list. Builds the Date as UTC-midnight and formats with
+ *  timeZone: 'UTC' throughout, so the weekday/day never shifts based on the
+ *  server or viewer's own timezone (the same class of bug formatShortDate's
+ *  manual parsing avoids, just via the Intl API instead since we need the
+ *  weekday name here). */
+export function formatFullDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export function formatUsd(amount: number): string {
   return `$${amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }

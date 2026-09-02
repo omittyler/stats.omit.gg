@@ -167,6 +167,172 @@ a:hover {
   opacity: 0.55;
 }
 
+/* Full /matches list page (components/MatchesList.tsx) */
+.matches-list-group {
+  margin-bottom: 28px;
+}
+
+/* Deliberately larger than .matches-list-row (padding, logo, type scale all
+   bumped up) so an event heading reads as a distinct, bigger tier than the
+   individual match rows nested under it, not just another row in the list. */
+.matches-list-collapsed-header,
+.matches-list-expanded-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.matches-list-collapsed-header {
+  margin-bottom: 12px;
+}
+
+.matches-list-expanded-header {
+  margin-bottom: 12px;
+  border-color: var(--accent);
+}
+
+.matches-list-collapsed-header:hover,
+.matches-list-expanded-header:hover {
+  border-color: var(--accent);
+}
+
+.matches-list-header-logo {
+  height: 48px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
+}
+
+.matches-list-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.matches-list-header-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matches-list-header-name .region-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.matches-list-header-date {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.matches-list-collapsed-count {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.matches-list-load-more {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.matches-list-load-more:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.matches-list-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.matches-list-row:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.matches-list-teams {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.matches-list-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.matches-list-team img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.matches-list-team-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matches-list-team-score {
+  font-weight: 700;
+  min-width: 20px;
+  text-align: right;
+}
+
+.matches-list-team-win {
+  font-weight: 700;
+}
+
+.matches-list-team-loss {
+  opacity: 0.55;
+}
+
 .site-header .container {
   display: flex;
   align-items: center;
@@ -185,8 +351,11 @@ a:hover {
 
 .site-search {
   position: relative;
-  flex: 1;
-  max-width: 320px;
+  /* Fixed width, not flex-grow - .site-nav's margin-left: auto claims all
+     the row's free space to push itself flush right, which starves a
+     flex-grow sibling down to near-zero instead of the intended width. */
+  flex: 0 0 300px;
+  width: 300px;
 }
 
 @media (max-width: 640px) {
@@ -280,6 +449,38 @@ a:hover {
   padding: 8px;
   max-height: 360px;
   overflow-y: auto;
+}
+
+.site-search-region-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-search-region-row button {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.site-search-region-row button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.site-search-region-row button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .site-search-group + .site-search-group {
@@ -394,7 +595,8 @@ a:hover {
 
 .site-header nav.site-nav {
   display: flex;
-  gap: 24px;
+  flex-shrink: 0;
+  gap: 18px;
 }
 
 .site-nav a {
@@ -405,6 +607,7 @@ a:hover {
   letter-spacing: 0.08em;
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
+  white-space: nowrap;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 
