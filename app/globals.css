@@ -337,6 +337,61 @@ a:hover {
   filter: brightness(0);
 }
 
+/* Splash/loading screen (components/LoadingScreen.tsx) - shown once per real
+   page load, not on every client-side <Link> navigation, since it lives in
+   the root layout which doesn't remount on route changes. */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: #ffffff;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.loading-screen-fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-screen-logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  /* Same flat-color-on-transparent recolor trick as .site-omit-logo img. */
+  filter: brightness(0);
+}
+
+.loading-bar-track {
+  width: 280px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #22d3ee);
+  animation: loading-bar-fill 3s ease-out forwards;
+}
+
+@keyframes loading-bar-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 .site-header nav.site-nav {
   display: flex;
   gap: 24px;
