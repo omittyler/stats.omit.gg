@@ -122,6 +122,78 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
     });
 }
 
+type KnownAlias = { source_name: string; canonical_name: string };
+
+/**
+ * scripts/seed/known-player-aliases.json, keyed by lowercased ProPoints name
+ * -> canonical name (see PROJECT.md §8an/§8ao). Returns an empty map if the
+ * file is missing rather than throwing - same "optional, additive data"
+ * treatment as getRosterMoves below.
+ */
+function getKnownAliases(): Map<string, string> {
+  let raw: string;
+  try {
+    raw = readFileSync('scripts/seed/known-player-aliases.json', 'utf8');
+  } catch {
+    return new Map();
+  }
+  const entries: KnownAlias[] = JSON.parse(raw);
+  return new Map(entries.map((e) => [e.source_name.toLowerCase(), e.canonical_name]));
+}
+
+/**
+ * One region's "<Region> Player Points.csv" (data/incoming/BO7 Pro Points/) -
+ * a 3-column CSV (player name, points, an optional hand-filled alias column
+ * this function doesn't need) with a region-specific header, so columns are
+ * read by position rather than by header name. Returns [] if the file is
+ * missing.
+ */
+function readProPointsCsv(region: 'NA' | 'EU'): { player: string; points: number }[] {
+  let raw: string;
+  try {
+    raw = readFileSync(`data/incoming/BO7 Pro Points/${region} Player Points.csv`, 'utf8');
+  } catch {
+    return [];
+  }
+  const rows: Record<string, string>[] = parse(raw, {
+    columns: ['player', 'points', 'knownAlias'],
+    from_line: 2,
+    skip_empty_lines: true,
+    relax_column_count: true,
+  });
+  return rows
+    .filter((r) => r.player && r.player.trim())
+    .map((r) => ({ player: r.player.trim(), points: Number(r.points) }))
+    .filter((r) => Number.isFinite(r.points));
+}
+
+/**
+ * Official CDC point totals from the ProPoints breakout (PROJECT.md §8e),
+ * keyed by lowercased CANONICAL player name - i.e. the name as it already
+ * appears in placings.csv/event_placements, not the raw ProPoints name.
+ * Superseding source over the computed placement x points_scale total
+ * (§8an/§8ao) for every player this resolves to an existing identity, either
+ * because the ProPoints name already matches one directly or because
+ * known-player-aliases.json maps it there.
+ *
+ * NA + EU only, matching the site's region scope (§8g) - LATAM/AP ProPoints
+ * data exists on disk (§8ao) but is deliberately not read here. A player not
+ * covered by this map (still a large long tail of unresolved ProPoints
+ * names, and any player who simply isn't on the list) just has no entry -
+ * callers fall back to the computed total, not zero.
+ */
+function getOfficialPoints(): Map<string, number> {
+  const aliases = getKnownAliases();
+  const result = new Map<string, number>();
+  for (const region of ['NA', 'EU'] as const) {
+    for (const { player, points } of readProPointsCsv(region)) {
+      const canonical = aliases.get(player.toLowerCase()) ?? player;
+      result.set(canonical.toLowerCase(), points);
+    }
+  }
+  return result;
+}
+
 export type RosterMove = { date: string; player: string; newTeam: string; note?: string };
 
 /**
@@ -233,10 +305,15 @@ export async function computeStandings(placements?: EnrichedPlacement[]) {
     }
   }
 
+  // Official ProPoints totals (§8e/§8an/§8ao) supersede the computed sum for
+  // every player they cover - anyone not resolved to an official total keeps
+  // the computed approximation rather than getting zeroed out.
+  const officialPoints = getOfficialPoints();
+
   const playerStandings: PlayerStanding[] = [...players.entries()]
     .map(([name, agg]) => ({
       name,
-      points: agg.total,
+      points: officialPoints.get(name.toLowerCase()) ?? agg.total,
       currentTeam: agg.lastTeam,
       region: agg.region,
       rosterStale: agg.lastDate < (teamLatestEventDate.get(agg.lastTeam) ?? ''),
