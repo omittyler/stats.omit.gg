@@ -6,6 +6,8 @@ import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
 import { getTeamMatches, getEventLogo } from '@/lib/matches';
+import { GAMES, parseGameSlug } from '@/lib/season';
+import { GameFilterLinks } from '@/components/GameFilterLinks';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,24 +19,40 @@ function formatPrize(prizeUsd: number) {
   return prizeUsd > 0 ? formatUsd(prizeUsd) : '-';
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ name: string }> }) {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ name: string }>;
+  searchParams: Promise<{ game?: string }>;
+}) {
   const { name: rawName } = await params;
   const teamName = decodeURIComponent(rawName);
-  const { teamStandings } = await computeStandings();
+  const game = parseGameSlug((await searchParams).game);
+  const { teamStandings } = await computeStandings(undefined, game);
   const standing = teamStandings.find((t) => t.name === teamName);
   if (!standing) return { title: `${teamName} — stats.omit.gg` };
   return {
     title: `${teamName} — stats.omit.gg`,
-    description: `${teamName} — ${standing.points.toLocaleString()} CDC points this Black Ops 7 (BO7) season.`,
+    description: `${teamName} — ${standing.points.toLocaleString()} CDC points this ${game} season.`,
   };
 }
 
-export default async function TeamPage({ params }: { params: Promise<{ name: string }> }) {
+export default async function TeamPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ name: string }>;
+  searchParams: Promise<{ game?: string }>;
+}) {
   const { name: rawName } = await params;
   const teamName = decodeURIComponent(rawName);
+  const { game: gameSlug } = await searchParams;
+  const game = parseGameSlug(gameSlug);
+  const gameInfo = GAMES.find((g) => g.value === game)!;
 
-  const placements = await getEnrichedPlacements();
-  const { teamStandings, playerStandings } = await computeStandings(placements);
+  const placements = await getEnrichedPlacements(game);
+  const { teamStandings, playerStandings } = await computeStandings(placements, game);
   const standing = teamStandings.find((t) => t.name === teamName);
 
   const history = placements
@@ -45,8 +63,20 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   // squads excluded in getEnrichedPlacements) rather than a raw `teams` table
   // lookup - otherwise someone navigating straight to an excluded team's URL
   // would still find a DB row and see a page with an empty roster/events
-  // instead of "not found".
-  if (!history.length) {
+  // instead of "not found". A team with no history for THIS game (e.g. a BO7
+  // team viewed with ?game=mw4) isn't necessarily nonexistent though - only
+  // truly missing from every game gets the "not found" treatment; otherwise
+  // the name/logo hero still renders (it's the same identity either way,
+  // see below) with a placeholder in place of the season content.
+  const existsInThisGame = history.length > 0;
+  let existsInAnyGame = existsInThisGame;
+  if (!existsInThisGame) {
+    const otherGame = GAMES.find((g) => g.value !== game)!;
+    const otherGamePlacements = await getEnrichedPlacements(otherGame.value);
+    existsInAnyGame = otherGamePlacements.some((p) => p.teamName === teamName);
+  }
+
+  if (!existsInAnyGame) {
     return (
       <main className="container">
         <p>Team &ldquo;{teamName}&rdquo; not found.</p>
@@ -93,7 +123,7 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
   // user provided 2026-09-02 - only events with real match-map data show up
   // here at all (a strict subset of `history` above, see PROJECT.md §8ag for
   // why coverage is partial).
-  const matches = await getTeamMatches(teamName);
+  const matches = await getTeamMatches(teamName, game);
   const matchesByEvent = new Map<string, typeof matches>();
   for (const m of matches) {
     if (!matchesByEvent.has(m.eventName)) matchesByEvent.set(m.eventName, []);
@@ -138,6 +168,16 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
         </div>
       </div>
 
+      <GameFilterLinks basePath={`/teams/${encodeURIComponent(teamName)}`} selected={game} />
+
+      {!existsInThisGame && (
+        <div className="card">
+          <p className="note">No {gameInfo.label} record for this team yet.</p>
+        </div>
+      )}
+
+      {existsInThisGame && (
+      <>
       <div className="stat-card-row">
         <div className="stat-card">
           <div className="stat-card-label">Season Points</div>
@@ -304,6 +344,8 @@ export default async function TeamPage({ params }: { params: Promise<{ name: str
             );
           })}
         </div>
+      )}
+      </>
       )}
     </main>
   );

@@ -5,16 +5,15 @@ import Link from 'next/link';
 import type { MatchListEntry } from '@/lib/matches';
 import { getEventLogo } from '@/lib/matches';
 import { formatFullDate, formatEventNameForEventsList } from '@/lib/format';
+import { GAMES, CURRENT_GAME } from '@/lib/season';
 
 // Only Black Ops 7 has any real data today (Modern Warfare 4's season
 // hasn't started - data/incoming/mw4_stats/ is empty, PROJECT.md §2) but the
 // filter is built against the real `events.game` values now so it's ready
 // the moment MW4 matches actually get seeded, rather than needing this
-// component rebuilt later.
-const GAME_OPTIONS = [
-  { value: 'Black Ops 7', label: 'Black Ops 7 (2026 Season)' },
-  { value: 'Modern Warfare 4', label: 'Modern Warfare 4 (2027 Season)' },
-] as const;
+// component rebuilt later. GAMES/CURRENT_GAME are shared with every other
+// game-scoped page (lib/season.ts) rather than kept as a local list here.
+const GAME_OPTIONS = GAMES.map((g) => ({ value: g.value, label: g.label }));
 
 // AP/LATAM are scoped out of the whole site (PROJECT.md §7), and global
 // events (Majors/Champs) have no region at all - so "All" is the only way
@@ -128,7 +127,7 @@ export default function MatchesList({
   matches: MatchListEntry[];
   logos: Record<string, string>;
 }) {
-  const [game, setGame] = useState<string>(GAME_OPTIONS[0].value);
+  const [game, setGame] = useState<string>(CURRENT_GAME);
   const [region, setRegion] = useState<string>(REGION_OPTIONS[0].value);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
 

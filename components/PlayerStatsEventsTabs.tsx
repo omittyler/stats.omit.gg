@@ -38,9 +38,11 @@ export default function PlayerStatsEventsTabs({
 
       {tab === 'stats' && (
         <>
-          <p className="note">Ranked against every other player&apos;s Black Ops 7 (BO7) full-season totals.</p>
           {seasonStats ? (
-            <StatDetail stats={seasonStats} />
+            <>
+              <p className="note">Ranked against every other player&apos;s Black Ops 7 (BO7) full-season totals.</p>
+              <StatDetail stats={seasonStats} />
+            </>
           ) : (
             <p className="note">Currently no player statistics available.</p>
           )}

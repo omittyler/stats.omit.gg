@@ -1,15 +1,29 @@
 import { computeStandings, getTeamLogos, getAllPlayerDetails } from '@/lib/standings';
 import { getPlayerQuickStats, MIN_MATCHES } from '@/lib/statLeaderboards';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
+import { GAMES, parseGameSlug } from '@/lib/season';
+import { GameFilterLinks } from '@/components/GameFilterLinks';
 import PlayersTable from '@/components/PlayersTable';
 
 // See app/standings/page.tsx - same reason: avoid Next.js caching this fetch
 // and showing stale numbers after the underlying data changes.
 export const dynamic = 'force-dynamic';
 
-export default async function PlayersPage() {
+export default async function PlayersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ game?: string }>;
+}) {
+  const { game: gameSlug } = await searchParams;
+  const game = parseGameSlug(gameSlug);
+  const gameInfo = GAMES.find((g) => g.value === game)!;
+
+  // getPlayerQuickStats (K/D, Slayer Rating, etc.) is sourced from the
+  // separate, still BO7-only stats pipeline (lib/statLeaderboards.ts) -
+  // deliberately not touched by this season toggle yet (PROJECT.md). Any MW4
+  // player just shows those columns as "-" until that pipeline exists too.
   const [{ playerStandings }, logos, playerDetails, quickStats] = await Promise.all([
-    computeStandings(),
+    computeStandings(undefined, game),
     getTeamLogos(),
     getAllPlayerDetails(),
     getPlayerQuickStats(),
@@ -44,11 +58,16 @@ export default async function PlayersPage() {
   return (
     <main className="container container-wide">
       <div className="page-hero">
-        <h1>Black Ops 7 Player List</h1>
+        <h1>{gameInfo.label} Player List</h1>
         <p className="note">Click any column heading to sort the list by that stat.</p>
       </div>
+      <GameFilterLinks basePath="/players" selected={game} />
       <div className="card">
-        <PlayersTable rows={rows} logos={logos} origins={origins} />
+        {rows.length ? (
+          <PlayersTable rows={rows} logos={logos} origins={origins} />
+        ) : (
+          <p className="note">No players yet for {gameInfo.label}.</p>
+        )}
       </div>
     </main>
   );

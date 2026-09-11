@@ -8,6 +8,8 @@ import {
 import { getRecentEvents, getLanResults, getAllPlayerDetails } from '@/lib/standings';
 import { formatPlacementOrdinal } from '@/lib/format';
 import { FlagIcon } from '@/components/FlagIcon';
+import { GAMES, parseGameSlug } from '@/lib/season';
+import { GameFilterLinks } from '@/components/GameFilterLinks';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,10 +58,21 @@ function StatBox({
   );
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ game?: string }>;
+}) {
+  const { game: gameSlug } = await searchParams;
+  const game = parseGameSlug(gameSlug);
+  const gameInfo = GAMES.find((g) => g.value === game)!;
+
+  // getStatLeaderboards' "Top 5" section is deliberately NOT scoped to
+  // `game` - it's sourced from the separate, still BO7-only stats pipeline
+  // (lib/statLeaderboards.ts), unaffected by this toggle (PROJECT.md).
   const results = await getStatLeaderboards(5);
-  const recentEvents = await getRecentEvents();
-  const lanResults = await getLanResults();
+  const recentEvents = await getRecentEvents(undefined, game);
+  const lanResults = await getLanResults(undefined, game);
   const playerDetails = await getAllPlayerDetails();
   const origins = Object.fromEntries([...playerDetails].map(([name, d]) => [name, d.origin ?? '']));
 
@@ -75,9 +88,11 @@ export default async function HomePage() {
         </div>
       </div>
 
+      <GameFilterLinks basePath="/" selected={game} />
+
       {recentEvents.length > 0 && (
         <>
-          <h2>Black Ops 7 Recent Results</h2>
+          <h2>{gameInfo.label} Recent Results</h2>
           <div className="recent-events-grid">
             {recentEvents.map((group) => (
               <div className="recent-event-card" key={`${group.eventName}|${group.region}`}>
@@ -101,7 +116,7 @@ export default async function HomePage() {
 
       {lanResults.length > 0 && (
         <>
-          <h2>Black Ops 7 LAN Results</h2>
+          <h2>{gameInfo.label} LAN Results</h2>
           <p className="note">Top 3 for every Major/Open and Champs Finals this season.</p>
           <div className="recent-events-grid">
             {lanResults.map((group) => (

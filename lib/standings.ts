@@ -3,6 +3,7 @@ import { parse } from 'csv-parse/sync';
 import { supabase } from './supabase';
 import { EXCLUDED_TEAM_NAMES } from './excludedTeams';
 import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
+import { CURRENT_GAME } from './season';
 
 type PointsScaleRow = {
   event_type: string;
@@ -22,7 +23,7 @@ type PlacementRow = {
   player4: string | null;
   team_id: number;
   teams: { name: string } | null;
-  events: { name: string; type: string; event_date: string | null; region: string } | null;
+  events: { name: string; type: string; event_date: string | null; region: string; game: string } | null;
 };
 
 export type EnrichedPlacement = {
@@ -60,14 +61,19 @@ export type TeamStanding = { name: string; points: number; players: string[]; re
  * worth (exact placement-tier lookup against points_scale). This is the one
  * shared query behind /standings, /players, and the team/player detail pages -
  * each just filters/rolls this up differently.
+ *
+ * `game` scopes to one season's events (defaults to the site's current
+ * focus, lib/season.ts) - each season's points/rosters are computed
+ * independently, never blended together (see the BO7->MW4 plumbing note in
+ * PROJECT.md).
  */
-export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
+export async function getEnrichedPlacements(game: string = CURRENT_GAME): Promise<EnrichedPlacement[]> {
   const [{ data: placements, error: placementsError }, { data: scale, error: scaleError }] =
     await Promise.all([
       supabase
         .from('event_placements')
         .select(
-          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region)'
+          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region, game)'
         ),
       supabase
         .from('points_scale')
@@ -102,6 +108,7 @@ export async function getEnrichedPlacements(): Promise<EnrichedPlacement[]> {
     .filter((row) => row.events && row.teams)
     .filter((row) => row.events!.region !== 'AP' && row.events!.region !== 'LATAM') // AP/LATAM scoped out of the site, per user 2026-08-31
     .filter((row) => !EXCLUDED_TEAM_NAMES.has(row.teams!.name)) // ad-hoc "Team <handle>" pickup squads, per user 2026-08-31
+    .filter((row) => row.events!.game === game) // one season at a time - see lib/season.ts
     .map((row) => {
       const eventType = row.events!.type;
       const region = row.events!.region;
@@ -232,9 +239,13 @@ function getRosterMoves(): RosterMove[] {
  * real people who were never given distinct spellings ("Apollo", "Law") -
  * those specific names' totals incorrectly merge two people until that's
  * fixed at the source.
+ *
+ * Pass a `game` when you don't already have pre-fetched `placements` (it's
+ * ignored otherwise - the caller who fetched `placements` already chose the
+ * game). Defaults to the site's current season (lib/season.ts).
  */
-export async function computeStandings(placements?: EnrichedPlacement[]) {
-  const rows = placements ?? (await getEnrichedPlacements());
+export async function computeStandings(placements?: EnrichedPlacement[], game: string = CURRENT_GAME) {
+  const rows = placements ?? (await getEnrichedPlacements(game));
 
   // A team's own most recent event date, independent of any one player's
   // roster - used below to catch a player whose personal last event predates
@@ -535,8 +546,11 @@ export type RecentEventGroup = {
  * the same day but are two separate groups here, each with its own top 3.
  * Powers the home page's "Recent Results" spotlight.
  */
-export async function getRecentEvents(placements?: EnrichedPlacement[]): Promise<RecentEventGroup[]> {
-  const rows = placements ?? (await getEnrichedPlacements());
+export async function getRecentEvents(
+  placements?: EnrichedPlacement[],
+  game: string = CURRENT_GAME
+): Promise<RecentEventGroup[]> {
+  const rows = placements ?? (await getEnrichedPlacements(game));
   const dated = rows.filter((r): r is EnrichedPlacement & { eventDate: string } => Boolean(r.eventDate));
   if (!dated.length) return [];
 
@@ -576,8 +590,11 @@ export type LanResultGroup = {
  * getRecentEvents above, this isn't scoped to the single latest date; it's a
  * season-long recap. Powers the home page's "LAN Results" box.
  */
-export async function getLanResults(placements?: EnrichedPlacement[]): Promise<LanResultGroup[]> {
-  const rows = placements ?? (await getEnrichedPlacements());
+export async function getLanResults(
+  placements?: EnrichedPlacement[],
+  game: string = CURRENT_GAME
+): Promise<LanResultGroup[]> {
+  const rows = placements ?? (await getEnrichedPlacements(game));
   const majors = rows.filter((r) => r.eventType === 'Major' || r.eventType === 'Champs');
 
   const groups = new Map<string, LanResultGroup>();

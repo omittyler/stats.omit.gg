@@ -1310,7 +1310,8 @@ th.sortable:hover {
   justify-content: center;
 }
 
-.table-filter-row button {
+.table-filter-row button,
+.table-filter-row a {
   padding: 6px 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -1320,14 +1321,18 @@ th.sortable:hover {
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.table-filter-row button:hover {
+.table-filter-row button:hover,
+.table-filter-row a:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.table-filter-row button.active {
+.table-filter-row button.active,
+.table-filter-row a.active {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;

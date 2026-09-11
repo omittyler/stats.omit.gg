@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { CURRENT_GAME } from './season';
 
 // Major/Open and Champs are LAN events; Cup and Elite are online matches -
 // see data/reference/match_format_rules.md (provided by the user 2026-09-02).
@@ -171,28 +172,30 @@ type TeamMatchRow = {
   series_label: string;
   team1_name: string;
   team2_name: string;
-  events: { name: string; event_date: string | null } | null;
+  events: { name: string; event_date: string | null; game: string } | null;
   match_maps: { team1_score: number; team2_score: number }[];
 };
 
 /**
- * Every match a team has played, grouped by event on the team page (matching
- * the reference layout the user provided 2026-09-02) - each with the maps-won
+ * Every match a team has played THIS SEASON (defaults to the site's current
+ * game, lib/season.ts), grouped by event on the team page (matching the
+ * reference layout the user provided 2026-09-02) - each with the maps-won
  * series score (e.g. 3-1), not the raw in-map points/rounds those individual
  * match_maps rows store. Sorted newest-event-first, then by series number
  * within an event (series labels are already sequential, see
  * scripts/seed/lib/matchSeriesRanges.js).
  */
-export async function getTeamMatches(teamName: string): Promise<TeamMatchSummary[]> {
+export async function getTeamMatches(teamName: string, game: string = CURRENT_GAME): Promise<TeamMatchSummary[]> {
   const { data, error } = await supabase
     .from('matches')
-    .select('series_label, team1_name, team2_name, events(name, event_date), match_maps(team1_score, team2_score)')
+    .select('series_label, team1_name, team2_name, events(name, event_date, game), match_maps(team1_score, team2_score)')
     .or(`team1_name.eq.${teamName},team2_name.eq.${teamName}`);
   if (error) throw error;
 
   const rows = (data ?? []) as unknown as TeamMatchRow[];
 
   return rows
+    .filter((m) => m.events?.game === game)
     .map((m) => {
       const isTeam1 = m.team1_name === teamName;
       const mapsWon = m.match_maps.filter((mm) =>
@@ -223,27 +226,32 @@ type PlayerMatchMapRow = {
       series_label: string;
       team1_name: string;
       team2_name: string;
-      events: { name: string; event_date: string | null } | null;
+      events: { name: string; event_date: string | null; game: string } | null;
     } | null;
   } | null;
 };
 
 /**
- * A single player's most recent matches, for the "Latest Matches" tab on
- * their player page (PROJECT.md §9 - deliberately not built with the rest of
- * the Match page since matches are a team-vs-team concept; built now on
- * request). Driven from match_map_player_stats rather than `matches` (unlike
+ * A single player's most recent matches THIS SEASON (defaults to the site's
+ * current game, lib/season.ts), for the "Latest Matches" tab on their player
+ * page (PROJECT.md §9 - deliberately not built with the rest of the Match
+ * page since matches are a team-vs-team concept; built now on request).
+ * Driven from match_map_player_stats rather than `matches` (unlike
  * getTeamMatches above) since that's the only table that knows which
  * specific matches THIS player appears in - one row per map they played, so
  * grouping those by match_id also gives an accurate per-series maps-won
  * count without a second query. Same newest-event-then-highest-series
  * ordering convention as getRecentMatches.
  */
-export async function getPlayerMatches(playerName: string, limit: number): Promise<TeamMatchSummary[]> {
+export async function getPlayerMatches(
+  playerName: string,
+  limit: number,
+  game: string = CURRENT_GAME
+): Promise<TeamMatchSummary[]> {
   const { data, error } = await supabase
     .from('match_map_player_stats')
     .select(
-      'team_name, match_maps(match_id, team1_score, team2_score, matches(series_label, team1_name, team2_name, events(name, event_date)))'
+      'team_name, match_maps(match_id, team1_score, team2_score, matches(series_label, team1_name, team2_name, events(name, event_date, game)))'
     )
     .eq('player_name', playerName);
   if (error) throw error;
@@ -258,7 +266,7 @@ export async function getPlayerMatches(playerName: string, limit: number): Promi
   for (const row of rows) {
     const mm = row.match_maps;
     const match = mm?.matches;
-    if (!mm || !match) continue;
+    if (!mm || !match || match.events?.game !== game) continue;
 
     const isTeam1 = row.team_name === match.team1_name;
     const won = isTeam1 ? mm.team1_score > mm.team2_score : mm.team2_score > mm.team1_score;

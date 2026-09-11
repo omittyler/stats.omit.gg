@@ -13,27 +13,45 @@ import PlayerStatsEventsTabs from '@/components/PlayerStatsEventsTabs';
 import { TeamBadge } from '@/components/TeamBadge';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
+import { GAMES, parseGameSlug } from '@/lib/season';
+import { GameFilterLinks } from '@/components/GameFilterLinks';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ name: string }> }) {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ name: string }>;
+  searchParams: Promise<{ game?: string }>;
+}) {
   const { name: rawName } = await params;
   const playerName = decodeURIComponent(rawName);
-  const { playerStandings } = await computeStandings();
+  const game = parseGameSlug((await searchParams).game);
+  const { playerStandings } = await computeStandings(undefined, game);
   const standing = playerStandings.find((p) => p.name === playerName);
   if (!standing) return { title: `${playerName} — stats.omit.gg` };
   return {
     title: `${playerName} — stats.omit.gg`,
-    description: `${playerName} (${standing.currentTeam}) — ${standing.points.toLocaleString()} CDC points this Black Ops 7 (BO7) season.`,
+    description: `${playerName} (${standing.currentTeam}) — ${standing.points.toLocaleString()} CDC points this ${game} season.`,
   };
 }
 
-export default async function PlayerPage({ params }: { params: Promise<{ name: string }> }) {
+export default async function PlayerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ name: string }>;
+  searchParams: Promise<{ game?: string }>;
+}) {
   const { name: rawName } = await params;
   const playerName = decodeURIComponent(rawName);
+  const { game: gameSlug } = await searchParams;
+  const game = parseGameSlug(gameSlug);
+  const gameInfo = GAMES.find((g) => g.value === game)!;
 
-  const placements = await getEnrichedPlacements();
-  const { playerStandings } = await computeStandings(placements);
+  const placements = await getEnrichedPlacements(game);
+  const { playerStandings } = await computeStandings(placements, game);
   const standing = playerStandings.find((p) => p.name === playerName);
 
   const history = placements
@@ -42,10 +60,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
 
   const statsMap = await getPlayerEventStatsSummaries(playerName);
   const statsByEvent = Object.fromEntries(statsMap);
-  const seasonStats = await getPlayerSeasonStats(playerName);
+  // getPlayerSeasonStats is sourced from the separate, still BO7-only stats
+  // pipeline (lib/statLeaderboards.ts) - only fetched for the Black Ops 7
+  // view, so MW4 shows the tab's existing "no stats available" fallback
+  // instead of a stale/mislabeled BO7 season stats box (PROJECT.md).
+  const seasonStats = game === 'Black Ops 7' ? await getPlayerSeasonStats(playerName) : null;
   const logos = await getTeamLogos();
   const details = await getPlayerDetails(playerName);
-  const recentMatches = await getPlayerMatches(playerName, 10);
+  const recentMatches = await getPlayerMatches(playerName, 10, game);
 
   // Player page shows the full team prize for each event the player was on,
   // not their 25% split share - confirmed by user 2026-08-31, specifically
@@ -81,7 +103,20 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
     .map((v, i) => (v != null ? { label: chronological[i].eventName, value: v, formatted: v.toFixed(2) } : null))
     .filter((p): p is { label: string; value: number; formatted: string } => p !== null);
 
-  if (!standing) {
+  // A player with no record for THIS game (e.g. a BO7 player viewed with
+  // ?game=mw4) isn't necessarily nonexistent - their bio/photo/socials
+  // (`details`, fetched above) are the same person either way, so the hero
+  // still renders below with a placeholder in place of the season content.
+  // Only a player missing from EVERY game gets the "not found" treatment.
+  const existsInThisGame = Boolean(standing);
+  let existsInAnyGame = existsInThisGame;
+  if (!existsInThisGame) {
+    const otherGame = GAMES.find((g) => g.value !== game)!;
+    const otherGamePlacements = await getEnrichedPlacements(otherGame.value);
+    existsInAnyGame = otherGamePlacements.some((p) => p.players.includes(playerName));
+  }
+
+  if (!existsInAnyGame) {
     return (
       <main className="container">
         <p>Player &ldquo;{playerName}&rdquo; not found.</p>
@@ -90,7 +125,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
     );
   }
 
-  const isCdlPlayer = OFFICIAL_CDL_TEAMS.has(standing.currentTeam);
+  const isCdlPlayer = standing ? OFFICIAL_CDL_TEAMS.has(standing.currentTeam) : false;
 
   return (
     <main className="container">
@@ -116,9 +151,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
               {[details?.fullName, details?.origin].filter(Boolean).join(' — ')}
             </p>
           )}
-          <div className="entity-hero-team">
-            <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
-          </div>
+          {standing && (
+            <div className="entity-hero-team">
+              <TeamBadge name={standing.currentTeam} logoFilename={logos[standing.currentTeam]} />
+            </div>
+          )}
           {(details?.twitterUrl || details?.twitchUrl) && (
             <div className="entity-hero-links">
               {details?.twitterUrl && (
@@ -140,53 +177,65 @@ export default async function PlayerPage({ params }: { params: Promise<{ name: s
         </div>
       </div>
 
-      <div className="stat-card-row">
-        <div className="stat-card">
-          <div className="stat-card-label">Season Points</div>
-          <div className="stat-card-value">{standing.points.toLocaleString()}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Season Earnings</div>
-          <div className="stat-card-value">{formatUsd(totalEarnings)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Best Finish</div>
-          {bestFinish ? (
-            <>
-              <div className="stat-card-value">
-                {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
-              </div>
-              <div className="stat-card-sub">
-                {bestFinish.eventName} ({bestFinish.teamName})
-              </div>
-            </>
-          ) : (
-            <div className="stat-card-value">—</div>
-          )}
-        </div>
-      </div>
+      <GameFilterLinks basePath={`/players/${encodeURIComponent(playerName)}`} selected={game} />
 
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Season Trend</h2>
-        <p className="note">Hover a point for details. K/D and Slayer Rating only cover events with stats data.</p>
-        <TrendChart
-          series={[
-            { key: 'points', label: 'CDC Points', data: pointsSeries },
-            { key: 'kd', label: 'K/D', data: kdSeries },
-            { key: 'slayer', label: 'Slayer Rating', data: slayerSeries },
-          ]}
-        />
-      </div>
+      {!existsInThisGame && (
+        <div className="card">
+          <p className="note">No {gameInfo.label} record for this player yet.</p>
+        </div>
+      )}
 
-      <div className="card">
-        <PlayerStatsEventsTabs
-          seasonStats={seasonStats}
-          history={history}
-          statsByEvent={statsByEvent}
-          logos={logos}
-          recentMatches={recentMatches}
-        />
-      </div>
+      {existsInThisGame && standing && (
+        <>
+          <div className="stat-card-row">
+            <div className="stat-card">
+              <div className="stat-card-label">Season Points</div>
+              <div className="stat-card-value">{standing.points.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Season Earnings</div>
+              <div className="stat-card-value">{formatUsd(totalEarnings)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Best Finish</div>
+              {bestFinish ? (
+                <>
+                  <div className="stat-card-value">
+                    {formatPlacementOrdinal(bestFinish.placementMin, bestFinish.placementMax)}
+                  </div>
+                  <div className="stat-card-sub">
+                    {bestFinish.eventName} ({bestFinish.teamName})
+                  </div>
+                </>
+              ) : (
+                <div className="stat-card-value">—</div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 style={{ marginTop: 0 }}>Season Trend</h2>
+            <p className="note">Hover a point for details. K/D and Slayer Rating only cover events with stats data.</p>
+            <TrendChart
+              series={[
+                { key: 'points', label: 'CDC Points', data: pointsSeries },
+                { key: 'kd', label: 'K/D', data: kdSeries },
+                { key: 'slayer', label: 'Slayer Rating', data: slayerSeries },
+              ]}
+            />
+          </div>
+
+          <div className="card">
+            <PlayerStatsEventsTabs
+              seasonStats={seasonStats}
+              history={history}
+              statsByEvent={statsByEvent}
+              logos={logos}
+              recentMatches={recentMatches}
+            />
+          </div>
+        </>
+      )}
     </main>
   );
 }
