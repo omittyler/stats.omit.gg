@@ -109,6 +109,12 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
 
   const { groups, playoffs } = bracket;
 
+  // One grid like the official bracket: winners rounds on top, losers rounds
+  // below, the Winners Final in the same column as the Losers Final, and the
+  // Grand Final alone in the last column on the right.
+  const lowerCols = Math.max(playoffs.lower.length, playoffs.upper.length);
+  const upperCol = (i: number) => (i === playoffs.upper.length - 1 ? lowerCols : i + 1);
+
   return (
     <main className="container container-wide">
       <p>
@@ -135,34 +141,36 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
       )}
 
       <div className="card bracket-card">
-        <div className="bracket-side">
-          <h3>Winners Bracket</h3>
-          <div className="bracket">
-            {playoffs.upper.map((round, i) => (
-              <Column key={i} label={roundLabel('Winners', i, playoffs.upper.length)}>
+        <div className="bracket-grid" style={{ '--bracket-cols': lowerCols + playoffs.grandFinal.length } as React.CSSProperties}>
+          {playoffs.upper.map((round, i) => (
+            <div key={`u${i}`} className="bracket-cell" style={{ gridColumn: upperCol(i), gridRow: 1 }}>
+              <Column label={roundLabel('Winners', i, playoffs.upper.length)}>
                 {round.map((m) => (
                   <MatchCard key={m.seriesLabel} match={m} logos={logos} />
                 ))}
               </Column>
-            ))}
-            {playoffs.grandFinal.map((m, i) => (
-              <Column key={m.seriesLabel} label={i === 0 ? 'Grand Final' : 'Bracket Reset'}>
+            </div>
+          ))}
+          {playoffs.lower.map((round, i) => (
+            <div key={`l${i}`} className="bracket-cell" style={{ gridColumn: i + 1, gridRow: 2 }}>
+              <Column label={roundLabel('Losers', i, playoffs.lower.length)}>
+                {round.map((m) => (
+                  <MatchCard key={m.seriesLabel} match={m} logos={logos} />
+                ))}
+              </Column>
+            </div>
+          ))}
+          {playoffs.grandFinal.map((m, i) => (
+            <div
+              key={m.seriesLabel}
+              className="bracket-cell bracket-cell-final"
+              style={{ gridColumn: lowerCols + i + 1, gridRow: '1 / span 2' }}
+            >
+              <Column label={i === 0 ? 'Grand Final' : 'Bracket Reset'}>
                 <MatchCard match={m} logos={logos} />
               </Column>
-            ))}
-          </div>
-        </div>
-        <div className="bracket-side">
-          <h3>Losers Bracket</h3>
-          <div className="bracket">
-            {playoffs.lower.map((round, i) => (
-              <Column key={i} label={roundLabel('Losers', i, playoffs.lower.length)}>
-                {round.map((m) => (
-                  <MatchCard key={m.seriesLabel} match={m} logos={logos} />
-                ))}
-              </Column>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </main>

@@ -1929,3 +1929,26 @@ th.sortable:hover {
   color: var(--text);
   font-weight: 700;
 }
+.bracket-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--bracket-cols), minmax(180px, 1fr));
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  row-gap: 28px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.bracket-cell {
+  display: flex;
+  min-width: 0;
+}
+
+.bracket-cell .bracket-round {
+  flex: 1;
+  min-width: 0;
+}
+
+.bracket-cell-final {
+  align-self: center;
+}
