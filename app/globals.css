@@ -358,7 +358,22 @@ a:hover {
   width: 300px;
 }
 
-@media (max-width: 640px) {
+/* Laptop widths: 7 nav links + a 300px search overflow the header and give
+   every page a sideways scrollbar, so the search shrinks instead (below
+   900px the nav collapses into the menu button). */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .site-search {
+    flex: 1 1 160px;
+    width: auto;
+    min-width: 120px;
+  }
+
+  .site-header nav.site-nav {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) {
   .site-header .container {
     flex-wrap: wrap;
   }
@@ -405,7 +420,7 @@ a:hover {
   }
 
   .site-header nav.site-nav.open {
-    max-height: 260px;
+    max-height: 400px;
     opacity: 1;
     margin-top: 10px;
   }
@@ -1569,4 +1584,422 @@ th.sortable:hover {
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
+}
+
+/* /events list + /events/[name] detail (added 2026-09-28). */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.event-card {
+  display: flex;
+  gap: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.event-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.event-card-logo {
+  flex: 0 0 72px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.event-card-logo img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.event-card-logo span {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.event-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-card h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.event-card .note {
+  font-size: 0.8rem;
+  margin: 0 0 8px;
+}
+
+.event-card ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.event-card li {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.event-card .placement {
+  color: var(--text-muted);
+  font-weight: 700;
+  min-width: 2.5em;
+  flex-shrink: 0;
+}
+
+.event-card .team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.event-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.event-hero h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.event-hero-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-scroll table {
+  min-width: 560px;
+}
+
+@media (min-width: 641px) {
+  .stat-card-row.stat-card-row-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.event-matches-table td {
+  width: 42%;
+}
+
+.event-matches-table td.event-match-score {
+  width: 16%;
+  text-align: center;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.event-matches-table td.event-match-winner .match-opponent {
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .event-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .event-hero-logo {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* View Bracket button + /events/[name]/bracket (added 2026-09-28). */
+.event-card {
+  position: relative;
+}
+
+.event-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.event-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+
+.bracket-button {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.bracket-button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* All groups side by side in one row; stacks on narrow screens. */
+.bracket-groups {
+  display: grid;
+  grid-template-columns: repeat(var(--group-count, 4), minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bracket-group h3 {
+  margin-top: 0;
+}
+
+.bracket-groups .bracket-group {
+  padding: 14px 8px;
+  margin: 0;
+}
+
+.bracket-group table {
+  font-size: 0.78rem;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.bracket-group th:not(:first-child) {
+  width: 4.4em;
+}
+
+.bracket-group th:not(:first-child),
+.bracket-group td:not(:first-child) {
+  padding-left: 2px;
+  padding-right: 4px;
+}
+
+.bracket-group td:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-group .match-opponent {
+  display: inline;
+}
+
+.bracket-group .match-opponent img {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.bracket-group th,
+.bracket-group td {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+@media (max-width: 900px) {
+  .bracket-groups {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  }
+}
+
+.bracket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bracket-side h3 {
+  margin: 0 0 10px;
+}
+
+.bracket {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 210px;
+}
+
+.bracket-round-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.bracket-round-matches {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.bracket-match {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.bracket-match:hover {
+  border-color: var(--accent);
+}
+
+.bracket-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.bracket-team + .bracket-team {
+  border-top: 1px solid var(--border);
+}
+
+.bracket-team img {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.bracket-team-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-team-score {
+  font-weight: 700;
+}
+
+.bracket-team-win {
+  color: var(--text);
+  font-weight: 700;
+}
+.bracket-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--bracket-cols), minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  row-gap: 28px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.bracket-cell {
+  display: flex;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.bracket-cell .bracket-round {
+  flex: 1;
+  min-width: 0;
+}
+
+.bracket-cell-final {
+  align-self: center;
+}
+
+/* Fits the card without sideways scrolling; boxes tighten up as the page
+   narrows, and only phones (too narrow for 5 columns) scroll. */
+@media (max-width: 1100px) {
+  .bracket-grid {
+    column-gap: 10px;
+  }
+  .bracket-grid .bracket-team {
+    padding: 5px 6px;
+    gap: 5px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .bracket-grid {
+    grid-template-columns: repeat(var(--bracket-cols), 150px);
+  }
+}
+.bracket-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bracket-connectors path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
 }
