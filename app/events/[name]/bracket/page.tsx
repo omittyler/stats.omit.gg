@@ -20,14 +20,13 @@ export async function generateMetadata({ params, searchParams }: Props) {
 
 type Logos = Record<string, string>;
 
-function MatchCard({ match, logos, label }: { match: BracketMatch; logos: Logos; label?: string }) {
+function MatchCard({ match, logos }: { match: BracketMatch; logos: Logos }) {
   const rows = [
     { name: match.team1Name, score: match.team1Score },
     { name: match.team2Name, score: match.team2Score },
   ];
   return (
     <div className="bracket-slot">
-      {label && <div className="bracket-match-label">{label}</div>}
       <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
         {rows.map((r) => (
           <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
@@ -55,29 +54,38 @@ function roundLabel(side: 'Winners' | 'Losers', index: number, total: number) {
   return index === total - 1 ? `${side} Final` : `${side} Round ${index + 1}`;
 }
 
-// A 4-team double-elim group, laid out like the official one: round 1 (the
-// two openers, then the losers' match) and round 2 (the winners' match and
-// the decider - both "Qualification Match").
-function GroupBracket({ group, logos }: { group: Group; logos: Logos }) {
-  const { upper, lower } = group.bracket;
+function GroupCard({ group, logos }: { group: Group; logos: Logos }) {
   return (
     <div className="card bracket-group">
       <h3>{group.name}</h3>
-      <div className="bracket">
-        <Column label="Round 1">
-          {(upper[0] ?? []).map((m) => (
-            <MatchCard key={m.seriesLabel} match={m} logos={logos} />
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th style={{ textAlign: 'right' }}>Series</th>
+            <th style={{ textAlign: 'right' }}>Maps</th>
+          </tr>
+        </thead>
+        <tbody>
+          {group.standings.map((s) => (
+            <tr key={s.teamName}>
+              <td>
+                <Link href={`/teams/${encodeURIComponent(s.teamName)}`} className="match-opponent">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/teams/${logos[s.teamName] ?? 'Default.png'}`} alt="" width={18} height={18} />
+                  {s.teamName}
+                </Link>
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                {s.seriesWon}-{s.seriesLost}
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                {s.mapsWon}-{s.mapsLost}
+              </td>
+            </tr>
           ))}
-          {(lower[0] ?? []).map((m) => (
-            <MatchCard key={m.seriesLabel} match={m} logos={logos} label="Losers' Bracket" />
-          ))}
-        </Column>
-        <Column label="Round 2">
-          {[...(upper[1] ?? []), ...(lower[1] ?? [])].map((m) => (
-            <MatchCard key={m.seriesLabel} match={m} logos={logos} label="Qualification Match" />
-          ))}
-        </Column>
-      </div>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -119,7 +127,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
           <h2>Group Stage</h2>
           <div className="bracket-groups">
             {groups.map((g) => (
-              <GroupBracket key={g.name} group={g} logos={logos} />
+              <GroupCard key={g.name} group={g} logos={logos} />
             ))}
           </div>
           <h2>Bracket Stage</h2>

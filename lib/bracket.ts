@@ -17,7 +17,8 @@ export type DoubleElimBracket = {
   complete: boolean;
 };
 
-export type Group = { name: string; bracket: DoubleElimBracket };
+export type GroupStanding = { teamName: string; seriesWon: number; seriesLost: number; mapsWon: number; mapsLost: number };
+export type Group = { name: string; standings: GroupStanding[] };
 
 export type EventBracket = {
   groups: Group[];
@@ -27,7 +28,7 @@ export type EventBracket = {
 type BracketFormat = {
   /** Series in the final bracket stage - always the event's last N series. */
   playoffSeries: number;
-  /** Earlier series are 4-team double-elimination (GSL) groups: 2 openers, winners' + losers' match, decider. */
+  /** Earlier series are a group stage, shown as a series/map W-L table per group. */
   gslGroups: boolean;
   /** Official series scores (team1, team2) for series whose map data is missing, from the supplied bracket. */
   scoreOverrides?: Record<string, [number, number]>;
@@ -83,10 +84,7 @@ function toBracketMatch(m: MatchListEntry, later: MatchListEntry[]): BracketMatc
  * layout (a winners-bracket loser drops in against the losers-bracket
  * survivor of the matching round).
  */
-export function buildDoubleElim(
-  matches: MatchListEntry[],
-  { grandFinal: expectGrandFinal = true }: { grandFinal?: boolean } = {}
-): DoubleElimBracket {
+export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
   const losses = new Map<string, number>();
   const upperRound = new Map<string, number>();
   const lowerRound = new Map<string, number>();
@@ -102,7 +100,7 @@ export function buildDoubleElim(
     if (l1 >= 2 || l2 >= 2 || !m.winner) complete = false;
 
     if (grandFinal.length > 0 || l1 !== l2) {
-      if (!expectGrandFinal || i < matches.length - 2) complete = false;
+      if (i < matches.length - 2) complete = false;
       grandFinal.push(m);
     } else if (l1 === 0) {
       const round = Math.max(upperRound.get(m.team1Name) ?? 0, upperRound.get(m.team2Name) ?? 0) + 1;
@@ -122,7 +120,7 @@ export function buildDoubleElim(
     }
   });
 
-  if (expectGrandFinal && grandFinal.length === 0) complete = false;
+  if (grandFinal.length === 0) complete = false;
   return { upper, lower, grandFinal, complete };
 }
 
@@ -148,6 +146,38 @@ function splitGroups(matches: MatchListEntry[]): MatchListEntry[][] {
   return [...byRoot.values()];
 }
 
+/** Series and map W-L per team, best record first (series, then map difference). */
+function groupStandings(matches: MatchListEntry[]): GroupStanding[] {
+  const table = new Map<string, GroupStanding>();
+  const row = (team: string) => {
+    if (!table.has(team)) table.set(team, { teamName: team, seriesWon: 0, seriesLost: 0, mapsWon: 0, mapsLost: 0 });
+    return table.get(team)!;
+  };
+  matches.forEach((raw, i) => {
+    const m = toBracketMatch(raw, matches.slice(i + 1));
+    const r1 = row(m.team1Name);
+    const r2 = row(m.team2Name);
+    r1.mapsWon += m.team1Score;
+    r1.mapsLost += m.team2Score;
+    r2.mapsWon += m.team2Score;
+    r2.mapsLost += m.team1Score;
+    if (m.winner === m.team1Name) {
+      r1.seriesWon++;
+      r2.seriesLost++;
+    } else if (m.winner === m.team2Name) {
+      r2.seriesWon++;
+      r1.seriesLost++;
+    }
+  });
+  return [...table.values()].sort(
+    (a, b) =>
+      b.seriesWon - a.seriesWon ||
+      a.seriesLost - b.seriesLost ||
+      b.mapsWon - b.mapsLost - (a.mapsWon - a.mapsLost) ||
+      a.teamName.localeCompare(b.teamName)
+  );
+}
+
 /** null when the event has no supplied bracket (see SUPPLIED_BRACKETS). */
 export function buildEventBracket(
   event: { eventName: string; region: string },
@@ -168,7 +198,7 @@ export function buildEventBracket(
   const groups = format.gslGroups
     ? splitGroups(groupMatches).map((g, i) => ({
         name: `Group ${String.fromCharCode(65 + i)}`,
-        bracket: buildDoubleElim(g, { grandFinal: false }),
+        standings: groupStandings(g),
       }))
     : [];
 
