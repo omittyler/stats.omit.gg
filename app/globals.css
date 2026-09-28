@@ -1781,14 +1781,63 @@ th.sortable:hover {
   color: #fff;
 }
 
+/* All groups side by side in one row; stacks on narrow screens. */
 .bracket-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(var(--group-count, 4), minmax(0, 1fr));
+  gap: 10px;
 }
 
 .bracket-group h3 {
   margin-top: 0;
+}
+
+.bracket-groups .bracket-group {
+  padding: 14px 8px;
+  margin: 0;
+}
+
+.bracket-group table {
+  font-size: 0.78rem;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.bracket-group th:not(:first-child) {
+  width: 4.4em;
+}
+
+.bracket-group th:not(:first-child),
+.bracket-group td:not(:first-child) {
+  padding-left: 2px;
+  padding-right: 4px;
+}
+
+.bracket-group td:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-group .match-opponent {
+  display: inline;
+}
+
+.bracket-group .match-opponent img {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.bracket-group th,
+.bracket-group td {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+@media (max-width: 900px) {
+  .bracket-groups {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  }
 }
 
 .bracket-card {

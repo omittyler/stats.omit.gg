@@ -70,7 +70,7 @@ function GroupCard({ group, logos }: { group: Group; logos: Logos }) {
           {group.standings.map((s) => (
             <tr key={s.teamName}>
               <td>
-                <Link href={`/teams/${encodeURIComponent(s.teamName)}`} className="match-opponent">
+                <Link href={`/teams/${encodeURIComponent(s.teamName)}`} className="match-opponent" title={s.teamName}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/teams/${logos[s.teamName] ?? 'Default.png'}`} alt="" width={18} height={18} />
                   {s.teamName}
@@ -125,7 +125,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
       {groups.length > 0 && (
         <>
           <h2>Group Stage</h2>
-          <div className="bracket-groups">
+          <div className="bracket-groups" style={{ '--group-count': groups.length } as React.CSSProperties}>
             {groups.map((g) => (
               <GroupCard key={g.name} group={g} logos={logos} />
             ))}
