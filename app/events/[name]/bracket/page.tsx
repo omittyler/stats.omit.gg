@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getEventDetail, eventHref } from '@/lib/events';
 import { buildEventBracket, type BracketMatch, type Group } from '@/lib/bracket';
 import { getTeamLogos } from '@/lib/standings';
+import { getEventLogo } from '@/lib/matches';
 import { formatEventNameForEventsList } from '@/lib/format';
 import { parseGameSlug } from '@/lib/season';
 import { BracketConnectors } from '@/components/BracketConnectors';
@@ -109,6 +110,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
   }
 
   const { groups, playoffs } = bracket;
+  const eventLogo = getEventLogo(event.eventName);
 
   // One grid like the official bracket: winners rounds on top, losers rounds
   // below, the Winners Final in the same column as the Losers Final, and the
@@ -121,12 +123,18 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
       <p>
         <Link href={eventHref(event, game)}>&larr; Back to event</Link>
       </p>
-      <div className="page-hero">
-        <h1>
-          {formatEventNameForEventsList(event.eventName)} Bracket
-          {event.region && <span className="region-tag"> {event.region}</span>}
-        </h1>
-        <p className="note">Click any match for its full map-by-map stats.</p>
+      <div className="page-hero event-hero">
+        {eventLogo && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img className="event-hero-logo" src={`/events/${eventLogo}`} alt="" />
+        )}
+        <div>
+          <h1>
+            {formatEventNameForEventsList(event.eventName)} Bracket
+            {event.region && <span className="region-tag">{event.region}</span>}
+          </h1>
+          <p className="note">Click any match for its full map-by-map stats.</p>
+        </div>
       </div>
 
       {groups.length > 0 && (
