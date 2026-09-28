@@ -358,7 +358,22 @@ a:hover {
   width: 300px;
 }
 
-@media (max-width: 640px) {
+/* Laptop widths: 7 nav links + a 300px search overflow the header and give
+   every page a sideways scrollbar, so the search shrinks instead (below
+   900px the nav collapses into the menu button). */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .site-search {
+    flex: 1 1 160px;
+    width: auto;
+    min-width: 120px;
+  }
+
+  .site-header nav.site-nav {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) {
   .site-header .container {
     flex-wrap: wrap;
   }
@@ -405,7 +420,7 @@ a:hover {
   }
 
   .site-header nav.site-nav.open {
-    max-height: 260px;
+    max-height: 400px;
     opacity: 1;
     margin-top: 10px;
   }
@@ -1931,7 +1946,7 @@ th.sortable:hover {
 }
 .bracket-grid {
   display: grid;
-  grid-template-columns: repeat(var(--bracket-cols), minmax(180px, 1fr));
+  grid-template-columns: repeat(var(--bracket-cols), minmax(0, 1fr));
   grid-template-rows: auto auto;
   column-gap: 16px;
   row-gap: 28px;
@@ -1951,4 +1966,23 @@ th.sortable:hover {
 
 .bracket-cell-final {
   align-self: center;
+}
+
+/* Fits the card without sideways scrolling; boxes tighten up as the page
+   narrows, and only phones (too narrow for 5 columns) scroll. */
+@media (max-width: 1100px) {
+  .bracket-grid {
+    column-gap: 10px;
+  }
+  .bracket-grid .bracket-team {
+    padding: 5px 6px;
+    gap: 5px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .bracket-grid {
+    grid-template-columns: repeat(var(--bracket-cols), 150px);
+  }
 }
