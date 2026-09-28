@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getEvents, eventHref, bracketHref, type EventSummary } from '@/lib/events';
+import { hasBracket } from '@/lib/bracket';
 import { getEventLogo } from '@/lib/matches';
 import { formatEventNameForEventsList, formatFullDate, formatPlacementOrdinal, formatUsd } from '@/lib/format';
 import { GAMES, parseGameSlug, type GameValue } from '@/lib/season';
@@ -56,7 +57,7 @@ function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
           {event.matchCount > 0 && <span>{event.matchCount} {event.matchCount === 1 ? 'match' : 'matches'}</span>}
           {event.totalPrize > 0 && <span>{formatUsd(event.totalPrize)}</span>}
         </div>
-        {event.matchCount > 0 && (
+        {hasBracket(event) && (
           <Link href={bracketHref(event, game)} className="bracket-button">
             View Bracket
           </Link>

@@ -10,27 +10,47 @@ export type BracketMatch = {
 };
 
 export type DoubleElimBracket = {
-  upper: BracketMatch[][]; // upper[0] = upper round 1
-  lower: BracketMatch[][];
+  upper: BracketMatch[][]; // upper[0] = winners round 1
+  lower: BracketMatch[][]; // lower[0] = losers round 1
   grandFinal: BracketMatch[]; // 2 entries when there was a bracket reset
-  /** False when the tracked matches don't form a clean double-elimination bracket (missing series). */
+  /** False when the tracked series don't form a clean double-elimination bracket. */
   complete: boolean;
 };
 
-export type GroupStanding = { teamName: string; seriesWon: number; seriesLost: number; mapsWon: number; mapsLost: number };
-export type Group = { name: string; standings: GroupStanding[]; matches: BracketMatch[] };
+export type Group = { name: string; bracket: DoubleElimBracket };
 
 export type EventBracket = {
   groups: Group[];
-  playoffs: DoubleElimBracket | null;
+  playoffs: DoubleElimBracket;
 };
 
-// Every tracked playoff in the data is an 8-team double-elimination bracket:
-// 4 + 2 + 1 upper, 2 + 2 + 1 + 1 lower, 1 grand final = 14 series
-// (data/reference/match_format_rules.md). Elite and Champs play a group
-// stage first - round-robin groups of 6 for Elite, 4-team groups for Champs -
-// and the last 14 series of the event are the playoff.
-const PLAYOFF_SERIES = 14;
+type BracketFormat = {
+  /** Series in the final bracket stage - always the event's last N series. */
+  playoffSeries: number;
+  /** Earlier series are 4-team double-elimination (GSL) groups: 2 openers, winners' + losers' match, decider. */
+  gslGroups: boolean;
+  /** Official series scores (team1, team2) for series whose map data is missing, from the supplied bracket. */
+  scoreOverrides?: Record<string, [number, number]>;
+};
+
+// Only events the user has supplied an official bracket for get a View
+// Bracket button (per user 2026-09-28) - every other event's tracked
+// matches are partial or don't line up, so a drawn bracket would be a guess.
+// Keyed `${eventName}|${region}`. Champs (screenshots supplied 2026-09-28):
+// 4 GSL groups of 4 (20 series) then an 8-team double-elim bracket stage
+// (14 series); every series was checked against those screenshots.
+const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
+  '2026 Champs - Challengers Finals|': {
+    playoffSeries: 14,
+    gslGroups: true,
+    // Decimate Gaming vs Treaty 1 Gaming (Group C losers' match) has no map data.
+    scoreOverrides: { SR742: [0, 3] },
+  },
+};
+
+export function hasBracket(event: { eventName: string; region: string }): boolean {
+  return `${event.eventName}|${event.region}` in SUPPLIED_BRACKETS;
+}
 
 function toBracketMatch(m: MatchListEntry, later: MatchListEntry[]): BracketMatch {
   let winner: string | null = null;
@@ -57,13 +77,16 @@ function toBracketMatch(m: MatchListEntry, later: MatchListEntry[]): BracketMatc
 /**
  * Rebuilds a double-elimination bracket from series in play order. The data
  * has no round column, so each series is placed by its teams' records going
- * in: both unbeaten = upper bracket, both with one loss = lower bracket, one
- * of each = grand final. Round number = one past the latest round either
+ * in: both unbeaten = winners bracket, both with one loss = losers bracket,
+ * one of each = grand final. Round number = one past the latest round either
  * team has already played on that side, which reproduces the standard
- * layout (e.g. an upper-bracket loser drops in against the lower-bracket
+ * layout (a winners-bracket loser drops in against the losers-bracket
  * survivor of the matching round).
  */
-export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
+export function buildDoubleElim(
+  matches: MatchListEntry[],
+  { grandFinal: expectGrandFinal = true }: { grandFinal?: boolean } = {}
+): DoubleElimBracket {
   const losses = new Map<string, number>();
   const upperRound = new Map<string, number>();
   const lowerRound = new Map<string, number>();
@@ -79,9 +102,7 @@ export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
     if (l1 >= 2 || l2 >= 2 || !m.winner) complete = false;
 
     if (grandFinal.length > 0 || l1 !== l2) {
-      // Only the grand final (and its reset) should mix an unbeaten team
-      // with a one-loss team; anywhere earlier means series are missing.
-      if (i < matches.length - 2) complete = false;
+      if (!expectGrandFinal || i < matches.length - 2) complete = false;
       grandFinal.push(m);
     } else if (l1 === 0) {
       const round = Math.max(upperRound.get(m.team1Name) ?? 0, upperRound.get(m.team2Name) ?? 0) + 1;
@@ -101,12 +122,12 @@ export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
     }
   });
 
-  if (grandFinal.length === 0 || upper.some((r) => !r) || lower.some((r) => !r)) complete = false;
+  if (expectGrandFinal && grandFinal.length === 0) complete = false;
   return { upper, lower, grandFinal, complete };
 }
 
-/** Splits group-stage series into groups (teams that played each other) with a W-L table for each. */
-export function buildGroups(matches: MatchListEntry[]): Group[] {
+/** Splits group-stage series into groups (teams that played each other), in order of each group's first series. */
+function splitGroups(matches: MatchListEntry[]): MatchListEntry[][] {
   const parent = new Map<string, string>();
   const find = (t: string): string => {
     if (!parent.has(t)) parent.set(t, t);
@@ -124,47 +145,32 @@ export function buildGroups(matches: MatchListEntry[]): Group[] {
     if (!byRoot.has(root)) byRoot.set(root, []);
     byRoot.get(root)!.push(m);
   }
-
-  return [...byRoot.values()].map((groupMatches, i) => {
-    const table = new Map<string, GroupStanding>();
-    const row = (team: string) => {
-      if (!table.has(team)) table.set(team, { teamName: team, seriesWon: 0, seriesLost: 0, mapsWon: 0, mapsLost: 0 });
-      return table.get(team)!;
-    };
-    const bracketMatches = groupMatches.map((m, j) => toBracketMatch(m, groupMatches.slice(j + 1)));
-    for (const m of bracketMatches) {
-      const r1 = row(m.team1Name);
-      const r2 = row(m.team2Name);
-      r1.mapsWon += m.team1Score;
-      r1.mapsLost += m.team2Score;
-      r2.mapsWon += m.team2Score;
-      r2.mapsLost += m.team1Score;
-      if (m.winner === m.team1Name) {
-        r1.seriesWon++;
-        r2.seriesLost++;
-      } else if (m.winner === m.team2Name) {
-        r2.seriesWon++;
-        r1.seriesLost++;
-      }
-    }
-    const standings = [...table.values()].sort(
-      (a, b) =>
-        b.seriesWon - a.seriesWon ||
-        a.seriesLost - b.seriesLost ||
-        b.mapsWon - b.mapsLost - (a.mapsWon - a.mapsLost) ||
-        a.teamName.localeCompare(b.teamName)
-    );
-    return { name: `Group ${String.fromCharCode(65 + i)}`, standings, matches: bracketMatches };
-  });
+  return [...byRoot.values()];
 }
 
-export function buildEventBracket(eventType: string, matches: MatchListEntry[]): EventBracket {
-  const ordered = [...matches].sort((a, b) => a.seriesLabel.localeCompare(b.seriesLabel));
-  if (!ordered.length) return { groups: [], playoffs: null };
+/** null when the event has no supplied bracket (see SUPPLIED_BRACKETS). */
+export function buildEventBracket(
+  event: { eventName: string; region: string },
+  matches: MatchListEntry[]
+): EventBracket | null {
+  const format = SUPPLIED_BRACKETS[`${event.eventName}|${event.region}`];
+  if (!format) return null;
 
-  const hasGroupStage = (eventType === 'Elite' || eventType === 'Champs') && ordered.length > PLAYOFF_SERIES;
-  const groupMatches = hasGroupStage ? ordered.slice(0, -PLAYOFF_SERIES) : [];
-  const playoffMatches = hasGroupStage ? ordered.slice(-PLAYOFF_SERIES) : ordered;
+  const ordered = [...matches]
+    .sort((a, b) => a.seriesLabel.localeCompare(b.seriesLabel))
+    .map((m) => {
+      const override = format.scoreOverrides?.[m.seriesLabel];
+      return override ? { ...m, team1Score: override[0], team2Score: override[1] } : m;
+    });
+  const groupMatches = ordered.slice(0, -format.playoffSeries);
+  const playoffMatches = ordered.slice(-format.playoffSeries);
 
-  return { groups: buildGroups(groupMatches), playoffs: buildDoubleElim(playoffMatches) };
+  const groups = format.gslGroups
+    ? splitGroups(groupMatches).map((g, i) => ({
+        name: `Group ${String.fromCharCode(65 + i)}`,
+        bracket: buildDoubleElim(g, { grandFinal: false }),
+      }))
+    : [];
+
+  return { groups, playoffs: buildDoubleElim(playoffMatches) };
 }

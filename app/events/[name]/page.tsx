@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getEventDetail, bracketHref } from '@/lib/events';
+import { hasBracket } from '@/lib/bracket';
 import { getEventLogo } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
 import { formatEventNameForEventsList, formatFullDate, formatPlacementOrdinal, formatUsd } from '@/lib/format';
@@ -72,7 +73,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           <p className="note">
             {event.eventType} · {event.eventDate ? formatFullDate(event.eventDate) : 'Date unknown'}
           </p>
-          {event.matchCount > 0 && (
+          {hasBracket(event) && (
             <Link href={bracketHref(event, game)} className="bracket-button">
               View Bracket
             </Link>
