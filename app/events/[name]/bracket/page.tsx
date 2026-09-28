@@ -4,6 +4,7 @@ import { buildEventBracket, type BracketMatch, type Group } from '@/lib/bracket'
 import { getTeamLogos } from '@/lib/standings';
 import { formatEventNameForEventsList } from '@/lib/format';
 import { parseGameSlug } from '@/lib/season';
+import { BracketConnectors } from '@/components/BracketConnectors';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ function MatchCard({ match, logos }: { match: BracketMatch; logos: Logos }) {
     { name: match.team2Name, score: match.team2Score },
   ];
   return (
-    <div className="bracket-slot">
+    <div className="bracket-slot" data-series={match.seriesLabel}>
       <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
         {rows.map((r) => (
           <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
@@ -142,6 +143,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
 
       <div className="card bracket-card">
         <div className="bracket-grid" style={{ '--bracket-cols': lowerCols + playoffs.grandFinal.length } as React.CSSProperties}>
+          <BracketConnectors edges={playoffs.edges} />
           {playoffs.upper.map((round, i) => (
             <div key={`u${i}`} className="bracket-cell" style={{ gridColumn: upperCol(i), gridRow: 1 }}>
               <Column label={roundLabel('Winners', i, playoffs.upper.length)}>

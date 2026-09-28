@@ -1945,6 +1945,7 @@ th.sortable:hover {
   font-weight: 700;
 }
 .bracket-grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--bracket-cols), minmax(0, 1fr));
   grid-template-rows: auto auto;
@@ -1957,6 +1958,8 @@ th.sortable:hover {
 .bracket-cell {
   display: flex;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .bracket-cell .bracket-round {
@@ -1985,4 +1988,18 @@ th.sortable:hover {
   .bracket-grid {
     grid-template-columns: repeat(var(--bracket-cols), 150px);
   }
+}
+.bracket-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bracket-connectors path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
 }

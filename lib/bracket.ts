@@ -13,6 +13,8 @@ export type DoubleElimBracket = {
   upper: BracketMatch[][]; // upper[0] = winners round 1
   lower: BracketMatch[][]; // lower[0] = losers round 1
   grandFinal: BracketMatch[]; // 2 entries when there was a bracket reset
+  /** [from, to] series labels: each match to the next match its winner played, for the connector lines. */
+  edges: [string, string][];
   /** False when the tracked series don't form a clean double-elimination bracket. */
   complete: boolean;
 };
@@ -121,7 +123,34 @@ export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
   });
 
   if (grandFinal.length === 0) complete = false;
-  return { upper, lower, grandFinal, complete };
+
+  const played = [...upper.flat(), ...lower.flat(), ...grandFinal].sort((a, b) =>
+    a.seriesLabel.localeCompare(b.seriesLabel)
+  );
+  const edges: [string, string][] = [];
+  played.forEach((m, i) => {
+    const next = played
+      .slice(i + 1)
+      .find((later) => m.winner && (later.team1Name === m.winner || later.team2Name === m.winner));
+    if (next) edges.push([m.seriesLabel, next.seriesLabel]);
+  });
+
+  // Order each round by where its winners go next (working back from the
+  // final round), so the connector lines don't cross - same layout as the
+  // official bracket.
+  const target = new Map(edges);
+  for (const rounds of [upper, lower]) {
+    for (let r = rounds.length - 2; r >= 0; r--) {
+      const nextRound = rounds[r + 1].map((m) => m.seriesLabel);
+      const pos = (m: BracketMatch) => {
+        const i = nextRound.indexOf(target.get(m.seriesLabel) ?? '');
+        return i === -1 ? nextRound.length : i;
+      };
+      rounds[r] = [...rounds[r]].sort((a, b) => pos(a) - pos(b));
+    }
+  }
+
+  return { upper, lower, grandFinal, edges, complete };
 }
 
 /** Splits group-stage series into groups (teams that played each other), in order of each group's first series. */
