@@ -50,6 +50,8 @@ export default async function EventPage({ params, searchParams }: Props) {
 
   const eventLogo = getEventLogo(event.eventName);
   const logoFor = (team: string) => logos[team] ?? 'Default.png';
+  // Finals and exhibitions award prize money only, no CDC points.
+  const showPoints = event.eventType !== 'Champs' && event.eventType !== 'Exhibition';
   const matches = [...event.matches].sort((a, b) => a.seriesLabel.localeCompare(b.seriesLabel));
 
   return (
@@ -101,7 +103,7 @@ export default async function EventPage({ params, searchParams }: Props) {
               <th>Place</th>
               <th>Team</th>
               <th>Roster</th>
-              <th style={{ textAlign: 'right' }}>Points</th>
+              {showPoints && <th style={{ textAlign: 'right' }}>Points</th>}
               <th style={{ textAlign: 'right' }}>Prize</th>
             </tr>
           </thead>
@@ -120,7 +122,7 @@ export default async function EventPage({ params, searchParams }: Props) {
                     </span>
                   ))}
                 </td>
-                <td style={{ textAlign: 'right' }}>{p.points.toLocaleString()}</td>
+                {showPoints && <td style={{ textAlign: 'right' }}>{p.points.toLocaleString()}</td>}
                 <td style={{ textAlign: 'right' }}>{p.prizeUsd > 0 ? formatUsd(p.prizeUsd) : '-'}</td>
               </tr>
             ))}

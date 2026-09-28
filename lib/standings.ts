@@ -67,14 +67,40 @@ export type TeamStanding = { name: string; points: number; players: string[]; re
  * independently, never blended together (see the BO7->MW4 plumbing note in
  * PROJECT.md).
  */
-export async function getEnrichedPlacements(game: string = CURRENT_GAME): Promise<EnrichedPlacement[]> {
+const PLACEMENTS_SELECT =
+  'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region, game)';
+
+// Supabase caps a single select at 1,000 rows and event_placements has more
+// than that, so a plain select silently drops the rest. Pages through in
+// 1,000-row chunks ordered by id so every row comes back exactly once.
+async function fetchAllPlacements() {
+  const PAGE = 1000;
+  const rows: unknown[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('event_placements')
+      .select(PLACEMENTS_SELECT)
+      .order('id')
+      .range(from, from + PAGE - 1);
+    if (error) return { data: null, error };
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE) break;
+  }
+  return { data: rows, error: null };
+}
+
+/**
+ * `allRows` pages past Supabase's 1,000-row select cap (see
+ * fetchAllPlacements). Only the /events pages pass it for now; every other
+ * page still gets the first 1,000 rows, as before.
+ */
+export async function getEnrichedPlacements(
+  game: string = CURRENT_GAME,
+  { allRows = false }: { allRows?: boolean } = {}
+): Promise<EnrichedPlacement[]> {
   const [{ data: placements, error: placementsError }, { data: scale, error: scaleError }] =
     await Promise.all([
-      supabase
-        .from('event_placements')
-        .select(
-          'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region, game)'
-        ),
+      allRows ? fetchAllPlacements() : supabase.from('event_placements').select(PLACEMENTS_SELECT),
       supabase
         .from('points_scale')
         .select('event_type, placement_min, placement_max, cdc_points, prize_usd, prize_usd_ap_la'),

@@ -1,6 +1,41 @@
 import { getEnrichedPlacements, type EnrichedPlacement } from './standings';
 import { getAllMatches, type MatchListEntry } from './matches';
 import { CURRENT_GAME, gameSlug, type GameValue } from './season';
+import { supabase } from './supabase';
+
+type ScaleTier = {
+  event_type: string;
+  placement_min: number;
+  placement_max: number;
+  cdc_points: number;
+  prize_usd: number | null;
+};
+
+/**
+ * Every placement this season with points/prize taken from the official
+ * tier its finish falls into (data/reference/cdc_points_and_prizing.md),
+ * matched on placementMin rather than getEnrichedPlacements' exact-range
+ * match. Some Opens record finishes in ranges the official table doesn't
+ * use (e.g. 17th-20th, 29th-36th), which the exact match scores as 0; here
+ * 17th-20th gets the 17th-24th tier, 29th-36th the 25th-32nd tier, and a
+ * finish below the last tier gets 0. Events pages only, per user
+ * 2026-09-28 - standings still use their own points source.
+ */
+async function getEventPlacements(game: string): Promise<EnrichedPlacement[]> {
+  const [placements, { data: scale, error }] = await Promise.all([
+    getEnrichedPlacements(game, { allRows: true }),
+    supabase.from('points_scale').select('event_type, placement_min, placement_max, cdc_points, prize_usd'),
+  ]);
+  if (error) throw error;
+  const tiers = (scale ?? []) as ScaleTier[];
+
+  return placements.map((p) => {
+    const tier = tiers.find(
+      (t) => t.event_type === p.eventType && t.placement_min <= p.placementMin && p.placementMin <= t.placement_max
+    );
+    return { ...p, points: tier?.cdc_points ?? 0, prizeUsd: tier ? p.prizeUsd || (tier.prize_usd ?? 0) : 0 };
+  });
+}
 
 export type EventSummary = {
   eventName: string;
@@ -59,7 +94,7 @@ function summarize(placements: EnrichedPlacement[], matchCount: number): EventSu
  * scoping), newest first. Powers the /events list page.
  */
 export async function getEvents(game: string = CURRENT_GAME): Promise<EventSummary[]> {
-  const [placements, matches] = await Promise.all([getEnrichedPlacements(game), getAllMatches()]);
+  const [placements, matches] = await Promise.all([getEventPlacements(game), getAllMatches()]);
 
   const matchCounts = new Map<string, number>();
   for (const m of matches) {
@@ -91,7 +126,7 @@ export async function getEventDetail(
   region: string,
   game: string = CURRENT_GAME
 ): Promise<EventDetail | null> {
-  const [placements, matches] = await Promise.all([getEnrichedPlacements(game), getAllMatches()]);
+  const [placements, matches] = await Promise.all([getEventPlacements(game), getAllMatches()]);
 
   const eventPlacements = placements
     .filter((p) => p.eventName === eventName && p.region === region)
