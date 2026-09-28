@@ -1,6 +1,8 @@
 import { computeStandings, getTeamLogos, getAllPlayerDetails } from '@/lib/standings';
-import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
+import { cdlTeamsForGame } from '@/lib/officialCdlTeams';
 import CdlTeamsList, { type CdlTeamEntry } from '@/components/CdlTeamsList';
+import { GAMES, parseGameSlug } from '@/lib/season';
+import { GameFilterLinks } from '@/components/GameFilterLinks';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,9 +11,17 @@ export const metadata = {
   description: 'The 12 official Call of Duty League franchises and their current Challengers-tracked roster.',
 };
 
-export default async function CdlTeamsPage() {
+export default async function CdlTeamsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ game?: string }>;
+}) {
+  const { game: gameSlug } = await searchParams;
+  const game = parseGameSlug(gameSlug);
+  const gameInfo = GAMES.find((g) => g.value === game)!;
+
   const [{ playerStandings }, logos, playerDetails] = await Promise.all([
-    computeStandings(),
+    computeStandings(undefined, game),
     getTeamLogos(),
     getAllPlayerDetails(),
   ]);
@@ -21,7 +31,7 @@ export default async function CdlTeamsPage() {
   // shows up under a CDL team once that's genuinely their most recent event
   // (e.g. picked up for the Esports World Cup), same mechanism that already
   // powers the gold "CDL Player" banner on their own page.
-  const teams: CdlTeamEntry[] = [...OFFICIAL_CDL_TEAMS]
+  const teams: CdlTeamEntry[] = cdlTeamsForGame(game)
     .sort((a, b) => a.localeCompare(b))
     .map((name) => {
       const roster = playerStandings
@@ -41,8 +51,9 @@ export default async function CdlTeamsPage() {
   return (
     <main className="container">
       <div className="page-hero">
-        <h1>CDL Teams</h1>
+        <h1>CDL Teams — {gameInfo.label}</h1>
       </div>
+      <GameFilterLinks basePath="/cdl-teams" selected={game} />
       <CdlTeamsList teams={teams} />
     </main>
   );
