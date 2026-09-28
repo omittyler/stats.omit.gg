@@ -1661,13 +1661,19 @@ th.sortable:hover {
   gap: 8px;
   padding: 2px 0;
   font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .event-card .placement {
   color: var(--text-muted);
   font-weight: 700;
-  width: 2.5em;
+  min-width: 2.5em;
   flex-shrink: 0;
+}
+
+.event-card .team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-card-meta {

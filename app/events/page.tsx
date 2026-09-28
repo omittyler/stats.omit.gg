@@ -43,7 +43,7 @@ function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
           {event.topPlacements.map((p, i) => (
             <li key={i}>
               <span className="placement">{formatPlacementOrdinal(p.placementMin, p.placementMax)}</span>
-              {p.teamName}
+              <span className="team-name">{p.teamName}</span>
             </li>
           ))}
         </ol>
