@@ -68,6 +68,10 @@ export function eventHref(event: { eventName: string; region: string }, game: Ga
   return `/events/${encodeURIComponent(event.eventName)}?${params.toString()}`;
 }
 
+export function bracketHref(event: { eventName: string; region: string }, game: GameValue) {
+  return eventHref(event, game).replace('?', '/bracket?');
+}
+
 function summarize(placements: EnrichedPlacement[], matchCount: number): EventSummary {
   const sorted = [...placements].sort((a, b) => a.placementMin - b.placementMin);
   const first = sorted[0];

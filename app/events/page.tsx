@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getEvents, eventHref, type EventSummary } from '@/lib/events';
+import { getEvents, eventHref, bracketHref, type EventSummary } from '@/lib/events';
 import { getEventLogo } from '@/lib/matches';
 import { formatEventNameForEventsList, formatFullDate, formatPlacementOrdinal, formatUsd } from '@/lib/format';
 import { GAMES, parseGameSlug, type GameValue } from '@/lib/season';
@@ -24,7 +24,9 @@ const SECTIONS = [
 function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
   const logo = getEventLogo(event.eventName);
   return (
-    <Link href={eventHref(event, game)} className="event-card">
+    // The whole card opens the event (the title link is stretched over it in
+    // CSS); View Bracket sits above that so it can be its own link.
+    <div className="event-card">
       <div className="event-card-logo">
         {logo ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -35,7 +37,9 @@ function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
       </div>
       <div className="event-card-body">
         <h3>
-          {formatEventNameForEventsList(event.eventName)}
+          <Link href={eventHref(event, game)} className="event-card-link">
+            {formatEventNameForEventsList(event.eventName)}
+          </Link>
           {event.region && <span className="region-tag">{event.region}</span>}
         </h3>
         <div className="note">{event.eventDate ? formatFullDate(event.eventDate) : 'Date unknown'}</div>
@@ -52,8 +56,13 @@ function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
           {event.matchCount > 0 && <span>{event.matchCount} {event.matchCount === 1 ? 'match' : 'matches'}</span>}
           {event.totalPrize > 0 && <span>{formatUsd(event.totalPrize)}</span>}
         </div>
+        {event.matchCount > 0 && (
+          <Link href={bracketHref(event, game)} className="bracket-button">
+            View Bracket
+          </Link>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }
 
