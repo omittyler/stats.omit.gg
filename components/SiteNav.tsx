@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/standings', label: 'Standings' },
   { href: '/players', label: 'Players' },
   { href: '/matches', label: 'Matches' },
+  { href: '/events', label: 'Events' },
   { href: '/teams', label: 'Top Teams' },
   { href: '/cdl-teams', label: 'CDL Teams' },
 ];
