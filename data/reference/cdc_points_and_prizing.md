@@ -11,8 +11,8 @@ Source: pasted directly from the user, 2026-08-26. This is the official Challeng
 | 1st | 15000 | $20,000 USD |
 | 2nd | 10000 | $10,000 USD |
 | 3rd | 7500 | $6,000 USD |
-| 4th | 5000 | $5,000 USD |
-| 5th - 6th | 4000 | $4,000 USD |
+| 4th | 5000 | $4,000 USD |
+| 5th - 6th | 4000 | $3,000 USD |
 | 7th - 8th | 3000 | $2,000 USD |
 | 9th - 10th | 2500 | $1,000 USD |
 | 11th - 12th | 2500 | $1,000 USD |
