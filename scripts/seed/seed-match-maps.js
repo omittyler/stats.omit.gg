@@ -9,6 +9,13 @@ import { supabase } from './lib/supabaseClient.js';
 
 const MATCH_STATS_DIR = 'data/incoming/bo7_match_stats';
 
+// Series whose source rows have every map's W/L and scores flipped between
+// the two teams, confirmed against the official bracket the user supplied
+// 2026-09-29. SR352 (EU Elite Stage 2, Losers Round 2): the source says For
+// Fun EU won 3-1, but Orgless won 3-1 officially - Orgless played on
+// (SR355, SR360) and placed 3rd while For Fun EU placed 5th-6th.
+const FLIPPED_SERIES = new Set(['SR352']);
+
 /**
  * confirmed-aliases.json is keyed per (file, bo7_stats_name) elsewhere in the
  * seed pipeline (seed-player-event-stats.js), but the first real run against
@@ -294,8 +301,9 @@ export async function seedMatchMaps() {
           scoreByTeam.set(resolved.teamName, p.scoreFor);
         }
       }
-      const team1Score = scoreByTeam.get(resolution.team1Name);
-      const team2Score = scoreByTeam.get(resolution.team2Name);
+      const flipped = FLIPPED_SERIES.has(series);
+      const team1Score = scoreByTeam.get(flipped ? resolution.team2Name : resolution.team1Name);
+      const team2Score = scoreByTeam.get(flipped ? resolution.team1Name : resolution.team2Name);
       if (team1Score === undefined || team2Score === undefined) {
         scorelessMaps.push({ series, mode: game.mode, map: game.map, mapNumber: game.mapNumber });
         continue;
