@@ -255,7 +255,7 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
     // Treaty 1 and NOA all differ), so the supplied tables are used.
     groupTables: [
       [
-        row('OMiT Noir', 5, 0, 15, 3),
+        row('OMiT', 5, 0, 15, 3),
         row('OMNiA Invicta', 3, 2, 12, 7),
         row('ROC Esports', 3, 2, 10, 9),
         row('Hybrid Nations', 2, 3, 9, 12),
