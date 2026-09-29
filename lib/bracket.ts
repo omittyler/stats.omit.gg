@@ -34,8 +34,12 @@ type BracketFormat = {
   groupStage: boolean;
   /** Official series scores (team1, team2) for series whose map data is missing or incomplete, from the supplied bracket. */
   scoreOverrides?: Record<string, [number, number]>;
-  /** Official finishing order per group (our team names), from supplied group tables - the official tiebreakers can't be derived from our data. */
-  groupOrder?: string[][];
+  /**
+   * Official group tables as supplied (our team names), shown instead of tables
+   * computed from our matches - our group-stage data is missing some series
+   * and maps, and the official tiebreakers can't be derived from it.
+   */
+  groupTables?: GroupStanding[][];
   /** Series labels per round, copied from the supplied bracket, when series numbers aren't in play order. */
   layout?: BracketLayout;
 };
@@ -50,6 +54,14 @@ type BracketLayout = { upper: string[][]; lower: string[][]; grandFinal: string[
 // (14 series); every series was checked against those screenshots. NA Elite
 // Stages 1-3 (screenshots supplied 2026-09-29): only the 8-team bracket
 // stage was supplied, so their round-robin group stages aren't shown.
+const row = (teamName: string, seriesWon: number, seriesLost: number, mapsWon: number, mapsLost: number): GroupStanding => ({
+  teamName,
+  seriesWon,
+  seriesLost,
+  mapsWon,
+  mapsLost,
+});
+
 const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 Champs - Challengers Finals|': {
     playoffSeries: 14,
@@ -59,13 +71,49 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   },
   '2026 NA Elite Stage 1|NA': {
     playoffSeries: 14,
-    groupStage: false,
+    groupStage: true,
+    groupTables: [
+      [
+        row('FiveFears', 3, 2, 12, 10),
+        row('Telluride Bush Gaming', 3, 2, 13, 8),
+        row('For Fun Black', 3, 2, 10, 10),
+        row('OMiT Brooklyn', 3, 2, 11, 7),
+        row('High Treason', 2, 3, 7, 10),
+        row('NexT Threat Black', 1, 4, 6, 14),
+      ],
+      [
+        row('Project Notorious', 5, 0, 15, 2),
+        row('Huntsmen', 4, 1, 12, 6),
+        row('Falcons Academy Green', 3, 2, 13, 7),
+        row('Falcons Academy White', 2, 3, 8, 11),
+        row('CABAL Gaming', 1, 4, 5, 13),
+        row('Stallions Black', 0, 5, 1, 15),
+      ],
+    ],
     // Falcons Academy White vs Huntsmen (Losers Round 1) is missing a map; official result 3-1.
     scoreOverrides: { SR142: [3, 1] },
   },
   '2026 NA Elite Stage 2|NA': {
     playoffSeries: 14,
-    groupStage: false,
+    groupStage: true,
+    groupTables: [
+      [
+        row('Telluride Bush Gaming', 4, 1, 12, 7),
+        row('OMiT Brooklyn', 4, 1, 13, 7),
+        row('Death By CABAL', 3, 2, 11, 7),
+        row('Falcons Academy Green', 3, 2, 12, 8),
+        row('CABAL Gaming', 1, 4, 6, 12),
+        row('FriesInTheBag', 0, 5, 2, 15),
+      ],
+      [
+        row('Project Notorious', 5, 0, 15, 4),
+        row('For Fun and FeLo', 3, 2, 9, 11),
+        row('For Fun Esports', 2, 3, 12, 10),
+        row('FaZe Falcons', 2, 3, 7, 11),
+        row('Stallions Black', 2, 3, 8, 11),
+        row('Huntsmen', 1, 4, 10, 14),
+      ],
+    ],
     // Series numbers aren't in play order here (OMiT Brooklyn's Losers Round 3
     // is SR358 but its Losers Round 2 is SR359), so rounds come from the
     // supplied bracket, in its order.
@@ -79,9 +127,23 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
     groupStage: true,
-    groupOrder: [
-      ['Huntsmen', 'FC Stallions', 'For Fun Esports', 'Torn Esports', 'BitterSweet', 'Team Orchid'],
-      ['Project Notorious', 'FaZe Falcons', 'OMiT Brooklyn', 'CABAL Gaming', 'Telluride Bush Gaming', 'Out The Mud'],
+    groupTables: [
+      [
+        row('Huntsmen', 5, 0, 15, 4),
+        row('FC Stallions', 3, 2, 11, 8),
+        row('For Fun Esports', 3, 2, 12, 10),
+        row('Torn Esports', 2, 3, 8, 13),
+        row('BitterSweet', 1, 4, 9, 14),
+        row('Team Orchid', 1, 4, 7, 13),
+      ],
+      [
+        row('Project Notorious', 4, 1, 14, 3),
+        row('FaZe Falcons', 3, 2, 13, 10),
+        row('OMiT Brooklyn', 3, 2, 11, 8),
+        row('CABAL Gaming', 2, 3, 8, 13),
+        row('Telluride Bush Gaming', 2, 3, 9, 11),
+        row('Out The Mud', 1, 4, 3, 13),
+      ],
     ],
   },
 };
@@ -279,14 +341,6 @@ function groupStandings(matches: MatchListEntry[]): GroupStanding[] {
   );
 }
 
-/** Re-sorts a group's table into the official order when one was supplied (matched by the group containing those teams). */
-function applyOrder(standings: GroupStanding[], groupOrder?: string[][]): GroupStanding[] {
-  const order = groupOrder?.find((o) => standings.some((s) => o.includes(s.teamName)));
-  if (!order) return standings;
-  const rank = (s: GroupStanding) => (order.includes(s.teamName) ? order.indexOf(s.teamName) : order.length);
-  return [...standings].sort((a, b) => rank(a) - rank(b));
-}
-
 /** null when the event has no supplied bracket (see SUPPLIED_BRACKETS). */
 export function buildEventBracket(
   event: { eventName: string; region: string },
@@ -301,15 +355,18 @@ export function buildEventBracket(
       const override = format.scoreOverrides?.[m.seriesLabel];
       return override ? { ...m, team1Score: override[0], team2Score: override[1] } : m;
     });
-  const groupMatches = ordered.slice(0, -format.playoffSeries);
+  const layoutSeries = new Set(format.layout ? [...format.layout.upper.flat(), ...format.layout.lower.flat(), ...format.layout.grandFinal] : []);
+  const groupMatches = format.layout
+    ? ordered.filter((m) => !layoutSeries.has(m.seriesLabel))
+    : ordered.slice(0, -format.playoffSeries);
   const playoffMatches = ordered.slice(-format.playoffSeries);
 
-  const groups = format.groupStage
-    ? splitGroups(groupMatches).map((g, i) => ({
-        name: `Group ${String.fromCharCode(65 + i)}`,
-        standings: applyOrder(groupStandings(g), format.groupOrder),
-      }))
-    : [];
+  const groupName = (i: number) => `Group ${String.fromCharCode(65 + i)}`;
+  const groups = !format.groupStage
+    ? []
+    : format.groupTables
+      ? format.groupTables.map((standings, i) => ({ name: groupName(i), standings }))
+      : splitGroups(groupMatches).map((g, i) => ({ name: groupName(i), standings: groupStandings(g) }));
 
   return { groups, playoffs: format.layout ? buildFromLayout(ordered, format.layout) : buildDoubleElim(playoffMatches) };
 }
