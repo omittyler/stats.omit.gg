@@ -70,16 +70,19 @@ export type TeamStanding = { name: string; points: number; players: string[]; re
 const PLACEMENTS_SELECT =
   'placement_min, placement_max, player1, player2, player3, player4, team_id, teams(name), events(name, type, event_date, region, game)';
 
-// Supabase caps a single select at 1,000 rows and event_placements has more
-// than that, so a plain select silently drops the rest. Pages through in
-// 1,000-row chunks ordered by id so every row comes back exactly once.
-async function fetchAllPlacements() {
+/**
+ * Every row of `table`. Supabase caps a single select at 1,000 rows and
+ * silently drops the rest - event_placements has 1,708 and was missing ~40%
+ * of results on every page until 2026-09-29 - so this pages through in
+ * 1,000-row chunks ordered by id, so every row comes back exactly once.
+ */
+async function selectAll(table: string, columns: string) {
   const PAGE = 1000;
   const rows: unknown[] = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
-      .from('event_placements')
-      .select(PLACEMENTS_SELECT)
+      .from(table)
+      .select(columns)
       .order('id')
       .range(from, from + PAGE - 1);
     if (error) return { data: null, error };
@@ -89,18 +92,10 @@ async function fetchAllPlacements() {
   return { data: rows, error: null };
 }
 
-/**
- * `allRows` pages past Supabase's 1,000-row select cap (see
- * fetchAllPlacements). Only the /events pages pass it for now; every other
- * page still gets the first 1,000 rows, as before.
- */
-export async function getEnrichedPlacements(
-  game: string = CURRENT_GAME,
-  { allRows = false }: { allRows?: boolean } = {}
-): Promise<EnrichedPlacement[]> {
+export async function getEnrichedPlacements(game: string = CURRENT_GAME): Promise<EnrichedPlacement[]> {
   const [{ data: placements, error: placementsError }, { data: scale, error: scaleError }] =
     await Promise.all([
-      allRows ? fetchAllPlacements() : supabase.from('event_placements').select(PLACEMENTS_SELECT),
+      selectAll('event_placements', PLACEMENTS_SELECT),
       supabase
         .from('points_scale')
         .select('event_type, placement_min, placement_max, cdc_points, prize_usd, prize_usd_ap_la'),
@@ -489,11 +484,11 @@ type FullPlayerEventStatsRow = { player_name: string; events: { name: string; re
 export async function getPlayerEventStatsSummaries(
   playerName: string
 ): Promise<Map<string, EventStatsSummary>> {
-  const { data, error } = await supabase
-    .from('player_event_stats')
-    .select(
-      `player_name, matches_total, matches_w, matches_l, maps_total, maps_w, maps_l, hp_maps, snd_maps, ovl_maps, ${RANKED_FIELDS.join(', ')}, events(name, region)`
-    );
+  // 988 rows today - paged so it doesn't silently truncate once it passes 1,000.
+  const { data, error } = await selectAll(
+    'player_event_stats',
+    `player_name, matches_total, matches_w, matches_l, maps_total, maps_w, maps_l, hp_maps, snd_maps, ovl_maps, ${RANKED_FIELDS.join(', ')}, events(name, region)`
+  );
 
   if (error) throw error;
 
