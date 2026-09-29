@@ -236,6 +236,82 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       ],
     ],
   },
+  '2026 EU Elite Stage 3|EU': {
+    playoffSeries: 14,
+    groupStage: true,
+    // Group B in our data is well off the official table (NAJD, Exceptional,
+    // Treaty 1 and NOA all differ), so the supplied tables are used.
+    groupTables: [
+      [
+        row('OMiT Noir', 5, 0, 15, 3),
+        row('OMNiA Invicta', 3, 2, 12, 7),
+        row('ROC Esports', 3, 2, 10, 9),
+        row('Hybrid Nations', 2, 3, 9, 12),
+        row('Team Lin', 1, 4, 5, 12),
+        row('Decimate Gaming', 1, 4, 6, 14),
+      ],
+      [
+        row('Project 7', 5, 0, 15, 2),
+        row('NAJD', 3, 2, 10, 9),
+        row('Exceptional Gaming', 2, 3, 8, 11),
+        row('Treaty 1 Gaming', 2, 3, 8, 10),
+        row('The Vicious', 2, 3, 8, 12),
+        row('NOA', 1, 4, 8, 13),
+      ],
+    ],
+  },
+  // No series tracked for EU Stage 4 either - results from the supplied
+  // bracket. LTL / LewTee's Lads = "Orgless (EU S4)" in our placings.
+  '2026 EU Elite Stage 4|EU': {
+    playoffSeries: 0,
+    groupStage: true,
+    layout: {
+      upper: [
+        [
+          ['ROC Esports', 3, 'BTD Esports', 2],
+          ['Project 7', 3, 'Exceptional Gaming', 2],
+          ['OMiT', 3, 'Team France', 0],
+          ['ASK Esport', 3, 'Orgless (EU S4)', 0],
+        ],
+        [
+          ['ROC Esports', 0, 'Project 7', 3],
+          ['OMiT', 3, 'ASK Esport', 0],
+        ],
+        [['Project 7', 3, 'OMiT', 2]],
+      ],
+      lower: [
+        [
+          ['BTD Esports', 0, 'Exceptional Gaming', 3],
+          ['Team France', 3, 'Orgless (EU S4)', 0],
+        ],
+        [
+          ['ASK Esport', 2, 'Exceptional Gaming', 3],
+          ['ROC Esports', 3, 'Team France', 2],
+        ],
+        [['Exceptional Gaming', 3, 'ROC Esports', 0]],
+        [['OMiT', 3, 'Exceptional Gaming', 0]],
+      ],
+      grandFinal: [['Project 7', 0, 'OMiT', 4]],
+    },
+    groupTables: [
+      [
+        row('ROC Esports', 4, 1, 13, 5),
+        row('ASK Esport', 4, 1, 13, 10),
+        row('Exceptional Gaming', 3, 2, 11, 11),
+        row('Team France', 2, 3, 11, 10),
+        row('The Atlas Lions', 1, 4, 6, 13),
+        row('ROC Ascension', 1, 4, 8, 13),
+      ],
+      [
+        row('OMiT', 5, 0, 15, 1),
+        row('Project 7', 3, 2, 11, 6),
+        row('Orgless (EU S4)', 3, 2, 9, 8),
+        row('BTD Esports', 2, 3, 7, 10),
+        row('Treaty 1 Gaming', 2, 3, 8, 10),
+        row('Team Lin', 0, 5, 0, 15),
+      ],
+    ],
+  },
   // Group stage tables supplied 2026-09-29 too.
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
