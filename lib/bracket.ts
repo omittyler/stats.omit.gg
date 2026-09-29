@@ -204,6 +204,38 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       ],
     ],
   },
+  '2026 EU Elite Stage 2|EU': {
+    playoffSeries: 14,
+    groupStage: true,
+    // Our data has For Fun EU beating Orgless in Losers Round 2 (SR352), but
+    // the official result is Orgless 3-1 (Orgless plays on); LR3 and the
+    // Grand Final are also a map short. With SR352 wrong the rounds can't be
+    // inferred, so they're laid out from the supplied bracket.
+    scoreOverrides: { SR352: [1, 3], SR355: [2, 3], SR362: [4, 1] },
+    layout: {
+      upper: [['SR337', 'SR336', 'SR338', 'SR339'], ['SR342', 'SR343'], ['SR354']],
+      lower: [['SR340', 'SR341'], ['SR352', 'SR353'], ['SR355'], ['SR360']],
+      grandFinal: ['SR362'],
+    },
+    groupTables: [
+      [
+        row('ROC Esports', 5, 0, 15, 4),
+        row('For Fun EU', 3, 2, 11, 8),
+        row('ABLE Esports', 3, 2, 10, 8),
+        row('Majin Club', 2, 3, 7, 12),
+        row('The Vicious', 1, 4, 7, 12),
+        row('R8 Esports', 1, 4, 7, 13),
+      ],
+      [
+        row('Project 7', 5, 0, 15, 3),
+        row('Orgless (EU S2)', 4, 1, 13, 7),
+        row('Decimate Gaming', 3, 2, 12, 10),
+        row('Treaty 1 Gaming', 2, 3, 9, 13),
+        row('Vitalize Esports', 1, 4, 7, 13),
+        row('Avently', 0, 5, 5, 15),
+      ],
+    ],
+  },
   // Group stage tables supplied 2026-09-29 too.
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
