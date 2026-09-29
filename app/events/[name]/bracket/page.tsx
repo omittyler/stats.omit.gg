@@ -27,18 +27,22 @@ function MatchCard({ match, logos }: { match: BracketMatch; logos: Logos }) {
     { name: match.team1Name, score: match.team1Score },
     { name: match.team2Name, score: match.team2Score },
   ];
-  return (
+  const teams = rows.map((r) => (
+    <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/teams/${logos[r.name] ?? 'Default.png'}`} alt="" width={18} height={18} />
+      <span className="bracket-team-name">{r.name}</span>
+      <span className="bracket-team-score">{r.score}</span>
+    </div>
+  ));  return (
     <div className="bracket-slot" data-series={match.seriesLabel}>
-      <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
-        {rows.map((r) => (
-          <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/teams/${logos[r.name] ?? 'Default.png'}`} alt="" width={18} height={18} />
-            <span className="bracket-team-name">{r.name}</span>
-            <span className="bracket-team-score">{r.score}</span>
-          </div>
-        ))}
-      </Link>
+      {match.linked ? (
+        <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
+          {teams}
+        </Link>
+      ) : (
+        <div className="bracket-match">{teams}</div>
+      )}
     </div>
   );
 }
@@ -50,6 +54,11 @@ function Column({ label, children }: { label: string; children: React.ReactNode 
       <div className="bracket-round-matches">{children}</div>
     </div>
   );
+}
+
+function singleElimLabel(index: number, total: number) {
+  const fromEnd = total - 1 - index;
+  return ['Final', 'Semifinals', 'Quarterfinals'][fromEnd] ?? `Round ${index + 1}`;
 }
 
 function roundLabel(side: 'Winners' | 'Losers', index: number, total: number) {
@@ -133,7 +142,11 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
             {formatEventNameForEventsList(event.eventName)} Bracket
             {event.region && <span className="region-tag">{event.region}</span>}
           </h1>
-          <p className="note">Click any match for its full map-by-map stats.</p>
+          <p className="note">
+            {playoffs.upper.flat().some((m) => m.linked)
+              ? 'Click any match for its full map-by-map stats.'
+              : 'Results from the official bracket. Map-by-map stats were not tracked for this event.'}
+          </p>
         </div>
       </div>
 
@@ -145,10 +158,33 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
               <GroupCard key={g.name} group={g} logos={logos} />
             ))}
           </div>
-          <h2>Bracket Stage</h2>
+          <h2>{playoffs.singleElim ? 'Playoffs' : 'Bracket Stage'}</h2>
         </>
       )}
 
+      {playoffs.singleElim ? (
+        <div className="card bracket-card">
+          <div className="bracket-grid" style={{ '--bracket-cols': playoffs.upper.length } as React.CSSProperties}>
+            <BracketConnectors edges={playoffs.edges} />
+            {playoffs.upper.map((round, i) => (
+              <div key={`s${i}`} className="bracket-cell" style={{ gridColumn: i + 1, gridRow: 1 }}>
+                <Column label={singleElimLabel(i, playoffs.upper.length)}>
+                  {round.map((m) => (
+                    <MatchCard key={m.seriesLabel} match={m} logos={logos} />
+                  ))}
+                </Column>
+              </div>
+            ))}
+            {playoffs.thirdPlace && (
+              <div className="bracket-cell" style={{ gridColumn: playoffs.upper.length, gridRow: 2 }}>
+                <Column label="3rd Place Match">
+                  <MatchCard match={playoffs.thirdPlace} logos={logos} />
+                </Column>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
       <div className="card bracket-card">
         <div className="bracket-grid" style={{ '--bracket-cols': lowerCols + playoffs.grandFinal.length } as React.CSSProperties}>
           <BracketConnectors edges={playoffs.edges} />
@@ -183,6 +219,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
           ))}
         </div>
       </div>
+      )}
     </main>
   );
 }

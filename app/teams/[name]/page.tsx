@@ -145,12 +145,14 @@ export default async function TeamPage({
     formatted: formatPlacementOrdinal(h.placementMin, h.placementMax),
   }));
 
+  const isCdlTeam = OFFICIAL_CDL_TEAMS.has(teamName);
+
   return (
     <main className="container">
       <Link className="back-link" href="/standings">
         &larr; Back to standings
       </Link>
-      {OFFICIAL_CDL_TEAMS.has(teamName) && <div className="cdl-banner">CDL Team</div>}
+      {isCdlTeam && <div className="cdl-banner">CDL Team</div>}
       <div className="entity-hero">
         <div className="team-hero-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -178,12 +180,16 @@ export default async function TeamPage({
 
       {existsInThisGame && (
       <>
-      <div className="stat-card-row">
-        <div className="stat-card">
-          <div className="stat-card-label">Season Points</div>
-          <div className="stat-card-value">{(standing?.points ?? 0).toLocaleString()}</div>
-          <div className="stat-card-sub">Sum of current roster</div>
-        </div>
+      {/* CDL teams don't earn Challengers points (PROJECT.md §8x), so no Season
+          Points card or placement trend for them - per user 2026-09-29. */}
+      <div className={isCdlTeam ? 'stat-card-row stat-card-row-2' : 'stat-card-row'}>
+        {!isCdlTeam && (
+          <div className="stat-card">
+            <div className="stat-card-label">Season Points</div>
+            <div className="stat-card-value">{(standing?.points ?? 0).toLocaleString()}</div>
+            <div className="stat-card-sub">Sum of current roster</div>
+          </div>
+        )}
         <div className="stat-card">
           <div className="stat-card-label">Season Prize Earnings</div>
           <div className="stat-card-value">{formatUsd(totalPrize)}</div>
@@ -203,11 +209,13 @@ export default async function TeamPage({
         </div>
       </div>
 
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Season Trend</h2>
-        <p className="note">This org&apos;s placement at each event this season. Hover a point for details.</p>
-        <TrendChart series={[{ key: 'placement', label: 'Placement', data: placementSeries }]} />
-      </div>
+      {!isCdlTeam && (
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>Season Trend</h2>
+          <p className="note">This org&apos;s placement at each event this season. Hover a point for details.</p>
+          <TrendChart series={[{ key: 'placement', label: 'Placement', data: placementSeries }]} />
+        </div>
+      )}
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Current Roster</h2>
