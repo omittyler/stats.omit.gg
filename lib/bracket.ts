@@ -34,7 +34,11 @@ type BracketFormat = {
   groupStage: boolean;
   /** Official series scores (team1, team2) for series whose map data is missing or incomplete, from the supplied bracket. */
   scoreOverrides?: Record<string, [number, number]>;
+  /** Series labels per round, copied from the supplied bracket, when series numbers aren't in play order. */
+  layout?: BracketLayout;
 };
+
+type BracketLayout = { upper: string[][]; lower: string[][]; grandFinal: string[] };
 
 // Only events the user has supplied an official bracket for get a View
 // Bracket button (per user 2026-09-28) - every other event's tracked
@@ -42,8 +46,8 @@ type BracketFormat = {
 // Keyed `${eventName}|${region}`. Champs (screenshots supplied 2026-09-28):
 // 4 GSL groups of 4 (20 series) then an 8-team double-elim bracket stage
 // (14 series); every series was checked against those screenshots. NA Elite
-// Stage 1 (screenshot supplied 2026-09-29): only the 8-team bracket stage was
-// supplied, so its round-robin group stage isn't shown.
+// Stages 1 and 2 (screenshots supplied 2026-09-29): only the 8-team bracket
+// stage was supplied, so their round-robin group stages aren't shown.
 const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 Champs - Challengers Finals|': {
     playoffSeries: 14,
@@ -56,6 +60,18 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
     groupStage: false,
     // Falcons Academy White vs Huntsmen (Losers Round 1) is missing a map; official result 3-1.
     scoreOverrides: { SR142: [3, 1] },
+  },
+  '2026 NA Elite Stage 2|NA': {
+    playoffSeries: 14,
+    groupStage: false,
+    // Series numbers aren't in play order here (OMiT Brooklyn's Losers Round 3
+    // is SR358 but its Losers Round 2 is SR359), so rounds come from the
+    // supplied bracket, in its order.
+    layout: {
+      upper: [['SR345', 'SR344', 'SR346', 'SR347'], ['SR351', 'SR350'], ['SR357']],
+      lower: [['SR348', 'SR349'], ['SR359', 'SR356'], ['SR358'], ['SR361']],
+      grandFinal: ['SR363'],
+    },
   },
 };
 
@@ -132,16 +148,7 @@ export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
 
   if (grandFinal.length === 0) complete = false;
 
-  const played = [...upper.flat(), ...lower.flat(), ...grandFinal].sort((a, b) =>
-    a.seriesLabel.localeCompare(b.seriesLabel)
-  );
-  const edges: [string, string][] = [];
-  played.forEach((m, i) => {
-    const next = played
-      .slice(i + 1)
-      .find((later) => m.winner && (later.team1Name === m.winner || later.team2Name === m.winner));
-    if (next) edges.push([m.seriesLabel, next.seriesLabel]);
-  });
+  const edges = bracketEdges(upper, lower, grandFinal);
 
   // Order each round by where its winners go next (working back from the
   // final round), so the connector lines don't cross - same layout as the
@@ -159,6 +166,52 @@ export function buildDoubleElim(matches: MatchListEntry[]): DoubleElimBracket {
   }
 
   return { upper, lower, grandFinal, edges, complete };
+}
+
+/**
+ * [from, to] for the connector lines: each match to the match its winner
+ * played in the next round on the same side, with each side's final feeding
+ * the grand final. Follows the bracket's rounds rather than series numbers,
+ * which aren't always in play order.
+ */
+function bracketEdges(upper: BracketMatch[][], lower: BracketMatch[][], grandFinal: BracketMatch[]): [string, string][] {
+  const has = (m: BracketMatch | undefined, team: string | null) =>
+    !!m && !!team && (m.team1Name === team || m.team2Name === team);
+  const edges: [string, string][] = [];
+  for (const rounds of [upper, lower]) {
+    rounds.forEach((round, r) => {
+      for (const m of round) {
+        const next =
+          r < rounds.length - 1 ? rounds[r + 1].find((n) => has(n, m.winner)) : has(grandFinal[0], m.winner) ? grandFinal[0] : undefined;
+        if (next) edges.push([m.seriesLabel, next.seriesLabel]);
+      }
+    });
+  }
+  if (grandFinal.length > 1 && has(grandFinal[1], grandFinal[0].winner)) {
+    edges.push([grandFinal[0].seriesLabel, grandFinal[1].seriesLabel]);
+  }
+  return edges;
+}
+
+/** A bracket laid out exactly as given (series labels per round), for events whose series numbers aren't in play order. */
+function buildFromLayout(matches: MatchListEntry[], layout: BracketLayout): DoubleElimBracket {
+  const bySeries = new Map(matches.map((m) => [m.seriesLabel, m]));
+  let complete = true;
+  const pick = (labels: string[]) =>
+    labels.flatMap((label) => {
+      const m = bySeries.get(label);
+      if (!m) {
+        complete = false;
+        return [];
+      }
+      const bm = toBracketMatch(m, []);
+      if (!bm.winner) complete = false;
+      return [bm];
+    });
+  const upper = layout.upper.map(pick);
+  const lower = layout.lower.map(pick);
+  const grandFinal = pick(layout.grandFinal);
+  return { upper, lower, grandFinal, edges: bracketEdges(upper, lower, grandFinal), complete };
 }
 
 /** Splits group-stage series into groups (teams that played each other), in order of each group's first series. */
@@ -239,5 +292,5 @@ export function buildEventBracket(
       }))
     : [];
 
-  return { groups, playoffs: buildDoubleElim(playoffMatches) };
+  return { groups, playoffs: format.layout ? buildFromLayout(ordered, format.layout) : buildDoubleElim(playoffMatches) };
 }
