@@ -1728,6 +1728,10 @@ th.sortable:hover {
 }
 
 @media (min-width: 641px) {
+  .stat-card-row.stat-card-row-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .stat-card-row.stat-card-row-4 {
     grid-template-columns: repeat(4, 1fr);
   }
