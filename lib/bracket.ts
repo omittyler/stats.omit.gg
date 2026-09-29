@@ -219,11 +219,11 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 EU Elite Stage 2|EU': {
     playoffSeries: 14,
     groupStage: true,
-    // Our data has For Fun EU beating Orgless in Losers Round 2 (SR352), but
-    // the official result is Orgless 3-1 (Orgless plays on); LR3 and the
-    // Grand Final are also a map short. With SR352 wrong the rounds can't be
-    // inferred, so they're laid out from the supplied bracket.
-    scoreOverrides: { SR352: [1, 3], SR355: [2, 3], SR362: [4, 1] },
+    // SR352 (Losers Round 2) used to read For Fun EU 3-1 Orgless - flipped in
+    // the source, fixed in the database 2026-09-29 (FLIPPED_SERIES in
+    // seed-match-maps.js). LR3 and the Grand Final are a map short. Rounds are
+    // laid out from the supplied bracket.
+    scoreOverrides: { SR355: [2, 3], SR362: [4, 1] },
     layout: {
       upper: [['SR337', 'SR336', 'SR338', 'SR339'], ['SR342', 'SR343'], ['SR354']],
       lower: [['SR340', 'SR341'], ['SR352', 'SR353'], ['SR355'], ['SR360']],
