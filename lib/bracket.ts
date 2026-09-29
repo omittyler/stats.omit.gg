@@ -143,7 +143,7 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
         row('OMiT Brooklyn', 3, 2, 12, 8),
         row('Stallions Bush', 2, 3, 7, 11),
         row('Torn Esports', 1, 4, 6, 13),
-        row('FC Stallions', 0, 5, 7, 15),
+        row('Stallions', 0, 5, 7, 15),
       ],
       [
         row('Huntsmen', 4, 1, 14, 8),
@@ -189,7 +189,7 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
     groupTables: [
       [
         row('Huntsmen', 5, 0, 15, 4),
-        row('FC Stallions', 3, 2, 11, 8),
+        row('Stallions', 3, 2, 11, 8),
         row('For Fun Esports', 3, 2, 12, 10),
         row('Torn Esports', 2, 3, 8, 13),
         row('BitterSweet', 1, 4, 9, 14),
