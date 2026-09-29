@@ -7,6 +7,8 @@ export type BracketMatch = {
   team1Score: number;
   team2Score: number;
   winner: string | null;
+  /** False for results entered from a supplied bracket with no tracked series behind them (no match page to link to). */
+  linked: boolean;
 };
 
 export type DoubleElimBracket = {
@@ -40,11 +42,16 @@ type BracketFormat = {
    * and maps, and the official tiebreakers can't be derived from it.
    */
   groupTables?: GroupStanding[][];
-  /** Series labels per round, copied from the supplied bracket, when series numbers aren't in play order. */
+  /**
+   * Matches per round copied from the supplied bracket, used instead of
+   * working rounds out from series order: a series label, or - for events
+   * with no tracked series - the result itself [team1, score1, team2, score2].
+   */
   layout?: BracketLayout;
 };
 
-type BracketLayout = { upper: string[][]; lower: string[][]; grandFinal: string[] };
+type LayoutEntry = string | [string, number, string, number];
+type BracketLayout = { upper: LayoutEntry[][]; lower: LayoutEntry[][]; grandFinal: LayoutEntry[] };
 
 // Only events the user has supplied an official bracket for get a View
 // Bracket button (per user 2026-09-28) - every other event's tracked
@@ -123,7 +130,40 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       grandFinal: ['SR363'],
     },
   },
-  // Group stage tables supplied 2026-09-29 too.
+  // No series were tracked for Stage 4 at all, so its bracket stage is the
+  // supplied bracket's results as-is (boxes don't link to a match page).
+  '2026 NA Elite Stage 4|NA': {
+    playoffSeries: 0,
+    groupStage: false,
+    layout: {
+      upper: [
+        [
+          ['CABAL Gaming', 3, 'Falcons Academy Green', 2],
+          ['Project Notorious', 1, 'OMiT Brooklyn', 3],
+          ['Huntsmen', 3, 'Stallions Bush', 2],
+          ['Telluride Bush Gaming', 3, 'BitterSweet', 1],
+        ],
+        [
+          ['CABAL Gaming', 3, 'OMiT Brooklyn', 1],
+          ['Huntsmen', 0, 'Telluride Bush Gaming', 3],
+        ],
+        [['CABAL Gaming', 2, 'Telluride Bush Gaming', 3]],
+      ],
+      lower: [
+        [
+          ['Falcons Academy Green', 3, 'Project Notorious', 1],
+          ['Stallions Bush', 1, 'BitterSweet', 3],
+        ],
+        [
+          ['Huntsmen', 3, 'Falcons Academy Green', 0],
+          ['OMiT Brooklyn', 2, 'BitterSweet', 3],
+        ],
+        [['Huntsmen', 3, 'BitterSweet', 1]],
+        [['CABAL Gaming', 3, 'Huntsmen', 2]],
+      ],
+      grandFinal: [['Telluride Bush Gaming', 4, 'CABAL Gaming', 1]],
+    },
+  },  // Group stage tables supplied 2026-09-29 too.
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
     groupStage: true,
@@ -171,6 +211,7 @@ function toBracketMatch(m: MatchListEntry, later: MatchListEntry[]): BracketMatc
     team1Score: m.team1Score,
     team2Score: m.team2Score,
     winner,
+    linked: true,
   };
 }
 
@@ -266,12 +307,19 @@ function bracketEdges(upper: BracketMatch[][], lower: BracketMatch[][], grandFin
   return edges;
 }
 
-/** A bracket laid out exactly as given (series labels per round), for events whose series numbers aren't in play order. */
+/** A bracket laid out exactly as given, for events whose series aren't in play order or weren't tracked at all. */
 function buildFromLayout(matches: MatchListEntry[], layout: BracketLayout): DoubleElimBracket {
   const bySeries = new Map(matches.map((m) => [m.seriesLabel, m]));
   let complete = true;
-  const pick = (labels: string[]) =>
-    labels.flatMap((label) => {
+  let manual = 0;
+  const pick = (entries: LayoutEntry[]) =>
+    entries.flatMap((entry) => {
+      if (typeof entry !== 'string') {
+        const [team1Name, team1Score, team2Name, team2Score] = entry;
+        const winner = team1Score > team2Score ? team1Name : team2Name;
+        return [{ seriesLabel: `manual-${manual++}`, team1Name, team2Name, team1Score, team2Score, winner, linked: false }];
+      }
+      const label = entry;
       const m = bySeries.get(label);
       if (!m) {
         complete = false;
@@ -355,7 +403,11 @@ export function buildEventBracket(
       const override = format.scoreOverrides?.[m.seriesLabel];
       return override ? { ...m, team1Score: override[0], team2Score: override[1] } : m;
     });
-  const layoutSeries = new Set(format.layout ? [...format.layout.upper.flat(), ...format.layout.lower.flat(), ...format.layout.grandFinal] : []);
+  const layoutSeries = new Set(
+    (format.layout ? [...format.layout.upper.flat(), ...format.layout.lower.flat(), ...format.layout.grandFinal] : []).filter(
+      (e): e is string => typeof e === 'string'
+    )
+  );
   const groupMatches = format.layout
     ? ordered.filter((m) => !layoutSeries.has(m.seriesLabel))
     : ordered.slice(0, -format.playoffSeries);

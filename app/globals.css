@@ -1910,6 +1910,11 @@ th.sortable:hover {
   border-color: var(--accent);
 }
 
+/* Results with no match page behind them aren't clickable. */
+div.bracket-match:hover {
+  border-color: var(--border);
+}
+
 .bracket-team {
   display: flex;
   align-items: center;

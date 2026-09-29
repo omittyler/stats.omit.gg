@@ -27,18 +27,22 @@ function MatchCard({ match, logos }: { match: BracketMatch; logos: Logos }) {
     { name: match.team1Name, score: match.team1Score },
     { name: match.team2Name, score: match.team2Score },
   ];
-  return (
+  const teams = rows.map((r) => (
+    <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/teams/${logos[r.name] ?? 'Default.png'}`} alt="" width={18} height={18} />
+      <span className="bracket-team-name">{r.name}</span>
+      <span className="bracket-team-score">{r.score}</span>
+    </div>
+  ));  return (
     <div className="bracket-slot" data-series={match.seriesLabel}>
-      <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
-        {rows.map((r) => (
-          <div key={r.name} className={`bracket-team${match.winner === r.name ? ' bracket-team-win' : ''}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/teams/${logos[r.name] ?? 'Default.png'}`} alt="" width={18} height={18} />
-            <span className="bracket-team-name">{r.name}</span>
-            <span className="bracket-team-score">{r.score}</span>
-          </div>
-        ))}
-      </Link>
+      {match.linked ? (
+        <Link href={`/matches/${encodeURIComponent(match.seriesLabel)}`} className="bracket-match">
+          {teams}
+        </Link>
+      ) : (
+        <div className="bracket-match">{teams}</div>
+      )}
     </div>
   );
 }
@@ -133,7 +137,11 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
             {formatEventNameForEventsList(event.eventName)} Bracket
             {event.region && <span className="region-tag">{event.region}</span>}
           </h1>
-          <p className="note">Click any match for its full map-by-map stats.</p>
+          <p className="note">
+            {playoffs.upper.flat().some((m) => m.linked)
+              ? 'Click any match for its full map-by-map stats.'
+              : 'Results from the official bracket. Map-by-map stats were not tracked for this event.'}
+          </p>
         </div>
       </div>
 
