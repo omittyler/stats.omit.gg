@@ -23,7 +23,7 @@ type ScaleTier = {
  */
 async function getEventPlacements(game: string): Promise<EnrichedPlacement[]> {
   const [placements, { data: scale, error }] = await Promise.all([
-    getEnrichedPlacements(game, { allRows: true }),
+    getEnrichedPlacements(game),
     supabase.from('points_scale').select('event_type, placement_min, placement_max, cdc_points, prize_usd'),
   ]);
   if (error) throw error;
