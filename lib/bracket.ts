@@ -46,7 +46,7 @@ type BracketLayout = { upper: string[][]; lower: string[][]; grandFinal: string[
 // Keyed `${eventName}|${region}`. Champs (screenshots supplied 2026-09-28):
 // 4 GSL groups of 4 (20 series) then an 8-team double-elim bracket stage
 // (14 series); every series was checked against those screenshots. NA Elite
-// Stages 1 and 2 (screenshots supplied 2026-09-29): only the 8-team bracket
+// Stages 1-3 (screenshots supplied 2026-09-29): only the 8-team bracket
 // stage was supplied, so their round-robin group stages aren't shown.
 const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 Champs - Challengers Finals|': {
@@ -73,6 +73,7 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       grandFinal: ['SR363'],
     },
   },
+  '2026 NA Elite Stage 3|NA': { playoffSeries: 14, groupStage: false },
 };
 
 export function hasBracket(event: { eventName: string; region: string }): boolean {
