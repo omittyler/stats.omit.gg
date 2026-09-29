@@ -56,6 +56,11 @@ function Column({ label, children }: { label: string; children: React.ReactNode 
   );
 }
 
+function singleElimLabel(index: number, total: number) {
+  const fromEnd = total - 1 - index;
+  return ['Final', 'Semifinals', 'Quarterfinals'][fromEnd] ?? `Round ${index + 1}`;
+}
+
 function roundLabel(side: 'Winners' | 'Losers', index: number, total: number) {
   return index === total - 1 ? `${side} Final` : `${side} Round ${index + 1}`;
 }
@@ -153,10 +158,33 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
               <GroupCard key={g.name} group={g} logos={logos} />
             ))}
           </div>
-          <h2>Bracket Stage</h2>
+          <h2>{playoffs.singleElim ? 'Playoffs' : 'Bracket Stage'}</h2>
         </>
       )}
 
+      {playoffs.singleElim ? (
+        <div className="card bracket-card">
+          <div className="bracket-grid" style={{ '--bracket-cols': playoffs.upper.length } as React.CSSProperties}>
+            <BracketConnectors edges={playoffs.edges} />
+            {playoffs.upper.map((round, i) => (
+              <div key={`s${i}`} className="bracket-cell" style={{ gridColumn: i + 1, gridRow: 1 }}>
+                <Column label={singleElimLabel(i, playoffs.upper.length)}>
+                  {round.map((m) => (
+                    <MatchCard key={m.seriesLabel} match={m} logos={logos} />
+                  ))}
+                </Column>
+              </div>
+            ))}
+            {playoffs.thirdPlace && (
+              <div className="bracket-cell" style={{ gridColumn: playoffs.upper.length, gridRow: 2 }}>
+                <Column label="3rd Place Match">
+                  <MatchCard match={playoffs.thirdPlace} logos={logos} />
+                </Column>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
       <div className="card bracket-card">
         <div className="bracket-grid" style={{ '--bracket-cols': lowerCols + playoffs.grandFinal.length } as React.CSSProperties}>
           <BracketConnectors edges={playoffs.edges} />
@@ -191,6 +219,7 @@ export default async function EventBracketPage({ params, searchParams }: Props) 
           ))}
         </div>
       </div>
+      )}
     </main>
   );
 }

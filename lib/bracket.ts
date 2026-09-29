@@ -19,6 +19,9 @@ export type DoubleElimBracket = {
   edges: [string, string][];
   /** False when the tracked series don't form a clean double-elimination bracket. */
   complete: boolean;
+  /** Single-elimination playoff (`upper` holds every round, `lower`/`grandFinal` are empty). */
+  singleElim?: boolean;
+  thirdPlace?: BracketMatch;
 };
 
 export type GroupStanding = { teamName: string; seriesWon: number; seriesLost: number; mapsWon: number; mapsLost: number };
@@ -42,6 +45,8 @@ type BracketFormat = {
    * and maps, and the official tiebreakers can't be derived from it.
    */
   groupTables?: GroupStanding[][];
+  /** Group-stage results per group from a supplied bracket, for events with no tracked group series; tables are computed from these. */
+  groupResults?: [string, number, string, number][][];
   /**
    * Matches per round copied from the supplied bracket, used instead of
    * working rounds out from series order: a series label, or - for events
@@ -51,7 +56,14 @@ type BracketFormat = {
 };
 
 type LayoutEntry = string | [string, number, string, number];
-type BracketLayout = { upper: LayoutEntry[][]; lower: LayoutEntry[][]; grandFinal: LayoutEntry[] };
+type BracketLayout = {
+  upper: LayoutEntry[][];
+  lower: LayoutEntry[][];
+  grandFinal: LayoutEntry[];
+  /** Single-elimination playoff: every round goes in `upper`; `lower` and `grandFinal` stay empty. */
+  singleElim?: boolean;
+  thirdPlace?: LayoutEntry;
+};
 
 // Only events the user has supplied an official bracket for get a View
 // Bracket button (per user 2026-09-28) - every other event's tracked
@@ -312,7 +324,59 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       ],
     ],
   },
-  // Group stage tables supplied 2026-09-29 too.
+  // Esports World Cup (exhibition; supplied 2026-09-29): no series tracked.
+  // Two 8-team double-elimination groups (4 advance from each), then a
+  // single-elimination playoff with a 3rd-place match. Screenshot
+  // abbreviations checked against the EWC placings.
+  '2026 Esports World Cup|': {
+    playoffSeries: 0,
+    groupStage: true,
+    groupResults: [
+      [
+        ['FaZe Vegas', 3, 'The Pit EU', 0],
+        ['Toronto KOI', 3, 'Carolina Royal Ravens', 0],
+        ['G2 Minnesota', 3, 'Cloud9 New York', 0],
+        ['Paris Gentle Mates', 3, 'OMiT', 0],
+        ['FaZe Vegas', 3, 'Toronto KOI', 1],
+        ['G2 Minnesota', 3, 'Paris Gentle Mates', 0],
+        ['The Pit EU', 3, 'Carolina Royal Ravens', 2],
+        ['Cloud9 New York', 3, 'OMiT', 1],
+        ['Paris Gentle Mates', 3, 'The Pit EU', 1],
+        ['Toronto KOI', 3, 'Cloud9 New York', 1],
+      ],
+      [
+        ['OpTic Texas', 3, 'Team WaR', 1],
+        ['Los Angeles Thieves', 3, 'Boston Breach', 0],
+        ['Miami Heretics', 3, 'Vancouver Surge', 1],
+        ['Riyadh Falcons', 3, 'Project Notorious', 1],
+        ['OpTic Texas', 2, 'Los Angeles Thieves', 3],
+        ['Miami Heretics', 1, 'Riyadh Falcons', 3],
+        ['Team WaR', 3, 'Boston Breach', 0],
+        ['Vancouver Surge', 1, 'Project Notorious', 3],
+        ['Miami Heretics', 3, 'Team WaR', 0],
+        ['OpTic Texas', 3, 'Project Notorious', 0],
+      ],
+    ],
+    layout: {
+      singleElim: true,
+      upper: [
+        [
+          ['G2 Minnesota', 3, 'Miami Heretics', 4],
+          ['Riyadh Falcons', 4, 'Paris Gentle Mates', 3],
+          ['Los Angeles Thieves', 4, 'Toronto KOI', 0],
+          ['FaZe Vegas', 0, 'OpTic Texas', 4],
+        ],
+        [
+          ['Miami Heretics', 4, 'Riyadh Falcons', 0],
+          ['Los Angeles Thieves', 3, 'OpTic Texas', 4],
+        ],
+        [['Miami Heretics', 3, 'OpTic Texas', 5]],
+      ],
+      lower: [],
+      grandFinal: [],
+      thirdPlace: ['Riyadh Falcons', 3, 'Los Angeles Thieves', 4],
+    },
+  },  // Group stage tables supplied 2026-09-29 too.
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
     groupStage: true,
@@ -481,7 +545,16 @@ function buildFromLayout(matches: MatchListEntry[], layout: BracketLayout): Doub
   const upper = layout.upper.map(pick);
   const lower = layout.lower.map(pick);
   const grandFinal = pick(layout.grandFinal);
-  return { upper, lower, grandFinal, edges: bracketEdges(upper, lower, grandFinal), complete };
+  const thirdPlace = layout.thirdPlace ? pick([layout.thirdPlace])[0] : undefined;
+  return {
+    upper,
+    lower,
+    grandFinal,
+    edges: bracketEdges(upper, lower, grandFinal),
+    complete,
+    singleElim: layout.singleElim,
+    thirdPlace,
+  };
 }
 
 /** Splits group-stage series into groups (teams that played each other), in order of each group's first series. */
@@ -567,7 +640,14 @@ export function buildEventBracket(
     ? []
     : format.groupTables
       ? format.groupTables.map((standings, i) => ({ name: groupName(i), standings }))
-      : splitGroups(groupMatches).map((g, i) => ({ name: groupName(i), standings: groupStandings(g) }));
+      : format.groupResults
+        ? format.groupResults.map((results, i) => ({
+            name: groupName(i),
+            standings: groupStandings(
+              results.map(([team1Name, team1Score, team2Name, team2Score]) => ({ team1Name, team1Score, team2Name, team2Score }) as MatchListEntry)
+            ),
+          }))
+        : splitGroups(groupMatches).map((g, i) => ({ name: groupName(i), standings: groupStandings(g) }));
 
   return { groups, playoffs: format.layout ? buildFromLayout(ordered, format.layout) : buildDoubleElim(playoffMatches) };
 }
