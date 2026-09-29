@@ -34,6 +34,8 @@ type BracketFormat = {
   groupStage: boolean;
   /** Official series scores (team1, team2) for series whose map data is missing or incomplete, from the supplied bracket. */
   scoreOverrides?: Record<string, [number, number]>;
+  /** Official finishing order per group (our team names), from supplied group tables - the official tiebreakers can't be derived from our data. */
+  groupOrder?: string[][];
   /** Series labels per round, copied from the supplied bracket, when series numbers aren't in play order. */
   layout?: BracketLayout;
 };
@@ -73,7 +75,15 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       grandFinal: ['SR363'],
     },
   },
-  '2026 NA Elite Stage 3|NA': { playoffSeries: 14, groupStage: false },
+  // Group stage tables supplied 2026-09-29 too.
+  '2026 NA Elite Stage 3|NA': {
+    playoffSeries: 14,
+    groupStage: true,
+    groupOrder: [
+      ['Huntsmen', 'FC Stallions', 'For Fun Esports', 'Torn Esports', 'BitterSweet', 'Team Orchid'],
+      ['Project Notorious', 'FaZe Falcons', 'OMiT Brooklyn', 'CABAL Gaming', 'Telluride Bush Gaming', 'Out The Mud'],
+    ],
+  },
 };
 
 export function hasBracket(event: { eventName: string; region: string }): boolean {
@@ -269,6 +279,14 @@ function groupStandings(matches: MatchListEntry[]): GroupStanding[] {
   );
 }
 
+/** Re-sorts a group's table into the official order when one was supplied (matched by the group containing those teams). */
+function applyOrder(standings: GroupStanding[], groupOrder?: string[][]): GroupStanding[] {
+  const order = groupOrder?.find((o) => standings.some((s) => o.includes(s.teamName)));
+  if (!order) return standings;
+  const rank = (s: GroupStanding) => (order.includes(s.teamName) ? order.indexOf(s.teamName) : order.length);
+  return [...standings].sort((a, b) => rank(a) - rank(b));
+}
+
 /** null when the event has no supplied bracket (see SUPPLIED_BRACKETS). */
 export function buildEventBracket(
   event: { eventName: string; region: string },
@@ -289,7 +307,7 @@ export function buildEventBracket(
   const groups = format.groupStage
     ? splitGroups(groupMatches).map((g, i) => ({
         name: `Group ${String.fromCharCode(65 + i)}`,
-        standings: groupStandings(g),
+        standings: applyOrder(groupStandings(g), format.groupOrder),
       }))
     : [];
 
