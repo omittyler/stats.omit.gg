@@ -182,7 +182,29 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
       ],
       grandFinal: [['Telluride Bush Gaming', 4, 'CABAL Gaming', 1]],
     },
-  },  // Group stage tables supplied 2026-09-29 too.
+  },  '2026 EU Elite Stage 1|EU': {
+    playoffSeries: 14,
+    groupStage: true,
+    groupTables: [
+      [
+        row('Clutch Rayn', 5, 0, 15, 4),
+        row('Dark Horse Esports', 4, 1, 14, 7),
+        row('Treaty 1 Gaming', 3, 2, 10, 9),
+        row('Night Vibes', 2, 3, 9, 11),
+        row('Lewtees Lions', 1, 4, 7, 14),
+        row('Rauzan Esport', 0, 5, 5, 15),
+      ],
+      [
+        row('ROC Esports', 5, 0, 15, 7),
+        row('Synes', 4, 1, 13, 7),
+        row('Project 7', 3, 2, 12, 8),
+        row('Hybrid Nations', 2, 3, 9, 11),
+        row('Light Unlimited', 1, 4, 7, 13),
+        row('Los Lentejas', 0, 5, 5, 15),
+      ],
+    ],
+  },
+  // Group stage tables supplied 2026-09-29 too.
   '2026 NA Elite Stage 3|NA': {
     playoffSeries: 14,
     groupStage: true,
