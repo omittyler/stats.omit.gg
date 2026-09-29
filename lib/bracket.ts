@@ -131,10 +131,29 @@ const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
     },
   },
   // No series were tracked for Stage 4 at all, so its bracket stage is the
-  // supplied bracket's results as-is (boxes don't link to a match page).
+  // supplied bracket's results as-is (boxes don't link to a match page), and
+  // its group tables are the supplied ones.
   '2026 NA Elite Stage 4|NA': {
     playoffSeries: 0,
-    groupStage: false,
+    groupStage: true,
+    groupTables: [
+      [
+        row('CABAL Gaming', 5, 0, 15, 6),
+        row('Telluride Bush Gaming', 4, 1, 14, 8),
+        row('OMiT Brooklyn', 3, 2, 12, 8),
+        row('Stallions Bush', 2, 3, 7, 11),
+        row('Torn Esports', 1, 4, 6, 13),
+        row('FC Stallions', 0, 5, 7, 15),
+      ],
+      [
+        row('Huntsmen', 4, 1, 14, 8),
+        row('Project Notorious', 4, 1, 14, 7),
+        row('BitterSweet', 3, 2, 11, 8),
+        row('Falcons Academy Green', 2, 3, 10, 10),
+        row('OMNiA Gaming', 2, 3, 9, 13),
+        row('OT Nation', 0, 5, 3, 15),
+      ],
+    ],
     layout: {
       upper: [
         [
