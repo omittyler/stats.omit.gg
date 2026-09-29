@@ -30,9 +30,9 @@ export type EventBracket = {
 type BracketFormat = {
   /** Series in the final bracket stage - always the event's last N series. */
   playoffSeries: number;
-  /** Earlier series are a group stage, shown as a series/map W-L table per group. */
-  gslGroups: boolean;
-  /** Official series scores (team1, team2) for series whose map data is missing, from the supplied bracket. */
+  /** Show the earlier series as a group stage (a series/map W-L table per group). */
+  groupStage: boolean;
+  /** Official series scores (team1, team2) for series whose map data is missing or incomplete, from the supplied bracket. */
   scoreOverrides?: Record<string, [number, number]>;
 };
 
@@ -41,13 +41,21 @@ type BracketFormat = {
 // matches are partial or don't line up, so a drawn bracket would be a guess.
 // Keyed `${eventName}|${region}`. Champs (screenshots supplied 2026-09-28):
 // 4 GSL groups of 4 (20 series) then an 8-team double-elim bracket stage
-// (14 series); every series was checked against those screenshots.
+// (14 series); every series was checked against those screenshots. NA Elite
+// Stage 1 (screenshot supplied 2026-09-29): only the 8-team bracket stage was
+// supplied, so its round-robin group stage isn't shown.
 const SUPPLIED_BRACKETS: Record<string, BracketFormat> = {
   '2026 Champs - Challengers Finals|': {
     playoffSeries: 14,
-    gslGroups: true,
+    groupStage: true,
     // Decimate Gaming vs Treaty 1 Gaming (Group C losers' match) has no map data.
     scoreOverrides: { SR742: [0, 3] },
+  },
+  '2026 NA Elite Stage 1|NA': {
+    playoffSeries: 14,
+    groupStage: false,
+    // Falcons Academy White vs Huntsmen (Losers Round 1) is missing a map; official result 3-1.
+    scoreOverrides: { SR142: [3, 1] },
   },
 };
 
@@ -224,7 +232,7 @@ export function buildEventBracket(
   const groupMatches = ordered.slice(0, -format.playoffSeries);
   const playoffMatches = ordered.slice(-format.playoffSeries);
 
-  const groups = format.gslGroups
+  const groups = format.groupStage
     ? splitGroups(groupMatches).map((g, i) => ({
         name: `Group ${String.fromCharCode(65 + i)}`,
         standings: groupStandings(g),
