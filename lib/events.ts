@@ -2,6 +2,7 @@ import { getEnrichedPlacements, type EnrichedPlacement } from './standings';
 import { getAllMatches, type MatchListEntry } from './matches';
 import { CURRENT_GAME, gameSlug, type GameValue } from './season';
 import { supabase } from './supabase';
+import { cached } from './cache';
 
 type ScaleTier = {
   event_type: string;
@@ -97,7 +98,7 @@ function summarize(placements: EnrichedPlacement[], matchCount: number): EventSu
  * placements so it inherits getEnrichedPlacements' AP/LATAM and pickup-team
  * scoping), newest first. Powers the /events list page.
  */
-export async function getEvents(game: string = CURRENT_GAME): Promise<EventSummary[]> {
+async function getEventsUncached(game: string = CURRENT_GAME): Promise<EventSummary[]> {
   const [placements, matches] = await Promise.all([getEventPlacements(game), getAllMatches()]);
 
   const matchCounts = new Map<string, number>();
@@ -125,7 +126,7 @@ export async function getEvents(game: string = CURRENT_GAME): Promise<EventSumma
 }
 
 /** One event's full results (every placement) plus its matches, for /events/[name]. */
-export async function getEventDetail(
+async function getEventDetailUncached(
   eventName: string,
   region: string,
   game: string = CURRENT_GAME
@@ -147,3 +148,5 @@ export async function getEventDetail(
     matches: eventMatches,
   };
 }
+export const getEvents = cached('getEvents', getEventsUncached);
+export const getEventDetail = cached('getEventDetail', getEventDetailUncached);

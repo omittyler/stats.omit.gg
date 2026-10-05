@@ -10,7 +10,7 @@ export default async function Image({ params }: { params: Promise<{ name: string
   const playerName = decodeURIComponent(rawName);
 
   const placements = await getEnrichedPlacements();
-  const { playerStandings } = await computeStandings(placements);
+  const { playerStandings } = await computeStandings();
   const standing = playerStandings.find((p) => p.name === playerName);
   const details = await getPlayerDetails(playerName);
   const logos = await getTeamLogos();

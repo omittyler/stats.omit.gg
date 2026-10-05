@@ -52,7 +52,7 @@ export default async function TeamPage({
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   const placements = await getEnrichedPlacements(game);
-  const { teamStandings, playerStandings } = await computeStandings(placements, game);
+  const { teamStandings, playerStandings } = await computeStandings(undefined, game);
   const standing = teamStandings.find((t) => t.name === teamName);
 
   const history = placements
