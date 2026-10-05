@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { cached } from './cache';
 import { CURRENT_GAME } from './season';
 
 // Major/Open and Champs are LAN events; Cup and Elite are online matches -
@@ -89,7 +90,7 @@ type RecentMatchRow = {
  * - series labels are zero-padded (e.g. "SR001"/"SR573") so a plain
  * descending text sort on series_label already matches numeric order.
  */
-export async function getRecentMatches(limit: number): Promise<RecentMatch[]> {
+async function getRecentMatchesUncached(limit: number): Promise<RecentMatch[]> {
   const { data, error } = await supabase
     .from('matches')
     .select('series_label, team1_name, team2_name, events(name, event_date), match_maps(team1_score, team2_score)')
@@ -134,7 +135,7 @@ type MatchListRow = {
  * `eventName + region` together, same pattern already used in
  * PlayerEventsTable.tsx's `${eventName}|${region}` stats lookup key.
  */
-export async function getAllMatches(): Promise<MatchListEntry[]> {
+async function getAllMatchesUncached(): Promise<MatchListEntry[]> {
   const { data, error } = await supabase
     .from('matches')
     .select(
@@ -185,7 +186,7 @@ type TeamMatchRow = {
  * within an event (series labels are already sequential, see
  * scripts/seed/lib/matchSeriesRanges.js).
  */
-export async function getTeamMatches(teamName: string, game: string = CURRENT_GAME): Promise<TeamMatchSummary[]> {
+async function getTeamMatchesUncached(teamName: string, game: string = CURRENT_GAME): Promise<TeamMatchSummary[]> {
   const { data, error } = await supabase
     .from('matches')
     .select('series_label, team1_name, team2_name, events(name, event_date, game), match_maps(team1_score, team2_score)')
@@ -243,7 +244,7 @@ type PlayerMatchMapRow = {
  * count without a second query. Same newest-event-then-highest-series
  * ordering convention as getRecentMatches.
  */
-export async function getPlayerMatches(
+async function getPlayerMatchesUncached(
   playerName: string,
   limit: number,
   game: string = CURRENT_GAME
@@ -368,7 +369,7 @@ type MatchDetailRow = {
 };
 
 /** Full detail for one match (series), map-by-map with every player's stats per map. */
-export async function getMatchDetail(seriesLabel: string): Promise<MatchDetail | null> {
+async function getMatchDetailUncached(seriesLabel: string): Promise<MatchDetail | null> {
   const { data, error } = await supabase
     .from('matches')
     .select(
@@ -421,3 +422,8 @@ export async function getMatchDetail(seriesLabel: string): Promise<MatchDetail |
       })),
   };
 }
+export const getRecentMatches = cached('getRecentMatches', getRecentMatchesUncached);
+export const getAllMatches = cached('getAllMatches', getAllMatchesUncached);
+export const getTeamMatches = cached('getTeamMatches', getTeamMatchesUncached);
+export const getPlayerMatches = cached('getPlayerMatches', getPlayerMatchesUncached);
+export const getMatchDetail = cached('getMatchDetail', getMatchDetailUncached);

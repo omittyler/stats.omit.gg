@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
 import { STAT_FIELDS } from './statFields';
+import { cached } from './cache';
 import { computeStandings, type EventStatsSummary, type RankedStat } from './standings';
 import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
 
@@ -161,7 +162,7 @@ export type StatCategorySlug = keyof typeof STAT_CATEGORIES;
  * Pass `limit` to cap each list (e.g. 5 for the home page); omit it for the
  * full leaderboard pages.
  */
-export async function getStatLeaderboards(limit?: number) {
+async function getStatLeaderboardsUncached(limit?: number) {
   const canonicalNames = buildCanonicalNameMap();
   const rows = FULL_SEASON_FILES.flatMap((file) =>
     parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
@@ -270,6 +271,14 @@ export type PlayerQuickStats = {
  * different K/D number for the same player.
  */
 export async function getPlayerQuickStats(): Promise<Map<string, PlayerQuickStats>> {
+  return new Map(await cachedPlayerQuickStats());
+}
+
+const cachedPlayerQuickStats = cached('getPlayerQuickStats', async () => [
+  ...(await getPlayerQuickStatsUncached()).entries(),
+]);
+
+async function getPlayerQuickStatsUncached(): Promise<Map<string, PlayerQuickStats>> {
   const canonicalNames = buildCanonicalNameMap();
   const rows = FULL_SEASON_FILES.flatMap((file) =>
     parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
@@ -315,7 +324,7 @@ const SEASON_RANKED_FIELDS = [
  * same <StatDetail> component, just ranked against every OTHER player in
  * the Full Season data instead of one event's field.
  */
-export async function getPlayerSeasonStats(playerName: string): Promise<EventStatsSummary | null> {
+async function getPlayerSeasonStatsUncached(playerName: string): Promise<EventStatsSummary | null> {
   const canonicalNames = buildCanonicalNameMap();
   const rows = FULL_SEASON_FILES.flatMap((file) =>
     parseFullSeasonFile(path.join('data/incoming/bo7_stats', file))
@@ -366,3 +375,5 @@ export async function getPlayerSeasonStats(playerName: string): Promise<EventSta
     ovlDmgPer10: rankOf('ovl_dmg_per_10'),
   };
 }
+export const getStatLeaderboards = cached('getStatLeaderboards', getStatLeaderboardsUncached);
+export const getPlayerSeasonStats = cached('getPlayerSeasonStats', getPlayerSeasonStatsUncached);

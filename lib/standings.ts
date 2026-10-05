@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { supabase } from './supabase';
+import { cached } from './cache';
 import { EXCLUDED_TEAM_NAMES } from './excludedTeams';
 import { OFFICIAL_CDL_TEAMS } from './officialCdlTeams';
 import { CURRENT_GAME } from './season';
@@ -92,7 +93,7 @@ async function selectAll(table: string, columns: string) {
   return { data: rows, error: null };
 }
 
-export async function getEnrichedPlacements(game: string = CURRENT_GAME): Promise<EnrichedPlacement[]> {
+async function getEnrichedPlacementsUncached(game: string = CURRENT_GAME): Promise<EnrichedPlacement[]> {
   const [{ data: placements, error: placementsError }, { data: scale, error: scaleError }] =
     await Promise.all([
       selectAll('event_placements', PLACEMENTS_SELECT),
@@ -266,7 +267,16 @@ function getRosterMoves(): RosterMove[] {
  * game). Defaults to the site's current season (lib/season.ts).
  */
 export async function computeStandings(placements?: EnrichedPlacement[], game: string = CURRENT_GAME) {
-  const rows = placements ?? (await getEnrichedPlacements(game));
+  // Callers that already hold placements get a fresh computation; everyone
+  // else shares one cached result per game (lib/cache.ts).
+  return placements ? standingsFrom(placements) : cachedStandings(game);
+}
+
+const cachedStandings = cached('computeStandings', async (game: string) =>
+  standingsFrom(await getEnrichedPlacements(game))
+);
+
+function standingsFrom(rows: EnrichedPlacement[]) {
 
   // A team's own most recent event date, independent of any one player's
   // roster - used below to catch a player whose personal last event predates
@@ -484,6 +494,16 @@ type FullPlayerEventStatsRow = { player_name: string; events: { name: string; re
 export async function getPlayerEventStatsSummaries(
   playerName: string
 ): Promise<Map<string, EventStatsSummary>> {
+  return new Map(await cachedPlayerEventStatsSummaries(playerName));
+}
+
+const cachedPlayerEventStatsSummaries = cached('getPlayerEventStatsSummaries', async (playerName: string) => [
+  ...(await getPlayerEventStatsSummariesUncached(playerName)).entries(),
+]);
+
+async function getPlayerEventStatsSummariesUncached(
+  playerName: string
+): Promise<Map<string, EventStatsSummary>> {
   // 988 rows today - paged so it doesn't silently truncate once it passes 1,000.
   const { data, error } = await selectAll(
     'player_event_stats',
@@ -636,7 +656,7 @@ export async function getLanResults(
 }
 
 /** Team name -> logo filename, for rendering a small badge next to a team name in a table. */
-export async function getTeamLogos(): Promise<Record<string, string>> {
+async function getTeamLogosUncached(): Promise<Record<string, string>> {
   const { data, error } = await supabase.from('teams').select('name, logo_filename');
   if (error) throw error;
   return Object.fromEntries((data ?? []).map((t) => [t.name, t.logo_filename]));
@@ -662,6 +682,14 @@ export type PlayerDetails = {
  * query.
  */
 export async function getAllPlayerDetails(): Promise<Map<string, PlayerDetails>> {
+  return new Map(await cachedAllPlayerDetails());
+}
+
+const cachedAllPlayerDetails = cached('getAllPlayerDetails', async () => [
+  ...(await getAllPlayerDetailsUncached()).entries(),
+]);
+
+async function getAllPlayerDetailsUncached(): Promise<Map<string, PlayerDetails>> {
   const { data, error } = await supabase
     .from('players')
     .select('gamertag, full_name, origin, birthday, photo_filename, twitter_url, twitch_url, cdl_player');
@@ -695,10 +723,13 @@ export async function getPlayerDetails(playerName: string): Promise<PlayerDetail
  */
 export type SearchIndexPlayer = { name: string; region: string };
 
-export async function getSearchIndex(): Promise<{ teams: string[]; players: SearchIndexPlayer[] }> {
+async function getSearchIndexUncached(): Promise<{ teams: string[]; players: SearchIndexPlayer[] }> {
   const { teamStandings, playerStandings } = await computeStandings();
   return {
     teams: teamStandings.map((t) => t.name),
     players: playerStandings.map((p) => ({ name: p.name, region: p.region })),
   };
 }
+export const getEnrichedPlacements = cached('getEnrichedPlacements', getEnrichedPlacementsUncached);
+export const getTeamLogos = cached('getTeamLogos', getTeamLogosUncached);
+export const getSearchIndex = cached('getSearchIndex', getSearchIndexUncached);
