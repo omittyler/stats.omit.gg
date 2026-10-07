@@ -5,12 +5,14 @@ import SiteSearch from '@/components/SiteSearch';
 import SiteNav from '@/components/SiteNav';
 import RecentMatchesBanner from '@/components/RecentMatchesBanner';
 import LoadingScreen from '@/components/LoadingScreen';
+import LegacyQueryRedirect from '@/components/LegacyQueryRedirect';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata = {
+  metadataBase: new URL('https://stats.omit.gg'),
   title: 'stats.omit.gg',
   description: 'Call of Duty Challengers stats hub',
 };
@@ -22,6 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={inter.variable}>
       <body>
+        <LegacyQueryRedirect />
         <LoadingScreen />
         <header className="site-header">
           <div className="container">

@@ -4,20 +4,13 @@ import CdlTeamsList, { type CdlTeamEntry } from '@/components/CdlTeamsList';
 import { GAMES, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 
-export const dynamic = 'force-dynamic';
-
 export const metadata = {
   title: 'CDL Teams — stats.omit.gg',
   description: 'The 12 official Call of Duty League franchises and their current Challengers-tracked roster.',
 };
 
-export default async function CdlTeamsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: gameSlug } = await searchParams;
-  const game = parseGameSlug(gameSlug);
+export default async function CdlTeamsPage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   const [{ playerStandings }, logos, playerDetails] = await Promise.all([

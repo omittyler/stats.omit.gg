@@ -1,6 +1,6 @@
 import { getEnrichedPlacements, type EnrichedPlacement } from './standings';
 import { getAllMatches, type MatchListEntry } from './matches';
-import { CURRENT_GAME, gameSlug, type GameValue } from './season';
+import { CURRENT_GAME, gameHref, type GameValue } from './season';
 import { supabase } from './supabase';
 import { cached } from './cache';
 
@@ -64,13 +64,12 @@ function eventKey(eventName: string, region: string) {
 
 /** Link to an event's detail page - region only when set (Majors/Champs have none). */
 export function eventHref(event: { eventName: string; region: string }, game: GameValue) {
-  const params = new URLSearchParams({ game: gameSlug(game) });
-  if (event.region) params.set('region', event.region);
-  return `/events/${encodeURIComponent(event.eventName)}?${params.toString()}`;
+  const region = event.region ? `/${encodeURIComponent(event.region)}` : '';
+  return gameHref(`/events/${encodeURIComponent(event.eventName)}${region}`, game);
 }
 
 export function bracketHref(event: { eventName: string; region: string }, game: GameValue) {
-  return eventHref(event, game).replace('?', '/bracket?');
+  return `${eventHref(event, game)}/bracket`;
 }
 
 function summarize(placements: EnrichedPlacement[], matchCount: number): EventSummary {

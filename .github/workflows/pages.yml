@@ -1,0 +1,58 @@
+# Builds the whole site as static files (`npm run build` -> out/) and
+# publishes it to GitHub Pages, which serves stats.omit.gg (PROJECT.md §10).
+#
+# - Every push to main rebuilds and republishes.
+# - After re-seeding Supabase, run this by hand (Actions tab -> "Build and
+#   publish site" -> Run workflow) so the site picks up the new data - pages
+#   are prebuilt, so nothing changes on the live site until a rebuild.
+# - Pull requests only build (no publish), as a check that the site still builds.
+#
+# Needs repo secrets NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+# (the same public anon key the site always used), and Settings -> Pages ->
+# Source set to "GitHub Actions".
+name: Build and publish site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('build-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

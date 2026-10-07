@@ -1,13 +1,18 @@
 import { ImageResponse } from 'next/og';
 import { getEnrichedPlacements, computeStandings, getPlayerDetails, getTeamLogos } from '@/lib/standings';
 import { publicImageDataUri } from '@/lib/ogImage';
+import { playerParams } from '@/lib/staticParams';
+import { decodeParam } from '@/lib/season';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const generateStaticParams = playerParams;
 
 export default async function Image({ params }: { params: Promise<{ name: string }> }) {
   const { name: rawName } = await params;
-  const playerName = decodeURIComponent(rawName);
+  const playerName = decodeParam(rawName);
 
   const placements = await getEnrichedPlacements();
   const { playerStandings } = await computeStandings();

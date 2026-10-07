@@ -4,17 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { GAMES, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 
-export const dynamic = 'force-dynamic';
-
 const TOP_N = 16;
 
-export default async function TeamsDirectoryPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: gameSlug } = await searchParams;
-  const game = parseGameSlug(gameSlug);
+export default async function TeamsDirectoryPage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   const { teamStandings } = await computeStandings(undefined, game);

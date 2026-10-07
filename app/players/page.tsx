@@ -5,17 +5,8 @@ import { GAMES, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 import PlayersTable from '@/components/PlayersTable';
 
-// See app/standings/page.tsx - same reason: avoid Next.js caching this fetch
-// and showing stale numbers after the underlying data changes.
-export const dynamic = 'force-dynamic';
-
-export default async function PlayersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: gameSlug } = await searchParams;
-  const game = parseGameSlug(gameSlug);
+export default async function PlayersPage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   // getPlayerQuickStats (K/D, Slayer Rating, etc.) is sourced from the

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { PREFIXED_GAME_SLUGS } from '@/lib/season';
 
 const LINKS = [
   { href: '/', label: 'Home' },
@@ -14,8 +15,19 @@ const LINKS = [
   { href: '/cdl-teams', label: 'CDL Teams' },
 ];
 
+function stripGamePrefix(path: string) {
+  for (const slug of PREFIXED_GAME_SLUGS) {
+    if (path === `/${slug}`) return '/';
+    if (path.startsWith(`/${slug}/`)) return path.slice(slug.length + 1);
+  }
+  return path;
+}
+
 export default function SiteNav() {
-  const pathname = usePathname();
+  // Non-current games live under a `/<slug>` prefix (lib/season.ts gameHref)
+  // and trailingSlash adds a final `/` - strip both so `/mw4/standings/`
+  // still highlights Standings.
+  const pathname = stripGamePrefix(usePathname().replace(/(.)\/$/, '$1'));
   const [open, setOpen] = useState(false);
 
   return (

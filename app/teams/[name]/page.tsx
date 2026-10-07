@@ -6,10 +6,12 @@ import { FlagIcon } from '@/components/FlagIcon';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
 import { getTeamMatches, getEventLogo } from '@/lib/matches';
-import { GAMES, parseGameSlug } from '@/lib/season';
+import { GAMES, decodeParam, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
+import { teamParams } from '@/lib/staticParams';
 
-export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+export const generateStaticParams = teamParams;
 
 function formatPlacement(min: number, max: number) {
   return min === max ? `${min}` : `${min}-${max}`;
@@ -21,14 +23,12 @@ function formatPrize(prizeUsd: number) {
 
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
-  params: Promise<{ name: string }>;
-  searchParams: Promise<{ game?: string }>;
+  params: Promise<{ game?: string; name: string }>;
 }) {
-  const { name: rawName } = await params;
-  const teamName = decodeURIComponent(rawName);
-  const game = parseGameSlug((await searchParams).game);
+  const { game: gameSlug, name: rawName } = await params;
+  const teamName = decodeParam(rawName);
+  const game = parseGameSlug(gameSlug);
   const { teamStandings } = await computeStandings(undefined, game);
   const standing = teamStandings.find((t) => t.name === teamName);
   if (!standing) return { title: `${teamName} — stats.omit.gg` };
@@ -40,14 +40,11 @@ export async function generateMetadata({
 
 export default async function TeamPage({
   params,
-  searchParams,
 }: {
-  params: Promise<{ name: string }>;
-  searchParams: Promise<{ game?: string }>;
+  params: Promise<{ game?: string; name: string }>;
 }) {
-  const { name: rawName } = await params;
-  const teamName = decodeURIComponent(rawName);
-  const { game: gameSlug } = await searchParams;
+  const { game: gameSlug, name: rawName } = await params;
+  const teamName = decodeParam(rawName);
   const game = parseGameSlug(gameSlug);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
@@ -64,7 +61,7 @@ export default async function TeamPage({
   // lookup - otherwise someone navigating straight to an excluded team's URL
   // would still find a DB row and see a page with an empty roster/events
   // instead of "not found". A team with no history for THIS game (e.g. a BO7
-  // team viewed with ?game=mw4) isn't necessarily nonexistent though - only
+  // team viewed under /mw4) isn't necessarily nonexistent though - only
   // truly missing from every game gets the "not found" treatment; otherwise
   // the name/logo hero still renders (it's the same identity either way,
   // see below) with a placeholder in place of the season content.

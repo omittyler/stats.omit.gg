@@ -3,18 +3,8 @@ import { GAMES, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 import StandingsTable from '@/components/StandingsTable';
 
-// Standings change whenever placings.csv/the DB changes (re-seeds, corrections).
-// Without this, Next.js caches the underlying Supabase fetch and can keep
-// showing stale numbers after a fix, even on a hard refresh.
-export const dynamic = 'force-dynamic';
-
-export default async function StandingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: gameSlug } = await searchParams;
-  const game = parseGameSlug(gameSlug);
+export default async function StandingsPage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   const [{ teamStandings }, logos] = await Promise.all([computeStandings(undefined, game), getTeamLogos()]);
