@@ -11,8 +11,6 @@ import { FlagIcon } from '@/components/FlagIcon';
 import { GAMES, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 
-export const dynamic = 'force-dynamic';
-
 // Home-page-only shorthand - the full leaderboard page (app/leaderboards/[category]/page.tsx)
 // shares the same STAT_CATEGORIES.title and keeps the full "Search & Destroy" name there,
 // so this abbreviates just for the compact Top 5 card heading rather than changing the shared title.
@@ -58,13 +56,8 @@ function StatBox({
   );
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: gameSlug } = await searchParams;
-  const game = parseGameSlug(gameSlug);
+export default async function HomePage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   // getStatLeaderboards' "Top 5" section is deliberately NOT scoped to

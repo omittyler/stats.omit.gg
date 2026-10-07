@@ -2,8 +2,6 @@ import { getAllMatches } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
 import MatchesList from '@/components/MatchesList';
 
-export const dynamic = 'force-dynamic';
-
 export const metadata = {
   title: 'Matches — stats.omit.gg',
   description: 'Every Call of Duty Challengers match, most recent first.',

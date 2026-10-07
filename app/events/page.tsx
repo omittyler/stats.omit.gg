@@ -6,8 +6,6 @@ import { formatEventNameForEventsList, formatFullDate, formatPlacementOrdinal, f
 import { GAMES, parseGameSlug, type GameValue } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
 
-export const dynamic = 'force-dynamic';
-
 export const metadata = {
   title: 'Events — stats.omit.gg',
   description: 'Every Call of Duty Challengers event this season, with results.',
@@ -67,13 +65,8 @@ function EventCard({ event, game }: { event: EventSummary; game: GameValue }) {
   );
 }
 
-export default async function EventsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string }>;
-}) {
-  const { game: slug } = await searchParams;
-  const game = parseGameSlug(slug);
+export default async function EventsPage({ params }: { params: Promise<{ game?: string }> }) {
+  const game = parseGameSlug((await params).game);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
   const events = await getEvents(game);

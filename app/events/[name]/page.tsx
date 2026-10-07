@@ -4,18 +4,26 @@ import { hasBracket } from '@/lib/bracket';
 import { getEventLogo } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
 import { formatEventNameForEventsList, formatFullDate, formatPlacementOrdinal, formatUsd } from '@/lib/format';
-import { parseGameSlug } from '@/lib/season';
+import { decodeParam, gameHref, parseGameSlug } from '@/lib/season';
+import { eventParams, type ParentParams } from '@/lib/staticParams';
 
-export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
 
+export function generateStaticParams(parent: ParentParams) {
+  return eventParams(parent, { withRegion: false });
+}
+
+// Also served at /events/[name]/[region] (Cup/Elite events share a name
+// across regions) and under /[game] for non-current games - those route
+// files re-export this page.
 type Props = {
-  params: Promise<{ name: string }>;
-  searchParams: Promise<{ game?: string; region?: string }>;
+  params: Promise<{ game?: string; name: string; region?: string }>;
 };
 
-export async function generateMetadata({ params, searchParams }: Props) {
-  const eventName = decodeURIComponent((await params).name);
-  const { region } = await searchParams;
+export async function generateMetadata({ params }: Props) {
+  const { name, region: rawRegion } = await params;
+  const eventName = decodeParam(name);
+  const region = rawRegion ? decodeParam(rawRegion) : '';
   const label = formatEventNameForEventsList(eventName);
   return {
     title: `${label}${region ? ` ${region}` : ''} — stats.omit.gg`,
@@ -33,9 +41,10 @@ function TeamLink({ name, logo }: { name: string; logo: string }) {
   );
 }
 
-export default async function EventPage({ params, searchParams }: Props) {
-  const eventName = decodeURIComponent((await params).name);
-  const { game: slug, region = '' } = await searchParams;
+export default async function EventPage({ params }: Props) {
+  const { game: slug, name, region: rawRegion } = await params;
+  const eventName = decodeParam(name);
+  const region = rawRegion ? decodeParam(rawRegion) : '';
   const game = parseGameSlug(slug);
 
   const [event, logos] = await Promise.all([getEventDetail(eventName, region, game), getTeamLogos()]);
@@ -44,7 +53,7 @@ export default async function EventPage({ params, searchParams }: Props) {
     return (
       <main className="container">
         <p>Event not found.</p>
-        <Link href="/events">&larr; All events</Link>
+        <Link href={gameHref('/events', game)}>&larr; All events</Link>
       </main>
     );
   }
@@ -58,7 +67,7 @@ export default async function EventPage({ params, searchParams }: Props) {
   return (
     <main className="container container-wide">
       <p>
-        <Link href={slug ? `/events?game=${encodeURIComponent(slug)}` : '/events'}>&larr; All events</Link>
+        <Link href={gameHref('/events', game)}>&larr; All events</Link>
       </p>
       <div className="page-hero event-hero">
         {eventLogo && (

@@ -2,13 +2,18 @@ import { ImageResponse } from 'next/og';
 import { computeStandings } from '@/lib/standings';
 import { supabase } from '@/lib/supabase';
 import { publicImageDataUri } from '@/lib/ogImage';
+import { teamParams } from '@/lib/staticParams';
+import { decodeParam } from '@/lib/season';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const generateStaticParams = teamParams;
 
 export default async function Image({ params }: { params: Promise<{ name: string }> }) {
   const { name: rawName } = await params;
-  const teamName = decodeURIComponent(rawName);
+  const teamName = decodeParam(rawName);
 
   const { teamStandings } = await computeStandings();
   const standing = teamStandings.find((t) => t.name === teamName);

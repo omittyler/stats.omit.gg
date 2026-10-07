@@ -13,21 +13,21 @@ import PlayerStatsEventsTabs from '@/components/PlayerStatsEventsTabs';
 import { TeamBadge } from '@/components/TeamBadge';
 import { TrendChart } from '@/components/TrendChart';
 import { OFFICIAL_CDL_TEAMS } from '@/lib/officialCdlTeams';
-import { GAMES, parseGameSlug } from '@/lib/season';
+import { GAMES, decodeParam, parseGameSlug } from '@/lib/season';
 import { GameFilterLinks } from '@/components/GameFilterLinks';
+import { playerParams } from '@/lib/staticParams';
 
-export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+export const generateStaticParams = playerParams;
 
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
-  params: Promise<{ name: string }>;
-  searchParams: Promise<{ game?: string }>;
+  params: Promise<{ game?: string; name: string }>;
 }) {
-  const { name: rawName } = await params;
-  const playerName = decodeURIComponent(rawName);
-  const game = parseGameSlug((await searchParams).game);
+  const { game: gameSlug, name: rawName } = await params;
+  const playerName = decodeParam(rawName);
+  const game = parseGameSlug(gameSlug);
   const { playerStandings } = await computeStandings(undefined, game);
   const standing = playerStandings.find((p) => p.name === playerName);
   if (!standing) return { title: `${playerName} — stats.omit.gg` };
@@ -39,14 +39,11 @@ export async function generateMetadata({
 
 export default async function PlayerPage({
   params,
-  searchParams,
 }: {
-  params: Promise<{ name: string }>;
-  searchParams: Promise<{ game?: string }>;
+  params: Promise<{ game?: string; name: string }>;
 }) {
-  const { name: rawName } = await params;
-  const playerName = decodeURIComponent(rawName);
-  const { game: gameSlug } = await searchParams;
+  const { game: gameSlug, name: rawName } = await params;
+  const playerName = decodeParam(rawName);
   const game = parseGameSlug(gameSlug);
   const gameInfo = GAMES.find((g) => g.value === game)!;
 
@@ -103,8 +100,8 @@ export default async function PlayerPage({
     .map((v, i) => (v != null ? { label: chronological[i].eventName, value: v, formatted: v.toFixed(2) } : null))
     .filter((p): p is { label: string; value: number; formatted: string } => p !== null);
 
-  // A player with no record for THIS game (e.g. a BO7 player viewed with
-  // ?game=mw4) isn't necessarily nonexistent - their bio/photo/socials
+  // A player with no record for THIS game (e.g. a BO7 player viewed under
+  // /mw4) isn't necessarily nonexistent - their bio/photo/socials
   // (`details`, fetched above) are the same person either way, so the hero
   // still renders below with a placeholder in place of the season content.
   // Only a player missing from EVERY game gets the "not found" treatment.

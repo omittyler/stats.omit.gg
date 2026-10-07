@@ -3,7 +3,11 @@ import { notFound } from 'next/navigation';
 import { getStatLeaderboards, STAT_CATEGORIES, type StatCategorySlug } from '@/lib/statLeaderboards';
 import LeaderboardTable from '@/components/LeaderboardTable';
 
-export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return Object.keys(STAT_CATEGORIES).map((category) => ({ category }));
+}
 
 export default async function LeaderboardPage({
   params,

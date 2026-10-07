@@ -1,20 +1,23 @@
 import Link from 'next/link';
 import { getMatchDetail, getEventLogo, getMapThumbnail } from '@/lib/matches';
 import { getTeamLogos } from '@/lib/standings';
+import { matchParams } from '@/lib/staticParams';
+import { decodeParam } from '@/lib/season';
 import MatchTabs, { type OverviewPlayerRow } from '@/components/MatchTabs';
 
-export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+export const generateStaticParams = matchParams;
 
 export async function generateMetadata({ params }: { params: Promise<{ series: string }> }) {
   const { series } = await params;
-  const match = await getMatchDetail(decodeURIComponent(series));
+  const match = await getMatchDetail(decodeParam(series));
   if (!match) return { title: `Match — stats.omit.gg` };
   return { title: `${match.team1Name} vs ${match.team2Name} — stats.omit.gg` };
 }
 
 export default async function MatchPage({ params }: { params: Promise<{ series: string }> }) {
   const { series } = await params;
-  const match = await getMatchDetail(decodeURIComponent(series));
+  const match = await getMatchDetail(decodeParam(series));
 
   if (!match) {
     return (

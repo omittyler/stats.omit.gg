@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && node scripts/fix-og-images.mjs",
+    "start": "npx serve@14 out",
     "lint": "next lint",
     "seed": "node scripts/seed/index.js"
   },

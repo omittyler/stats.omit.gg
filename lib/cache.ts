@@ -1,12 +1,13 @@
 import { unstable_cache } from 'next/cache';
 
 /**
- * How long (seconds) a cached result is reused before it is rebuilt from
- * Supabase / the data files. Every page reads `?game=` so every page renders
- * on request; without this, each visit re-ran every query, re-parsed the
- * Full Season CSVs and recomputed standings, which used up Vercel's free
- * Fluid Active CPU allowance (4h/month) by 2026-10-05. Data only changes when
- * someone re-seeds, so a few minutes of staleness costs nothing.
+ * Added 2026-10-05 when the site ran on Vercel and rendered every page per
+ * visit (that used up Vercel's free CPU allowance). Since the move to a static
+ * export (PROJECT.md §10) pages are only rendered during `next build`, where
+ * this still matters: a build prerenders thousands of pages, and sharing each
+ * loader's result between them avoids re-running every Supabase query and
+ * re-parsing the Full Season CSVs for each page. The revalidate window is
+ * irrelevant to the exported files - they only change on the next build.
  */
 export const STATS_CACHE_SECONDS = 600;
 
